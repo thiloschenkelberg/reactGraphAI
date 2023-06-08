@@ -3,7 +3,6 @@ import { Routes, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import './App.css';
 
-
 import authService from './services/auth.service';
 import IUser from './types/user.type';
 

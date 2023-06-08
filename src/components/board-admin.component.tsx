@@ -3,21 +3,20 @@ import { useQuery } from "react-query";
 import userService from "../services/user.service";
 
 export default function BoardAdmin() {
-  const { data, error, isLoading } = useQuery("adminBoard", userService.getAdminBoard);
+  const { data, isLoading, error} = useQuery("adminBoard", userService.getAdminBoard);
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (error) {
-    const errorMessage = error.response?.data?.message || error.message || error.toString();
-    return <div>{errorMessage}</div>;
+  if (error instanceof Error) {
+    return <div>An error occurred: {error.message}</div>;
   }
 
   return (
     <div className="container">
       <header className="jumbotron">
-        <h3>{data}</h3>
+        <h3>{data?.toString()}</h3>
       </header>
     </div>
   );
