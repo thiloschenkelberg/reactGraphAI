@@ -3,7 +3,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import './App.css';
 
-import authService from './services/auth.service';
+import client from './client/client';
 import IUser from './types/user.type';
 
 import Login from './components/login.component';
@@ -17,7 +17,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<IUser | undefined>(undefined);
 
   useEffect(() => {
-    const user = authService.getCurrentUser();
+    const user = client.getCurrentUser();
 
     if (user) {
       setCurrentUser(user);
@@ -32,7 +32,7 @@ export default function App() {
   }, []);
 
   const logOut = () => {
-    authService.logout();
+    client.logout();
     setShowAdminBoard(false);
     setCurrentUser(undefined);
   };
