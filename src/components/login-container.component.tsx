@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useMutation } from "react-query";
 
-import AuthService from "../services/auth.service";
+import AuthService from "../client/auth";
 
 interface LoginFormValues {
   username: string;

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "react-query";
-import AuthService from "../services/auth.service";
+import AuthService from "../client/auth";
 import IUser from "../types/user.type";
 
 export default function Profile() {
