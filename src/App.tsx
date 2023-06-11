@@ -17,12 +17,20 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<IUser | undefined>(undefined);
 
   useEffect(() => {
-    const user = client.getCurrentUser();
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await client.getCurrentUser();
 
-    if (user) {
-      setCurrentUser(user);
-      setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+        if (user) {
+          setCurrentUser(user);
+          setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
+        }
+      } catch (err: any) {
+        throw new Error(err.message);
+      }
     }
+
+    fetchCurrentUser();
 
     EventBus.on("logout", logOut);
 
@@ -32,7 +40,7 @@ export default function App() {
   }, []);
 
   const logOut = () => {
-    client.logout();
+    //client.logout();
     setShowAdminBoard(false);
     setCurrentUser(undefined);
   };

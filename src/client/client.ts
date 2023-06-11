@@ -8,16 +8,17 @@ class Client {
   constructor() {
     this.client = axios.create({
       baseURL: API_URL,
-
     });
   }
 
   async signin(username: string, password: string) {
     try {
-      const token = await this.client.post("/users/signin", {
+      const response = await this.client.post("/users/signin", {
         username,
         password
       });
+      const token = response.data.token;
+
       if (token) {
         document.cookie = `token=${token}`
       }
@@ -34,6 +35,15 @@ class Client {
         email,
         password
       });
+      return response.data;
+    } catch (err: any) {
+      throw new Error(err.message);
+    }
+  }
+
+  async getCurrentUser() {
+    try {
+      const response = await this.client.get("/users/current");
       return response.data;
     } catch (err: any) {
       throw new Error(err.message);
