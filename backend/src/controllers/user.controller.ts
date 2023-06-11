@@ -32,7 +32,7 @@ router.post('/api/users/signin', async (req, res) => {
 
   }
   catch (err) {
-    res.status(500).send('Internal Server Error')
+    res.status(500).send('Internal Server Error.')
   }
 
 });
@@ -47,37 +47,24 @@ router.post('/api/users/signup', async (req, res) => {
     }
 
     const existingUser = await UserService.findByUsername( username );
-
-    userService.createUser(credentials);
-    res.status(201).json({
-      status: 201,
-      message: 'User created successfully.'
-    });
-  } catch (err) {
-    if (err.code === 'USERNAME_ALREADY_EXISTS') {
-      res.status(409).json({
-        status: 409,
-        message: 'Username already exists.'
-      });
-    } else if (err.code === 'EMAIL_ALREADY_EXISTS') {
-      res.status(409).json({
-        status: 409,
-        message: 'Email already exists.'
-      });
-    } else {
-      res.status(400).json({
-        status: 400,
-        message: 'Invalid signup request.'
+    if (existingUser) {
+      return res.status(409).json({
+        message: 'Username already exists!'
       });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await UserService.createUser( username, email, hashedPassword);
+    if (newUser) {
+      return res.status(201).json({
+        message: 'User created successfully.'
+      });
+    }
+  } catch (err) {
+    res.status(500).send('Internal Server Error.')
   }
+
 })
-
-router.get
-
-
-
-router.get('/users/')
 
 // Additional API endpoints for updating, deleting users, etc.
 

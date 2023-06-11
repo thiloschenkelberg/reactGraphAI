@@ -14,12 +14,12 @@ class Client {
 
   async signin(username: string, password: string) {
     try {
-      const response = await this.client.post("/users/signin", {
+      const token = await this.client.post("/users/signin", {
         username,
         password
       });
-      if (response.data.accessToken) {
-        localStorage.setItem("user", JSON.stringify(response.data));
+      if (token) {
+        document.cookie = `token=${token}`
       }
       return response.data;
     } catch (err: any) {
