@@ -28,8 +28,7 @@ router.post('/api/users/signin', async (req, res) => {
     }
 
     const token = UserService.generateAccessToken(username);
-    res.json(token);
-
+    return res.json(token);
   }
   catch (err) {
     res.status(500).send('Internal Server Error.')
@@ -75,8 +74,8 @@ router.get('/api/users/current', UserService.authenticateToken, (req, res) => {
       });
     }
 
-    res.status(200).json(currentUser);
-    //
+    return res.status(200).json(currentUser);
+    
   } catch (err) {
     res.status(500).send('Internal Server Error.')
   }

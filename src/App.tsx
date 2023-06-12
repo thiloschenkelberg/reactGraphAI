@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "react-query";
 import { Routes, Route, Link } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
-import './App.css';
+import { userContext } from "./common/userContext";
+import { Toaster } from 'react-hot-toast';
 
-import client from './client/client';
+import client from './client';
 import IUser from './types/user.type';
 
 import Login from './components/login.component';
@@ -12,37 +13,28 @@ import BoardAdmin from './components/board-admin.component';
 
 import EventBus from "./common/EventBus";
 
+import "bootstrap/dist/css/bootstrap.min.css";
+import './App.css';
+
 export default function App() {
   const [showAdminBoard, setShowAdminBoard] = useState(false);
-  const [currentUser, setCurrentUser] = useState<IUser | undefined>(undefined);
+  const { data: currentUser } = useQuery<IUser | undefined>('getCurrentUser', client.getCurrentUser);
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const user = await client.getCurrentUser();
-
-        if (user) {
-          setCurrentUser(user);
-          setShowAdminBoard(user.roles.includes("ROLE_ADMIN"));
-        }
-      } catch (err: any) {
-        throw new Error(err.message);
-      }
+    if (currentUser && currentUser.roles) {
+      setShowAdminBoard(currentUser.roles.includes('ROLE_ADMIN'));
     }
-
-    fetchCurrentUser();
 
     EventBus.on("logout", logOut);
 
     return () => {
       EventBus.remove("logout", logOut);
     };
-  }, []);
+  }, [currentUser]);
 
   const logOut = () => {
     //client.logout();
     setShowAdminBoard(false);
-    setCurrentUser(undefined);
   };
 
   return (
@@ -87,6 +79,7 @@ export default function App() {
           </div>
         )}
       </nav>
+      <userContext.Provider value={currentUser}>
       <div className="container-bg">
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -94,6 +87,17 @@ export default function App() {
           <Route path="/admin" element={<BoardAdmin />} />
         </Routes>
       </div>
+      </userContext.Provider>
+      <Toaster />    
     </div>
+    // <div>
+    //   <userContext.Provider value={currentUser}>
+    //   <nav className="navbar navbar-expand navbar-dark bg-dark">
+
+    //   </nav>
+    //   </userContext.Provider>
+    //   <Toaster />
+
+    // </div>
   );
 };

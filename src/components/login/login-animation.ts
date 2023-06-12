@@ -2,9 +2,11 @@
 	Designed by: SELECTO
 	Original image: https://dribbble.com/shots/5311359-Diprella-Login
 */
+let isAnimationExecuted = false;
 
-export function runLoginAnimation(): void {
-    const switchCtn = document.querySelector("#switch-cnt") as HTMLElement;
+export function runLoginAnimation() {
+  if (isAnimationExecuted) return;
+    const switchCnt = document.querySelector("#switch-cnt") as HTMLElement;
     const switchC1 = document.querySelector("#switch-c1") as HTMLElement;
     const switchC2 = document.querySelector("#switch-c2") as HTMLElement;
     const switchCircle = document.querySelectorAll(".switch__circle") as NodeListOf<HTMLElement>;
@@ -16,12 +18,18 @@ export function runLoginAnimation(): void {
     const getButtons = (e: Event) => e.preventDefault();
   
     const changeForm = (e: Event) => {
-      switchCtn.classList.add("is-gx");
+      switchCnt.classList.add("is-gx");
       setTimeout(function () {
-        switchCtn.classList.remove("is-gx");
+        switchCnt.classList.remove("is-gx");
       }, 1500);
   
-      switchCtn.classList.toggle("is-txr");
+      // if (switchCnt.classList.contains("is-txr")) {
+      //   switchCnt.classList.remove("is-txr")
+      // } else {
+      //   switchCnt.classList.add("is-txr")
+      // }
+      switchCnt.classList.toggle('is-txr');
+      console.log(switchCnt.classList)
       switchCircle[0].classList.toggle("is-txr");
       switchCircle[1].classList.toggle("is-txr");
   
@@ -30,12 +38,25 @@ export function runLoginAnimation(): void {
       aContainer.classList.toggle("is-txl");
       bContainer.classList.toggle("is-txl");
       bContainer.classList.toggle("is-z200");
+
+
     };
   
     const mainF = (e?: Event) => {
-      for (let i = 0; i < allButtons.length; i++) allButtons[i].addEventListener("click", getButtons);
-      for (let i = 0; i < switchBtn.length; i++) switchBtn[i].addEventListener("click", changeForm);
+      for (let i = 0; i < allButtons.length; i++) {
+        allButtons[i].removeEventListener("click", getButtons);
+
+        allButtons[i].addEventListener("click", getButtons);
+      }
+      for (let i = 0; i < switchBtn.length; i++) {
+        switchBtn[i].removeEventListener("click", changeForm);
+
+        switchBtn[i].addEventListener("click", changeForm);
+      }
     };
   
     mainF();
+
+    isAnimationExecuted = true;
+
   }

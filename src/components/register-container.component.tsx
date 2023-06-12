@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useMutation } from "react-query";
+import { toast } from "react-hot-toast";
 
-import AuthService from "../client/auth";
+import client from "../client";
 
 interface RegisterFormValues {
   username: string;
@@ -13,7 +14,11 @@ interface RegisterFormValues {
 
 export default function RegisterContainer() {
   const [message, setMessage] = useState("");
-  const registerMutation = useMutation(register);
+  const registerMutation = useMutation(register, {
+    onSuccess: () => {
+      toast.success('User created successfully!')
+    }
+  });
 
   const validationSchema = Yup.object().shape({
     username: Yup.string()
@@ -51,13 +56,13 @@ export default function RegisterContainer() {
 
   async function register(credentials: RegisterFormValues) {
     try {
-      const response = await AuthService.register(
+      const response = await client.signup(
         credentials.username,
         credentials.email,
         credentials.password
       );
       setMessage(response.data.message);
-      return response.data;
+      console.log('im here')
     } catch (error: any) {
       setMessage(
         (error.response &&

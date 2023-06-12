@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery } from "react-query";
-import userService from "../client/client";
+import userService from "../client";
 
 export default function BoardAdmin() {
   const { data, isLoading, error} = useQuery("adminBoard", userService.getAdminBoard);

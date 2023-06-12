@@ -6,17 +6,15 @@ import { useEffect } from 'react';
 
 export default function Login() {
 	useEffect(() => {
-    runLoginAnimation();
-    return () => {
-    };
+		runLoginAnimation();
   }, []);
 
 	return (
 			<div className="main">
-				<div className="container a-container" id="a-container">
+				<div className="loginContainer a-container" id="a-container">
 					<LoginContainer />	
 				</div>
-				<div className="container b-container" id="b-container">
+				<div className="loginContainer b-container" id="b-container">
 					<RegisterContainer />
 				</div>
 				<div className="switch" id="switch-cnt">

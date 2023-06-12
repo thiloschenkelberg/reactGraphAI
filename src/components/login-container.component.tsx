@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useMutation } from "react-query";
-
-import AuthService from "../client/auth";
+import { toast } from 'react-hot-toast';
+import client from "../client";
 
 interface LoginFormValues {
   username: string;
@@ -15,7 +15,15 @@ export default function LoginContainer() {
   const navigate = useNavigate();
 
   const [message, setMessage] = useState("");
-  const loginMutation = useMutation("login", login);
+  const loginMutation = useMutation("signin", signin, {
+    onSuccess: () => {
+      toast.success('User logged in successfully!');
+      navigate('/profile');
+    },
+    onError: () => {
+      toast.error('User could not be created.');
+    }
+  });
 
   const validationSchema = Yup.object().shape({
     username: Yup.string().required("This field is required!"),
@@ -33,17 +41,21 @@ export default function LoginContainer() {
     },
   });
 
-  async function login(credentials: LoginFormValues) {
+  async function signin(credentials: LoginFormValues) {
     try {
-      const user = await AuthService.login(credentials.username, credentials.password);
-      navigate("/profile");
-      return user; // Return the user object or any other relevant data
+      const response = await client.signin(credentials.username, credentials.password);
+      setMessage(response.data.message);
+      const token = response.data.token;
+      if (token) {
+        document.cookie = `token=${token}`;
+      }
+      //return user; // Return the user object or any other relevant data
     } catch (error: any) {
       setMessage(
         (error.response &&
           error.response.data &&
           error.response.data.message) ||
-          error.message ||
+          error.message || 
           error.toString()
       );
       throw new Error("Registration failed");

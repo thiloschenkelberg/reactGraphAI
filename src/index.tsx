@@ -1,5 +1,6 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+//import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -19,15 +20,29 @@ const queryClient = new QueryClient({
   }),
 });
 
-ReactDOM.render(
+const container = document.getElementById('root');
+// @ts-ignore
+const root = createRoot(container);
+
+root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
       </BrowserRouter>
     </QueryClientProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 );
+
+// ReactDOM.render(
+//   <React.StrictMode>
+//     <QueryClientProvider client={queryClient}>
+//       <BrowserRouter>
+//         <App />
+//       </BrowserRouter>
+//     </QueryClientProvider>
+//   </React.StrictMode>,
+//   document.getElementById('root')
+// );
 
 reportWebVitals();

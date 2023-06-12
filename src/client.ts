@@ -2,6 +2,15 @@ import axios, { AxiosInstance } from 'axios';
 
 const API_URL = 'http://localhost:8080/api';
 
+function getCookie(name: string) {
+  const cookieValue = document.cookie
+    .split('; ')
+    .find(cookie => cookie.startsWith(name))
+    ?.split('=')[1];
+
+  return cookieValue;
+}
+
 class Client {
   private client: AxiosInstance;
 
@@ -16,13 +25,13 @@ class Client {
       const response = await this.client.post("/users/signin", {
         username,
         password
-      });
+      }); // token json
       const token = response.data.token;
 
       if (token) {
         document.cookie = `token=${token}`
       }
-      return response.data;
+      return response.data; 
     } catch (err: any) {
       throw new Error(err.message);
     }
@@ -34,8 +43,8 @@ class Client {
         username,
         email,
         password
-      });
-      return response.data;
+      }); // message json
+      return response.data; 
     } catch (err: any) {
       throw new Error(err.message);
     }
@@ -43,16 +52,26 @@ class Client {
 
   async getCurrentUser() {
     try {
-      const response = await this.client.get("/users/current");
-      return response.data;
+      const token = getCookie('token');
+      const response = await this.client.get("/users/current", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }); // user json
+      return response.data; 
     } catch (err: any) {
-      throw new Error(err.message);
+      //throw new Error(err.message);
     }
   }
 
   async getAdminBoard() {
     try {
-      const response = await this.client.get("/users/adminboard");
+      const token = getCookie('token');
+      const response = await this.client.get("/users/adminboard", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (err: any) {
       throw new Error(err.message);
