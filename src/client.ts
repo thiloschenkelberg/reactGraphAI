@@ -20,27 +20,27 @@ class Client {
     });
   }
 
-  async signin(username: string, password: string) {
+  async login(email: string, password: string) {
     try {
-      const response = await this.client.post("/users/signin", {
-        username,
+      const response = await this.client.post("/users/login", {
+        email,
         password
       }); // token json
-      const token = response.data.token;
+      // const token = response.data.token; // Cookie saved in login component
 
-      if (token) {
-        document.cookie = `token=${token}`
-      }
+      // if (token) {
+      //   document.cookie = `token=${token}`
+      // }
       return response.data; 
     } catch (err: any) {
       throw new Error(err.message);
     }
   }
 
-  async signup(username: string, email: string, password: string) {
+  async register(name: string, email: string, password: string) {
     try {
-      const response = await this.client.post("/users/signup", {
-        username,
+      const response = await this.client.post("/users/register", {
+        name,
         email,
         password
       }); // message json

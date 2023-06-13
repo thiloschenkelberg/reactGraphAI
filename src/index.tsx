@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import toast from 'react-hot-toast'
 import { BrowserRouter } from 'react-router-dom';
 import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
+import { MantineProvider } from '@mantine/core';
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -28,12 +29,15 @@ root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+      <MantineProvider theme={{ colorScheme: 'dark' }} withGlobalStyles withNormalizeCSS>
         <App />
+        </MantineProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>
 );
 
+//########## React 17 ###########
 // ReactDOM.render(
 //   <React.StrictMode>
 //     <QueryClientProvider client={queryClient}>

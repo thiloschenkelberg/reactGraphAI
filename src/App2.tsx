@@ -3,8 +3,6 @@ import { useQuery } from "react-query";
 import { Routes, Route, Link } from "react-router-dom";
 import { userContext } from "./common/userContext";
 import { Toaster } from 'react-hot-toast';
-import { NavbarMinimal } from "./components/navbar.component";
-
 
 import client from './client';
 import IUser from './types/user.type';
@@ -12,7 +10,6 @@ import IUser from './types/user.type';
 import Login from './components/login.component';
 import Profile from './components/profile.component';
 import BoardAdmin from './components/board-admin.component';
-import { AuthenticationForm } from "./components/authentication.component";
 
 import EventBus from "./common/EventBus";
 
@@ -42,23 +39,56 @@ export default function App() {
 
   return (
     <div>
-      <userContext.Provider value={currentUser}>
+      <nav className="navbar navbar-expand navbar-dark bg-dark">
+        <div className="navbar-nav mr-auto">
+          {showAdminBoard && (
+            <li className="nav-item">
+              <Link to={"/admin"} className="nav-link">
+                Admin Board
+              </Link>
+            </li>
+          )}
+          {currentUser && (
+            <li className="nav-item">
+              <Link to={"/user"} className="nav-link">
+                User
+              </Link>
+            </li>
+          )}
+        </div>
         {currentUser ? (
-          <div className='wrap-login'>
-          <NavbarMinimal />
+          <div className="navbar-nav ml-auto">
+            <li className="nav-item">
+              <Link to={"/profile"} className="nav-link">
+                {currentUser.name}
+              </Link>
+            </li>
+            <li className="nav-item">
+              <a href="/login" className="nav-link" onClick={logOut}>
+                LogOut
+              </a>
+            </li>
           </div>
         ) : (
-          <div className="wrap-login">
-          <AuthenticationForm />
+          <div className="navbar-nav ml-auto">
+            <li className="nav-item">
+              <Link to={"/login"} className="nav-link">
+                Login
+              </Link>
+            </li>
           </div>
         )}
-      </userContext.Provider>
-      <Routes>
-          {/* <Route path="/login" element={<AuthenticationForm />} /> */}
+      </nav>
+      <userContext.Provider value={currentUser}>
+      <div className="container-bg">
+        <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<BoardAdmin />} />
-      </Routes>
-      <Toaster />
+        </Routes>
+      </div>
+      </userContext.Provider>
+      <Toaster />    
     </div>
   );
 };

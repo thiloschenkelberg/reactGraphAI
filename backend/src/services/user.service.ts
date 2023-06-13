@@ -7,18 +7,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 class UserService {
-  static findByUsername(username: string): Promise<IUser | undefined> {
+  static findByMail(email: string): Promise<IUser | undefined> {
     // Additional business logic or validation can be performed here
-    return UserRepository.findByUsername(username);
+    return UserRepository.findByMail(email);
   }
 
-  static createUser(username: string, email: string, password: string): Promise<IUser> {
+  static createUser(name: string, email: string, password: string): Promise<IUser> {
     // Additional business logic or validation can be performed here
-    return UserRepository.create(username, email, password);
+    return UserRepository.create(name, email, password);
   }
 
-  static generateAccessToken(username: string) {
-    return jwt.sign(username, process.env.TOKEN_SECRET as string, { expiresIn: '1800s'})
+  static generateAccessToken(email: string) {
+    return jwt.sign(email, process.env.TOKEN_SECRET as string, { expiresIn: '1800s'})
   }
 
   static authenticateToken(req: Request, res: Response, next: NextFunction) {

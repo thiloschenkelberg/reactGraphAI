@@ -56,7 +56,7 @@ export default function RegisterContainer() {
 
   async function register(credentials: RegisterFormValues) {
     try {
-      const response = await client.signup(
+      const response = await client.register(
         credentials.username,
         credentials.email,
         credentials.password

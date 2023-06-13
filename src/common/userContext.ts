@@ -3,7 +3,7 @@ import IUser from "../types/user.type";
 
 const initialUser: IUser = {
   id: -1,
-  username: "",
+  name: "",
   email: "",
   password: ""
 };

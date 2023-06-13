@@ -4,16 +4,16 @@ import UserService from '../services/user.service';
 
 const router = express.Router();
 
-router.post('/api/users/signin', async (req, res) => {
+router.post('/api/users/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const { email, password } = req.body;
+    if (!email || !password) {
       return res.status(400).json({
         message: 'Fields required!'
       });
     }
 
-    const user = await UserService.findByUsername( username );
+    const user = await UserService.findByMail( email );
     if (!user) {
       return res.status(401).json({
         message: 'Invalid credentials'
@@ -27,7 +27,7 @@ router.post('/api/users/signin', async (req, res) => {
       });
     }
 
-    const token = UserService.generateAccessToken(username);
+    const token = UserService.generateAccessToken(email);
     return res.json(token);
   }
   catch (err) {
@@ -36,16 +36,16 @@ router.post('/api/users/signin', async (req, res) => {
 
 });
 
-router.post('/api/users/signup', async (req, res) => {
+router.post('/api/users/register', async (req, res) => {
   try {
-    const { username, email, password} = req.body;
-    if(!username || !email || !password) {
+    const { name, email, password} = req.body;
+    if(!name || !email || !password) {
       return res.status(400).json({
         message: 'Fields required!'
       });
     }
 
-    const existingUser = await UserService.findByUsername( username );
+    const existingUser = await UserService.findByMail( email );
     if (existingUser) {
       return res.status(409).json({
         message: 'Username already exists!'
@@ -53,7 +53,7 @@ router.post('/api/users/signup', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await UserService.createUser( username, email, hashedPassword);
+    const newUser = await UserService.createUser( name, email, hashedPassword);
     if (newUser) {
       return res.status(201).json({
         message: 'User created successfully.'

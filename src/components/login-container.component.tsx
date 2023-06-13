@@ -43,7 +43,7 @@ export default function LoginContainer() {
 
   async function signin(credentials: LoginFormValues) {
     try {
-      const response = await client.signin(credentials.username, credentials.password);
+      const response = await client.login(credentials.username, credentials.password);
       setMessage(response.data.message);
       const token = response.data.token;
       if (token) {
@@ -58,7 +58,7 @@ export default function LoginContainer() {
           error.message || 
           error.toString()
       );
-      throw new Error("Registration failed");
+      throw new Error("Login failed");
     }
   }
 

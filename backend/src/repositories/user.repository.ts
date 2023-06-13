@@ -9,15 +9,15 @@ const db = new sqlite3.Database(':memory:');
 db.run(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
   )
 `);
 
 class UserRepository {
-  static findByUsername(username: string): Promise<IUser | undefined> {
+  static findByMail(email: string): Promise<IUser | undefined> {
     return new Promise((resolve, reject) => {
-      db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+      db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
         if (err) {
           reject(err);
         } else {
@@ -27,13 +27,13 @@ class UserRepository {
     });
   }
 
-  static create(username: string, email: string, password: string): Promise<IUser> {
+  static create(name: string, email: string, password: string): Promise<IUser> {
     return new Promise((resolve, reject) => {
-      db.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, password], function (err) {
+      db.run('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, password], function (err) {
         if (err) {
           reject(err);
         } else {
-          resolve({ id: this.lastID, username, email, password });
+          resolve({ id: this.lastID, name, email, password });
         }
       });
     });
