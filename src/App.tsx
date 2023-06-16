@@ -1,31 +1,37 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "react-query";
-import { Routes, Route, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { userContext } from "./common/userContext";
 import { Toaster } from 'react-hot-toast';
 import { NavbarMinimal } from "./components/navbar.component";
-
-
-import client from './client';
 import IUser from './types/user.type';
 
-import Login from './components/login.component';
+import client from './client';
+import EventBus from "./common/EventBus";
+
+import Home from "./components/home.component";
 import Profile from './components/profile.component';
 import BoardAdmin from './components/board-admin.component';
-import { AuthenticationForm } from "./components/authentication.component";
-
-import EventBus from "./common/EventBus";
+import AuthenticationForm from "./components/authentication.component";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import './App.css';
 
 export default function App() {
+  const navigate = useNavigate();
   const [showAdminBoard, setShowAdminBoard] = useState(false);
   const { data: currentUser } = useQuery<IUser | undefined>('getCurrentUser', client.getCurrentUser);
 
   useEffect(() => {
-    if (currentUser && currentUser.roles) {
-      setShowAdminBoard(currentUser.roles.includes('ROLE_ADMIN'));
+    if (currentUser) {
+      // if (currentUser.roles) {
+      //   setShowAdminBoard(currentUser.roles.includes('ROLE_ADMIN'));
+      // }
+    } else {
+      console.log('user is not')
+      navigate('/login');
     }
 
     EventBus.on("logout", logOut);
@@ -43,22 +49,18 @@ export default function App() {
   return (
     <div>
       <userContext.Provider value={currentUser}>
-        {currentUser ? (
-          <div className='wrap-login'>
-          <NavbarMinimal />
-          </div>
-        ) : (
-          <div className="wrap-login">
-          <AuthenticationForm />
+        {currentUser && (
+          <div>
+            <NavbarMinimal />
           </div>
         )}
+        <Routes>
+          <Route path='/' element={<Home/>} />
+          <Route path='/login' element={<AuthenticationForm/>} />
+          <Route path='/profile' element={<Profile/>} />
+        </Routes>
       </userContext.Provider>
-      <Routes>
-          {/* <Route path="/login" element={<AuthenticationForm />} /> */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<BoardAdmin />} />
-      </Routes>
       <Toaster />
-    </div>
+      </div>
   );
 };

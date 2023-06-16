@@ -1,6 +1,8 @@
-import express from 'express';
+import express from 'express'
 import bcrypt from 'bcrypt';
 import UserService from '../services/user.service';
+import { IGetUserAuthInfoRequest } from '../types/req';
+import { Response } from 'express';
 
 const router = express.Router();
 
@@ -20,6 +22,8 @@ router.post('/api/users/login', async (req, res) => {
       });
     }
 
+
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -28,7 +32,10 @@ router.post('/api/users/login', async (req, res) => {
     }
 
     const token = UserService.generateAccessToken(email);
-    return res.json(token);
+    return res.status(200).json({
+      message: 'Login successful.',
+      token: token,
+    });
   }
   catch (err) {
     res.status(500).send('Internal Server Error.')
@@ -38,6 +45,7 @@ router.post('/api/users/login', async (req, res) => {
 
 router.post('/api/users/register', async (req, res) => {
   try {
+
     const { name, email, password} = req.body;
     if(!name || !email || !password) {
       return res.status(400).json({
@@ -65,7 +73,7 @@ router.post('/api/users/register', async (req, res) => {
 
 })
 
-router.get('/api/users/current', UserService.authenticateToken, (req, res) => {
+router.get('/api/users/current', UserService.authenticateToken, (req: IGetUserAuthInfoRequest, res: Response) => {
   try {
     const currentUser = req.user;
     if (!currentUser) {

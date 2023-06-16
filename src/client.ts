@@ -18,6 +18,17 @@ class Client {
     this.client = axios.create({
       baseURL: API_URL,
     });
+
+    this.getCurrentUser = this.getCurrentUser.bind(this);
+  }
+
+  async test() {
+    try {
+      const response = await this.client.get('/test');
+      return response.data;
+    } catch (err: any) {
+      throw new Error(err.message);
+    }
   }
 
   async login(email: string, password: string) {
@@ -31,7 +42,7 @@ class Client {
       // if (token) {
       //   document.cookie = `token=${token}`
       // }
-      return response.data; 
+      return response; 
     } catch (err: any) {
       throw new Error(err.message);
     }
@@ -53,14 +64,16 @@ class Client {
   async getCurrentUser() {
     try {
       const token = getCookie('token');
+
       const response = await this.client.get("/users/current", {
         headers: {
           Authorization: `Bearer ${token}`
         }
       }); // user json
+      console.log(token)
       return response.data; 
     } catch (err: any) {
-      //throw new Error(err.message);
+      throw new Error(err.message);
     }
   }
 

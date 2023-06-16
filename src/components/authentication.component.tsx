@@ -27,7 +27,7 @@ import client from '../client';
 //     terms: boolean,
 // }
 
-export function AuthenticationForm(props: PaperProps) {
+export default function AuthenticationForm(props: PaperProps) {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
 
@@ -37,16 +37,17 @@ export function AuthenticationForm(props: PaperProps) {
       navigate('/profile');
     },
     onError: () => {
-      toast.error('User could not be created.');
+      toast.error('User could not be logged in!');
     }
   });
 
   const registerMutation = useMutation(register, {
     onSuccess: () => {
       toast.success('User created successfully!')
+      toggle();
     },
     onError: () => {
-      toast.error('User could not be logged in!')
+      toast.error('User could not be created.')
     }
   });
 
@@ -84,11 +85,14 @@ export function AuthenticationForm(props: PaperProps) {
     try {
       const { email, password } = credentials;
       const response = await client.login(email, password);
-      setMessage(response.data.message);
+      //console.log(response.data);
+      //setMessage(response.data.message);
       const token = response.data.token;
+
       if (token) {
         document.cookie = `token=${token}`;
       }
+      return;
     } catch (err: any) {
       setMessage(
         (err.response &&
@@ -105,83 +109,86 @@ export function AuthenticationForm(props: PaperProps) {
     try {
       const { name, email, password } = credentials;
       const response = await client.register(name, email, password);
-      setMessage(response.data.message);
+      return response.data
+      // setMessage(response.data.message);
     } catch (err: any) {
-      setMessage(
-        (err.response &&
-          err.response.data &&
-          err.response.data.message) ||
-          err.message ||
-          err.toString()
-      );
+      // setMessage(
+      //   (err.response &&
+      //     err.response.data &&
+      //     err.response.data.message) ||
+      //     err.message ||
+      //     err.toString()
+      // );
       throw new Error("Registration failed");
     }
   }
 
   return (
-    <Paper radius="md" p="xl" withBorder {...props}>
-      <Text size="lg" weight={500}>
-        Welcome to matGraphAI, {type} with
-      </Text>
+    <div className='wrap-login'>
+      <Paper radius="md" p="xl" withBorder {...props}>
+        <Text size="lg" weight={500}>
+          Welcome to matGraphAI, {type} with
+        </Text>
 
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
-          {type === 'register' && (
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack>
+            {type === 'register' && (
+              <TextInput
+                label="Name"
+                placeholder="Your name"
+                value={form.values.name}
+                onChange={(event) => form.setFieldValue('name', event.currentTarget.value)}
+                radius="md"
+              />
+            )}
+
             <TextInput
-              label="Name"
-              placeholder="Your name"
-              value={form.values.name}
-              onChange={(event) => form.setFieldValue('name', event.currentTarget.value)}
+              required
+              label="Email"
+              placeholder="hello@matGraph.AI"
+              value={form.values.email}
+              onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
+              error={form.errors.email && 'Invalid email'}
               radius="md"
             />
-          )}
 
-          <TextInput
-            required
-            label="Email"
-            placeholder="hello@matGraph.AI"
-            value={form.values.email}
-            onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
-            error={form.errors.email && 'Invalid email'}
-            radius="md"
-          />
-
-          <PasswordInput
-            required
-            label="Password"
-            placeholder="Your password"
-            value={form.values.password}
-            onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
-            error={form.errors.password && 'Password should include at least 6 characters'}
-            radius="md"
-          />
-
-          {type === 'register' && (
-            <Checkbox
-              label="I accept terms and conditions"
-              checked={form.values.terms}
-              onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
+            <PasswordInput
+              required
+              label="Password"
+              placeholder="Your password"
+              value={form.values.password}
+              onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
+              error={form.errors.password && 'Password should include at least 6 characters'}
+              radius="md"
             />
-          )}
-        </Stack>
 
-        <Group position="apart" mt="xl">
-          <Anchor
-            component="button"
-            type="button"
-            color="dimmed"
-            onClick={() => toggle()}
-            size="xs"
-          >
-            {type === 'register'
-              ? 'Already have an account? Login'
-              : "Don't have an account? Register"}
-          </Anchor>
-          <Button type="submit" radius="xl">
-            {upperFirst(type)}
-          </Button>
-        </Group>
-      </form>
-    </Paper>
+            {type === 'register' && (
+              <Checkbox
+                label="I accept terms and conditions"
+                checked={form.values.terms}
+                onChange={(event) => form.setFieldValue('terms', event.currentTarget.checked)}
+              />
+            )}
+          </Stack>
+
+          <Group position="apart" mt="xl">
+            <Anchor
+              component="button"
+              type="button"
+              color="dimmed"
+              onClick={() => toggle()}
+              size="xs"
+            >
+              {type === 'register'
+                ? 'Already have an account? Login'
+                : "Don't have an account? Register"}
+            </Anchor>
+            <Button type="submit" radius="xl">
+              {upperFirst(type)}
+            </Button>
+          </Group>
+        </form>
+      </Paper>
+    </div>
   );
 }

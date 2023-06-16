@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import IUser from '../../../src/types/user.type'
+import IUser from '../types/user.type';
 
 // Create a new SQLite database connection
 const db = new sqlite3.Database(':memory:');
@@ -10,6 +10,7 @@ db.run(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
   )
 `);
