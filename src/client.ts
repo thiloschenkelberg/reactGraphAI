@@ -1,33 +1,33 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios"
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = "http://localhost:8080/api"
 
 function getCookie(name: string) {
   const cookieValue = document.cookie
-    .split('; ')
-    .find(cookie => cookie.startsWith(name))
-    ?.split('=')[1];
+    .split("; ")
+    .find((cookie) => cookie.startsWith(name))
+    ?.split("=")[1]
 
-  return cookieValue;
+  return cookieValue
 }
 
 class Client {
-  private client: AxiosInstance;
+  private client: AxiosInstance
 
   constructor() {
     this.client = axios.create({
       baseURL: API_URL,
-    });
+    })
 
-    this.getCurrentUser = this.getCurrentUser.bind(this);
+    this.getCurrentUser = this.getCurrentUser.bind(this)
   }
 
   async test() {
     try {
-      const response = await this.client.get('/test');
-      return response.data;
+      const response = await this.client.get("/test")
+      return response.data
     } catch (err: any) {
-      throw new Error(err.message);
+      throw new Error(err.message)
     }
   }
 
@@ -35,16 +35,16 @@ class Client {
     try {
       const response = await this.client.post("/users/login", {
         email,
-        password
-      }); // token json
+        password,
+      }) // token json
       // const token = response.data.token; // Cookie saved in login component
 
       // if (token) {
       //   document.cookie = `token=${token}`
       // }
-      return response; 
+      return response
     } catch (err: any) {
-      throw new Error(err.message);
+      throw new Error(err.message)
     }
   }
 
@@ -53,54 +53,61 @@ class Client {
       const response = await this.client.post("/users/register", {
         name,
         email,
-        password
-      }); // message json
-      return response.data; 
+        password,
+      }) // message json
+      return response.data
     } catch (err: any) {
-      throw new Error(err.message);
+      throw new Error(err.message)
     }
   }
 
   async getCurrentUser() {
     try {
-      const token = getCookie('token');
+      const token = getCookie("token")
+      if (!token) {
+        return null
+      }
 
       const response = await this.client.get("/users/current", {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }); // user json
-      console.log(token)
-      return response.data; 
+          Authorization: `Bearer ${token}`,
+        },
+      }) // user json
+
+      return response.data
     } catch (err: any) {
-      throw new Error(err.message);
+      if (err.response && err.response.status === 404) {
+        return null
+      } else {
+        throw new Error("Error: ", err)
+      }
     }
   }
 
   async getAdminBoard() {
     try {
-      const token = getCookie('token');
+      const token = getCookie("token")
       const response = await this.client.get("/users/adminboard", {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      return response.data;
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return response.data
     } catch (err: any) {
-      throw new Error(err.message);
+      throw new Error(err.message)
     }
   }
 
   async updateUser(id: number, user: any) {
     try {
-      const response = await this.client.put(`/users/${id}`, user);
-      return response.data;
+      const response = await this.client.put(`/users/${id}`, user)
+      return response.data
     } catch (err: any) {
-      throw new Error(err.message);
+      throw new Error(err.message)
     }
   }
 }
 
-const client = new Client();
+const client = new Client()
 
-export default client;
+export default client

@@ -3,6 +3,10 @@ label {
   margin-top: 10px;
 }
 
+.app-base {
+  background-color: #1a1b1e;
+}
+
 .card-container.card {
   max-width: 350px !important;
   padding: 40px 40px;
@@ -32,7 +36,7 @@ label {
 }
 
 .container-bg {
-  width: 100%;  
+  width: 100%;
   min-height: 100vh;
   display: -webkit-box;
   display: -webkit-flex;
@@ -43,7 +47,6 @@ label {
   justify-content: center;
   align-items: center;
   padding: 15px;
-  background-image: url("./img/bg.png");
   background-size: cover;
 }
 
@@ -53,6 +56,14 @@ label {
   top: 200px;
   left: 50%;
   transform: translate(-50%, 0);
+}
+
+.wrap-app {
+  overflow: hidden;
+}
+
+.wrap-navbar {
+  float: left;
 }
 
 .wrap-input {
@@ -78,17 +89,31 @@ label {
 }
 
 .login-logo {
-  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: right;
+  margin-bottom: 16px;
+  margin-left: 17%;
+  width: 66%;
+  height: auto;
 }
 
-.login-logo img {
-  position: absolute;
-  top: 0;
-  left: 0;
+.logo-sm-container {
+  display: flex;
+  justify-content: left;
+  height: auto;
+  width: 25px;
 }
 
+.logo-sm {
+  width: 100%;
+  height: auto;
+}
 
+.header-width {
+  max-width: 100%;
+}
 
+/* .login-logo img {
+  width: 100%;
+  height: auto;
+} */

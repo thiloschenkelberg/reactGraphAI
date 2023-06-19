@@ -1,6 +1,5 @@
-import { Request } from "express";
-import IUser from "./user.type";
+import { Request } from "express"
 
 export interface IGetUserAuthInfoRequest extends Request {
-  user?:IUser,
+  email?: any
 }

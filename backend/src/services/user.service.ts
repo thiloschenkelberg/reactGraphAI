@@ -1,21 +1,25 @@
-import UserRepository from "../repositories/user.repository";
-import IUser from "../types/user.type";
-import jwt from 'jsonwebtoken';
-import { Response, NextFunction} from 'express';
-import { IGetUserAuthInfoRequest } from "../types/req";
+import UserRepository from "../repositories/user.repository"
+import IUser from "../types/user.type"
+import jwt from "jsonwebtoken"
+import { Request, Response, NextFunction } from "express"
+import { IGetUserAuthInfoRequest } from "../types/req"
 
-import dotenv from 'dotenv';
-dotenv.config();
+import dotenv from "dotenv"
+dotenv.config()
 
 class UserService {
   static findByMail(email: string): Promise<IUser | undefined> {
     // Additional business logic or validation can be performed here
-    return UserRepository.findByMail(email);
+    return UserRepository.findByMail(email)
   }
 
-  static createUser(name: string, email: string, password: string): Promise<IUser> {
+  static createUser(
+    name: string,
+    email: string,
+    password: string
+  ): Promise<IUser> {
     // Additional business logic or validation can be performed here
-    return UserRepository.create(name, email, password);
+    return UserRepository.create(name, email, password)
   }
 
   static generateAccessToken(email: string) {
@@ -23,22 +27,32 @@ class UserService {
     // return jwt.sign(email, process.env.TOKEN_SECRET as string, { expiresIn: '1800s'})
   }
 
-  static authenticateToken(req: IGetUserAuthInfoRequest, res: Response, next: NextFunction) {
-    const authHeader = req.headers['authorization'];
+  static authenticateToken(
+    req: IGetUserAuthInfoRequest,
+    res: Response,
+    next: NextFunction
+  ) {
+    const authHeader = req.headers["authorization"]
 
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader && authHeader.split(" ")[1]
 
-    if (token == null) return res.sendStatus(401);
+    if (token == null) return res.sendStatus(401)
 
-    jwt.verify(token, process.env.TOKEN_SECRET as string, (err: Error | null, user: any) => {
-      if (err) return res.sendStatus(403);
+    // decodes the token to user email
+    jwt.verify(
+      token,
+      process.env.TOKEN_SECRET as string,
+      (err: Error | null, email: any) => {
+        if (err) return res.sendStatus(403)
 
-      req.user = user;
-      
-      next();
-    });
+        console.log
+
+        req.email = email
+
+        next()
+      }
+    )
   }
-
 }
 
-export default UserService;
+export default UserService

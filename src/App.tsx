@@ -1,66 +1,77 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "react-query";
-import { useNavigate } from "react-router-dom";
-import { Navigate } from "react-router-dom";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { userContext } from "./common/userContext";
-import { Toaster } from 'react-hot-toast';
-import { NavbarMinimal } from "./components/navbar.component";
-import IUser from './types/user.type';
+import { useState, useEffect } from "react"
+import { useQuery } from "react-query"
+import { useNavigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"
+import { userContext } from "./common/userContext"
+import { Toaster } from "react-hot-toast"
+import { NavbarMinimal } from "./components/navbar.component"
+import { HeaderTabs } from "./components/header.component"
+import IUser from "./types/user.type"
 
-import client from './client';
-import EventBus from "./common/EventBus";
+import client from "./client"
+import EventBus from "./common/EventBus"
 
-import Home from "./components/home.component";
-import Profile from './components/profile.component';
-import BoardAdmin from './components/board-admin.component';
-import AuthenticationForm from "./components/authentication.component";
+import Home from "./components/home.component"
+import Profile from "./components/profile.component"
+import BoardAdmin from "./components/board-admin.component"
+import AuthenticationForm from "./components/authentication.component"
 
-import "bootstrap/dist/css/bootstrap.min.css";
-import './App.css';
+import "bootstrap/dist/css/bootstrap.min.css"
+import "./App.css"
 
 export default function App() {
-  const navigate = useNavigate();
-  const [showAdminBoard, setShowAdminBoard] = useState(false);
-  const { data: currentUser } = useQuery<IUser | undefined>('getCurrentUser', client.getCurrentUser);
+  const navigate = useNavigate()
+  const [showAdminBoard, setShowAdminBoard] = useState(false)
+  const [active, setActive] = useState<number>(0)
+  const {
+    data: currentUser,
+    isLoading,
+    isError,
+  } = useQuery<IUser | null | undefined>(
+    "getCurrentUser",
+    client.getCurrentUser
+  )
 
   useEffect(() => {
-    if (currentUser) {
-      // if (currentUser.roles) {
-      //   setShowAdminBoard(currentUser.roles.includes('ROLE_ADMIN'));
-      // }
-    } else {
-      console.log('user is not')
-      navigate('/login');
+    // navigate to login after getCurrentUser is successfully 
+    // resolved and currentUser is undefined
+    if (!isLoading && !isError && !currentUser) {
+      navigate("/login")
     }
+  }, [isLoading, isError, currentUser, navigate])
 
-    EventBus.on("logout", logOut);
+  if (isLoading) {
+    console.log("loading")
+    return <div></div>
+  }
 
-    return () => {
-      EventBus.remove("logout", logOut);
-    };
-  }, [currentUser]);
+  if (isError) {
+    console.log("error")
+    // handle error
+  }
 
-  const logOut = () => {
-    //client.logout();
-    setShowAdminBoard(false);
-  };
+  const handleNavbarLinkClick = (index: number) => {
+    setActive(index)
+  }
 
   return (
-    <div>
+    <div className="wrap-app">
       <userContext.Provider value={currentUser}>
         {currentUser && (
+          // <div className="wrap-navbar">
+          //   <NavbarMinimal active={active} onNavbarLinkClick={handleNavbarLinkClick}/>
+          // </div>
           <div>
-            <NavbarMinimal />
+            <HeaderTabs active={active} onNavbarLinkClick={handleNavbarLinkClick}/>
           </div>
         )}
         <Routes>
-          <Route path='/' element={<Home/>} />
-          <Route path='/login' element={<AuthenticationForm/>} />
-          <Route path='/profile' element={<Profile/>} />
+          <Route path="/" element={<Home active={active}/>} />
+          <Route path="/login" element={<AuthenticationForm />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </userContext.Provider>
       <Toaster />
-      </div>
-  );
-};
+    </div>
+  )
+}
