@@ -10,9 +10,11 @@ const db = new sqlite3.Database("../../users.db")
 db.run(`
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIQUE NOT NULL,
+  name TEXT UNIQUE,
   email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL
+  password TEXT NOT NULL,
+  roles TEXT,
+  image TEXT
 )
 `)
 
@@ -25,7 +27,7 @@ class UserRepository {
   //   this.db.run(`
   //     CREATE TABLE IF NOT EXISTS users (
   //       id INTEGER PRIMARY KEY AUTOINCREMENT,
-  //       name TEXT UNIQUE NOT NULL,
+  //       name TEXT UNIQUE,
   //       email TEXT UNIQUE NOT NULL,
   //       password TEXT NOT NULL
   //     )
@@ -53,6 +55,38 @@ class UserRepository {
             reject(err)
           } else {
             resolve({ id: this.lastID, name, email, password })
+          }
+        }
+      )
+    })
+  }
+
+  static updateName(name: string, email: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE users SET name = ? WHERE email = ?",
+        [name, email],
+        function (err) {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(true)
+          }
+        }
+      )
+    })
+  }
+
+  static updateMail(newEmail: string, oldEmail: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE users SET email = ? WHERE email = ?",
+        [newEmail, oldEmail],
+        function (err) {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(true)
           }
         }
       )

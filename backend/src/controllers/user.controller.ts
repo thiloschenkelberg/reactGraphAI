@@ -72,7 +72,7 @@ router.get(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const email = req.email // decoded should be user email
+      const email = req.email // req.mail should be decoded user mail
       if (!email) {
         return res.status(401).json({
           message: "Unauthorized access.",
@@ -80,7 +80,6 @@ router.get(
       }
 
       const currentUser = await UserService.findByMail(email)
-
       if (!currentUser) {
         return res.status(404).json({
           message: "User not found.",
@@ -92,6 +91,68 @@ router.get(
     }
   }
 )
+
+router.patch(
+  "/api/users/update/name",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const email = req.email
+      if (!email) {
+        return res.status(401).json({
+          message: "Unauthorized access.",
+        })
+      }
+
+      const name = req.body
+
+      const updateSuccess = await UserService.updateName(name, email)
+      if (!updateSuccess) {
+        return res.status(400).json({
+          message: "Update not successful.",
+        })
+      }
+      return res.status(200).json({
+        message: "Name successfully updated.",
+      })
+    } catch (err) {
+      res.status(500).send("Internal Server Error.")
+    }
+  }
+)
+
+router.patch(
+  "/api/users/update/email",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const oldEmail = req.email
+      if (!oldEmail) {
+        return res.status(401).json({
+          message: "Unauthorized access.",
+        })
+      }
+
+      const newEmail = req.body
+
+      const updateSuccess = await UserService.updateMail(newEmail, oldEmail)
+      if (!updateSuccess) {
+        return res.status(400).json({
+          message: "Update not successful.",
+        })
+      }
+
+      const token = UserService.generateAccessToken(newEmail)
+      return res.status(200).json({
+        message: "E-Mail successfully updated.",
+        token: token,
+      })
+    } catch (err) {
+      res.status(500).send("Internal Server Error.")
+    }
+  }
+)
+
 
 // Additional API endpoints for updating, deleting users, etc.
 

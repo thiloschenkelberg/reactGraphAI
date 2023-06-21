@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useMutation } from "react-query"
+import { useMutation, useQueryClient } from "react-query"
 import { userContext } from "../common/userContext"
 import { useContext } from "react"
 import { toast } from "react-hot-toast"
@@ -20,7 +20,9 @@ import {
 } from "@mantine/core"
 import logo from "../img/logo_mat1.png"
 
+import IUser from "../types/user.type"
 import client from "../client"
+import { initialUser } from "../common/userContext"
 
 // export interface AuthenticationFormValues {
 //     email: string,
@@ -30,6 +32,7 @@ import client from "../client"
 // }
 
 export default function AuthenticationForm(props: PaperProps) {
+  const queryClient = useQueryClient()
   const currentUser = useContext(userContext)
   const navigate = useNavigate()
   const [message, setMessage] = useState("")
@@ -42,8 +45,9 @@ export default function AuthenticationForm(props: PaperProps) {
 
   const loginMutation = useMutation("login", login, {
     onSuccess: () => {
+      queryClient.prefetchQuery<IUser | null | undefined>('getCurrentUser', client.getCurrentUser)
       toast.success("User logged in successfully!")
-      navigate("/profile")
+      navigate("/")
     },
     onError: () => {
       toast.error("User could not be logged in!")
@@ -97,8 +101,6 @@ export default function AuthenticationForm(props: PaperProps) {
     try {
       const { email, password } = credentials
       const response = await client.login(email, password)
-      //console.log(response.data);
-      //setMessage(response.data.message);
       const token = response.data.token
 
       if (token) {

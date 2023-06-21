@@ -1,19 +1,16 @@
 import { useState, useEffect } from "react"
-import { useQuery } from "react-query"
-import { useNavigate } from "react-router-dom"
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"
+import { useQuery, useQueryClient } from "react-query"
+import { useNavigate, useLocation } from "react-router-dom"
+import { Routes, Route} from "react-router-dom"
 import { userContext } from "./common/userContext"
 import { Toaster } from "react-hot-toast"
-import { NavbarMinimal } from "./components/navbar.component"
 import { HeaderTabs } from "./components/header.component"
 import IUser from "./types/user.type"
 
 import client from "./client"
-import EventBus from "./common/EventBus"
 
 import Home from "./components/home.component"
-import Profile from "./components/profile.component"
-import BoardAdmin from "./components/board-admin.component"
+import Account from "./components/account.component"
 import AuthenticationForm from "./components/authentication.component"
 
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -21,12 +18,13 @@ import "./App.css"
 
 export default function App() {
   const navigate = useNavigate()
-  const [showAdminBoard, setShowAdminBoard] = useState(false)
   const [active, setActive] = useState<number>(0)
+  const queryClient = useQueryClient()
+
   const {
     data: currentUser,
     isLoading,
-    isError,
+    isError
   } = useQuery<IUser | null | undefined>(
     "getCurrentUser",
     client.getCurrentUser
@@ -50,25 +48,33 @@ export default function App() {
     // handle error
   }
 
-  const handleNavbarLinkClick = (index: number) => {
+  const handleHeaderLinkClick = (index: number) => {
     setActive(index)
+    navigate("/")
+  } 
+
+  const handleLogin = () => {
+    
+  }
+
+  const handleLogout = () => {
+    queryClient.setQueryData<IUser | null | undefined>("getCurrentUser", undefined)
+    document.cookie = "token="
+    navigate("login")
   }
 
   return (
     <div className="wrap-app">
       <userContext.Provider value={currentUser}>
         {currentUser && (
-          // <div className="wrap-navbar">
-          //   <NavbarMinimal active={active} onNavbarLinkClick={handleNavbarLinkClick}/>
-          // </div>
           <div>
-            <HeaderTabs active={active} onNavbarLinkClick={handleNavbarLinkClick}/>
+            <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout}/>
           </div>
         )}
         <Routes>
           <Route path="/" element={<Home active={active}/>} />
           <Route path="/login" element={<AuthenticationForm />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </userContext.Provider>
       <Toaster />

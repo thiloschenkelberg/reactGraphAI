@@ -84,26 +84,23 @@ class Client {
     }
   }
 
-  async getAdminBoard() {
+  async updateName(name: string) {
     try {
       const token = getCookie("token")
-      const response = await this.client.get("/users/adminboard", {
+      if (!token) {
+        return
+      }
+
+      const response = await this.client.patch("/users/update/name", {
+        name,
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-      return response.data
-    } catch (err: any) {
-      throw new Error(err.message)
-    }
-  }
 
-  async updateUser(id: number, user: any) {
-    try {
-      const response = await this.client.put(`/users/${id}`, user)
       return response.data
     } catch (err: any) {
-      throw new Error(err.message)
+      throw new Error('Error: ', err)
     }
   }
 }

@@ -3,15 +3,12 @@ import { Link } from "react-router-dom"
 import {
   createStyles,
   Container,
-  Avatar,
   UnstyledButton,
   Group,
   Text,
   Menu,
   Tabs,
-  Burger,
   rem,
-  px,
 } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import {
@@ -26,11 +23,11 @@ import {
   IconChevronDown,
 } from "@tabler/icons-react"
 import logo_sm from "../img/logo_mat2.png"
-import { MantineLogo } from "@mantine/ds"
 import IUser from "../types/user.type"
 import { userContext } from "../common/userContext"
 
 const useStyles = createStyles((theme) => ({
+
   header: {
     paddingTop: theme.spacing.sm,
     backgroundColor:
@@ -59,12 +56,6 @@ const useStyles = createStyles((theme) => ({
     },
 
     [theme.fn.smallerThan("xs")]: {
-      display: "none",
-    },
-  },
-
-  burger: {
-    [theme.fn.largerThan("xs")]: {
       display: "none",
     },
   },
@@ -110,18 +101,18 @@ const useStyles = createStyles((theme) => ({
 const tabs = ["Search", "History"]
 
 interface HeaderTabsProps {
-  active: number
-  onNavbarLinkClick(index: number): void
+  onHeaderLinkClick(index: number): void
+  onLogout(): void
 }
 
-export function HeaderTabs({ active, onNavbarLinkClick}: HeaderTabsProps) {
+export function HeaderTabs(props: HeaderTabsProps) {
+  const { onHeaderLinkClick, onLogout } = props
   const { classes, theme, cx } = useStyles()
-  const [opened, { toggle }] = useDisclosure(false)
   const [userMenuOpened, setUserMenuOpened] = useState(false)
   const user = useContext(userContext)
 
   const items = tabs.map((tab, index) => (
-    <Tabs.Tab value={tab} key={tab} onClick={() => onNavbarLinkClick(index)}>
+    <Tabs.Tab value={tab} key={tab} onClick={() => onHeaderLinkClick(index)}>
       {tab}
     </Tabs.Tab>
   ))
@@ -130,13 +121,16 @@ export function HeaderTabs({ active, onNavbarLinkClick}: HeaderTabsProps) {
     <div className={classes.header}>
       <Container size="default" className={classes.mainSection}>
         <Group position="apart" spacing="xl">
+          {/* Logo */}
           <div className="logo-sm-container">
-          <Link to="/">
-          <img src={logo_sm} alt="mgai" className="logo-sm" />
-          </Link>
+            <Link to="/">
+              <img src={logo_sm} alt="mgai" className="logo-sm" />
+            </Link>
           </div>
+
+          {/* Tabs */}
           <Tabs
-            defaultValue="Home"
+            defaultValue="Search"
             variant="outline"
             classNames={{
               root: classes.tabs,
@@ -144,13 +138,13 @@ export function HeaderTabs({ active, onNavbarLinkClick}: HeaderTabsProps) {
               tab: classes.tab,
             }}
           >
-            <Tabs.List>
-              {items}
-            </Tabs.List>
+            <Tabs.List>{items}</Tabs.List>
           </Tabs>
+
+          {/* User Menu */}
           {user && (
             <Menu
-              width={260}
+              width={200}
               position="bottom-end"
               transitionProps={{ transition: "pop-top-right" }}
               onClose={() => setUserMenuOpened(false)}
@@ -173,66 +167,14 @@ export function HeaderTabs({ active, onNavbarLinkClick}: HeaderTabsProps) {
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item
-                  icon={
-                    <IconHeart
-                      size="0.9rem"
-                      color={theme.colors.red[6]}
-                      stroke={1.5}
-                    />
-                  }
-                >
-                  Liked posts
-                </Menu.Item>
-                <Menu.Item
-                  icon={
-                    <IconStar
-                      size="0.9rem"
-                      color={theme.colors.yellow[6]}
-                      stroke={1.5}
-                    />
-                  }
-                >
-                  Saved posts
-                </Menu.Item>
-                <Menu.Item
-                  icon={
-                    <IconMessage
-                      size="0.9rem"
-                      color={theme.colors.blue[6]}
-                      stroke={1.5}
-                    />
-                  }
-                >
-                  Your comments
-                </Menu.Item>
-
-                <Menu.Label>Settings</Menu.Label>
-                <Menu.Item icon={<IconSettings size="0.9rem" stroke={1.5} />}>
-                  Account settings
-                </Menu.Item>
-                <Menu.Item
-                  icon={<IconSwitchHorizontal size="0.9rem" stroke={1.5} />}
-                >
-                  Change account
-                </Menu.Item>
-                <Menu.Item icon={<IconLogout size="0.9rem" stroke={1.5} />}>
-                  Logout
-                </Menu.Item>
-
+                <Link to='/account'>
+                  <Menu.Item icon={<IconSettings size="0.9rem" stroke={1.5} />}>
+                    Account settings
+                  </Menu.Item>
+                </Link>
                 <Menu.Divider />
-
-                <Menu.Label>Danger zone</Menu.Label>
-                <Menu.Item
-                  icon={<IconPlayerPause size="0.9rem" stroke={1.5} />}
-                >
-                  Pause subscription
-                </Menu.Item>
-                <Menu.Item
-                  color="red"
-                  icon={<IconTrash size="0.9rem" stroke={1.5} />}
-                >
-                  Delete account
+                <Menu.Item icon={<IconLogout size="0.9rem" stroke={1.5} />} onClick={onLogout}>
+                  Logout
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>

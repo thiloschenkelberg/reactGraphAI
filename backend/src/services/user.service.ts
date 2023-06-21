@@ -22,6 +22,20 @@ class UserService {
     return UserRepository.create(name, email, password)
   }
 
+  static updateName(
+    name: string,
+    email: string
+  ): Promise<boolean> {
+    return UserRepository.updateName(name, email)
+  }
+
+  static updateMail(
+    newEmail: string,
+    oldEmail: string
+  ): Promise<boolean> {
+    return UserRepository.updateMail(newEmail, oldEmail)
+  }
+
   static generateAccessToken(email: string) {
     return jwt.sign(email, process.env.TOKEN_SECRET as string)
     // return jwt.sign(email, process.env.TOKEN_SECRET as string, { expiresIn: '1800s'})

@@ -6,8 +6,11 @@ const initialUser: IUser = {
   name: "",
   email: "",
   password: "",
+  roles: [""],
+  image: ""
 }
 
 const userContext = createContext<IUser | null | undefined>(initialUser)
 
 export { userContext }
+export { initialUser }
