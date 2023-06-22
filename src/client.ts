@@ -103,6 +103,47 @@ class Client {
       throw new Error('Error: ', err)
     }
   }
+
+  async updateMail(newMail: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        return
+      }
+
+      const response = await this.client.patch("/users/update/email", {
+        newMail,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      return response.data
+    } catch (err: any) {
+      throw new Error('Error: ', err)
+    }
+  }
+
+  async updatePassword(newPass: string, oldPass: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        return
+      }
+
+      const response = await this.client.patch("/users/update/password", {
+        newPass,
+        oldPass,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      return response.data
+    } catch (err: any) {
+      throw new Error('Error: ', err)
+    }
+  }
 }
 
 const client = new Client()

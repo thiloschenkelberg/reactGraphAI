@@ -1,7 +1,7 @@
 import UserRepository from "../repositories/user.repository"
 import IUser from "../types/user.type"
 import jwt from "jsonwebtoken"
-import { Request, Response, NextFunction } from "express"
+import { Response, NextFunction } from "express"
 import { IGetUserAuthInfoRequest } from "../types/req"
 
 import dotenv from "dotenv"
@@ -30,10 +30,17 @@ class UserService {
   }
 
   static updateMail(
-    newEmail: string,
-    oldEmail: string
+    newMail: string,
+    oldMail: string
   ): Promise<boolean> {
-    return UserRepository.updateMail(newEmail, oldEmail)
+    return UserRepository.updateMail(newMail, oldMail)
+  }
+
+  static updatePassword(
+    newPass: string,
+    oldPass: string
+  ): Promise<boolean> {
+    return UserRepository.updateMail(newPass, oldPass)
   }
 
   static generateAccessToken(email: string) {
@@ -58,8 +65,6 @@ class UserService {
       process.env.TOKEN_SECRET as string,
       (err: Error | null, email: any) => {
         if (err) return res.sendStatus(403)
-
-        console.log
 
         req.email = email
 

@@ -77,11 +77,27 @@ class UserRepository {
     })
   }
 
-  static updateMail(newEmail: string, oldEmail: string): Promise<boolean> {
+  static updateMail(newMail: string, oldMail: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
       db.run(
         "UPDATE users SET email = ? WHERE email = ?",
-        [newEmail, oldEmail],
+        [newMail, oldMail],
+        function (err) {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(true)
+          }
+        }
+      )
+    })
+  }
+
+  static updatePassword(newPass: string, oldPass: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE users SET password = ? WHERE password = ?",
+        [newPass, oldPass],
         function (err) {
           if (err) {
             reject(err)
