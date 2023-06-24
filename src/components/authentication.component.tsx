@@ -68,8 +68,8 @@ export default function AuthenticationForm(props: PaperProps) {
 
   const form = useForm({
     initialValues: {
-      email: "",
       name: "",
+      email: "",
       password: "",
       terms: true,
     },

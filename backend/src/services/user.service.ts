@@ -17,9 +17,15 @@ class UserService {
     name: string,
     email: string,
     password: string
-  ): Promise<IUser> {
+  ): Promise<boolean> {
     // Additional business logic or validation can be performed here
     return UserRepository.create(name, email, password)
+  }
+
+  static deleteUser(
+    email: string
+  ): Promise<boolean> {
+    return UserRepository.delete(email)
   }
 
   static updateName(
