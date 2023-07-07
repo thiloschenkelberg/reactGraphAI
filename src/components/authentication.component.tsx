@@ -22,7 +22,6 @@ import logo from "../img/logo_mat1.png"
 
 import IUser from "../types/user.type"
 import client from "../client"
-import { initialUser } from "../common/userContext"
 
 // export interface AuthenticationFormValues {
 //     email: string,

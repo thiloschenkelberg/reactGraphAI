@@ -53,9 +53,9 @@ export default function App() {
     navigate("/")
   } 
 
-  const handleLogin = () => {
+  // const handleLogin = () => {
     
-  }
+  // }
 
   const handleLogout = () => {
     queryClient.setQueryData<IUser | null | undefined>("getCurrentUser", undefined)
