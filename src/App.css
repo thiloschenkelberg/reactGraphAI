@@ -30,16 +30,6 @@ label {
   box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
 }
 
-.profile-img-card {
-  width: 96px;
-  height: 96px;
-  margin: 0 auto 10px;
-  display: block;
-  -moz-border-radius: 50%;
-  -webkit-border-radius: 50%;
-  border-radius: 50%;
-}
-
 .container-bg {
   width: 100%;
   min-height: 100vh;
@@ -53,29 +43,6 @@ label {
   align-items: center;
   padding: 15px;
   background-size: cover;
-}
-
-.wrap-login {
-  width: 400px;
-  position: absolute;
-  top: 200px;
-  left: 50%;
-  transform: translate(-50%, 0);
-}
-
-.wrap-app {
-  overflow: hidden;
-}
-
-.wrap-navbar {
-  float: left;
-}
-
-.wrap-input {
-  position: relative;
-  width: 100%;
-  z-index: 1;
-  margin-bottom: 10px;
 }
 
 .input {
@@ -93,6 +60,10 @@ label {
   padding: 0 30px 0 68px;
 }
 
+.header-width {
+  max-width: 100%;
+}
+
 .login-logo {
   display: flex;
   justify-content: right;
@@ -100,25 +71,79 @@ label {
   margin-left: 17%;
   width: 66%;
   height: auto;
+  filter: drop-shadow(2px 2px 2px #111)
+}
+
+.logo-sm {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(1px 1px 0px #111)
 }
 
 .logo-sm-container {
   display: flex;
   justify-content: left;
   height: auto;
-  width: 25px;
+  width: 28px;
 }
 
-.logo-sm {
+.nav-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(2px 2px 2px #111)
+}
+
+.node {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(2px 2px 2px #111)
+}
+
+.profile-img-card {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 10px;
+  display: block;
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+}
+
+.wrap-account {
+  width: 600px;
+  position: absolute;
+  top: 150px;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.wrap-app {
+  overflow: hidden;
+}
+
+.wrap-input {
+  position: relative;
   width: 100%;
-  height: auto;
+  z-index: 1;
+  margin-bottom: 10px;
 }
 
-.header-width {
-  max-width: 100%;
+.wrap-login {
+  width: 400px;
+  position: absolute;
+  top: 200px;
+  left: 50%;
+  transform: translate(-50%, 0);
 }
 
-/* .login-logo img {
-  width: 100%;
-  height: auto;
-} */
+.wrap-navbar {
+  float: left;
+}

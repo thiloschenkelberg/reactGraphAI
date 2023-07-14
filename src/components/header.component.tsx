@@ -22,7 +22,7 @@ import {
   IconSwitchHorizontal,
   IconChevronDown,
 } from "@tabler/icons-react"
-import logo_sm from "../img/logo_mat2.png"
+import logo_sm from "../img/logo_nodes.png"
 import IUser from "../types/user.type"
 import { userContext } from "../common/userContext"
 
@@ -37,7 +37,7 @@ const useStyles = createStyles((theme) => ({
     borderBottom: `${rem(1)} solid ${
       theme.colorScheme === "dark" ? "transparent" : theme.colors.gray[2]
     }`,
-    marginBottom: rem(120),
+    // marginBottom: rem(0),
   },
 
   mainSection: {
@@ -101,7 +101,7 @@ const useStyles = createStyles((theme) => ({
 const tabs = ["Search", "History"]
 
 interface HeaderTabsProps {
-  onHeaderLinkClick(index: number): void
+  onHeaderLinkClick(key: string): void
   onLogout(): void
 }
 
@@ -111,8 +111,8 @@ export function HeaderTabs(props: HeaderTabsProps) {
   const [userMenuOpened, setUserMenuOpened] = useState(false)
   const user = useContext(userContext)
 
-  const items = tabs.map((tab, index) => (
-    <Tabs.Tab value={tab} key={tab} onClick={() => onHeaderLinkClick(index)}>
+  const items = tabs.map((tab) => (
+    <Tabs.Tab value={tab} key={tab} onClick={() => onHeaderLinkClick(tab.toLowerCase())}>
       {tab}
     </Tabs.Tab>
   ))

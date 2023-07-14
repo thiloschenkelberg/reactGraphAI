@@ -1,8 +1,8 @@
-export default function Home({active}: {active:number}) {
+export default function Home() {
 
   return (
     <div>
-      <h2>{active}</h2>
+      
     </div>
   )
 }

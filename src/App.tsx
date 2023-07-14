@@ -10,6 +10,8 @@ import IUser from "./types/user.type"
 import client from "./client"
 
 import Home from "./components/home.component"
+import Search from "./components/search.component"
+import History from "./components/history.component"
 import Account from "./components/account.component"
 import AuthenticationForm from "./components/authentication.component"
 
@@ -48,19 +50,14 @@ export default function App() {
     // handle error
   }
 
-  const handleHeaderLinkClick = (index: number) => {
-    setActive(index)
-    navigate("/")
-  } 
-
-  // const handleLogin = () => {
-    
-  // }
+  const handleHeaderLinkClick = (key: string) => {
+    navigate(key)
+  }
 
   const handleLogout = () => {
     queryClient.setQueryData<IUser | null | undefined>("getCurrentUser", undefined)
     document.cookie = "token="
-    navigate("login")
+    navigate("/login")
   }
 
   return (
@@ -72,7 +69,9 @@ export default function App() {
           </div>
         )}
         <Routes>
-          <Route path="/" element={<Home active={active}/>} />
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/history" element={<History />} />
           <Route path="/login" element={<AuthenticationForm />} />
           <Route path="/account" element={<Account />} />
         </Routes>

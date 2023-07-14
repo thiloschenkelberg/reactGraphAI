@@ -18,7 +18,7 @@ import {
   Anchor,
   Stack,
 } from "@mantine/core"
-import logo from "../img/logo_mat1.png"
+import logo from "../img/logo_big.png"
 
 import IUser from "../types/user.type"
 import client from "../client"

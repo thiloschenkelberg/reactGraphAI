@@ -26,7 +26,7 @@ const container = document.getElementById("root")
 const root = createRoot(container)
 
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <MantineProvider
@@ -38,7 +38,7 @@ root.render(
         </MantineProvider>
       </BrowserRouter>
     </QueryClientProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 )
 
 //########## React 17 ###########
