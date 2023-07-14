@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef } from "react"
 import { Paper } from "@mantine/core"
 
 import Node from "./node.component"
@@ -20,12 +20,6 @@ export default function Canvas() {
   } | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
 
-  // useEffect(() => {
-  //   const handleClick = (e: MouseEvent) => {
-  //     const clickP
-  //   }
-  // })
-
   const addNode = (type: INode["type"], position: INode["position"]) => {
     setNodes((prevNodes) => [...prevNodes, { type, position }])
   }
@@ -36,7 +30,6 @@ export default function Canvas() {
 
   const handleNodeClick = (node: INode) => (e: React.MouseEvent) => {
     e.stopPropagation()
-    // setNodeClicked(true)
     if (selectedNode) {
       addConnection(selectedNode, node)
       setSelectedNode(null)
@@ -62,7 +55,7 @@ export default function Canvas() {
       }
       setClickPosition(canvasClickPosition)
       setDialogOpen(true)
-      // setSelectedNode(null)
+      setSelectedNode(null)
     }
   }
 
