@@ -6,13 +6,16 @@ import NavPlanet from "./nav-planet.component"
 import Connection from "./connection.component"
 
 import INode from "./types/node.type"
-import IConnection from "./types/connection.type"
+type IDConnection = {
+  start: number,
+  end: number
+}
 
 export default function Canvas() {
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNode, setSelectedNode] = useState<INode | null>(null)
   // const [nodeClicked, setNodeClicked] = useState(false)
-  const [connections, setConnections] = useState<IConnection[]>([])
+  const [connections, setConnections] = useState<IDConnection[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [clickPosition, setClickPosition] = useState<{
     x: number
@@ -20,12 +23,21 @@ export default function Canvas() {
   } | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
 
-  const addNode = (type: INode["type"], position: INode["position"]) => {
-    setNodes((prevNodes) => [...prevNodes, { type, position }])
+  const addNode = (name: string | null, type: INode["type"], position: INode["position"]) => {
+    const id = nodes.length
+    setNodes((prevNodes) => [...prevNodes, { id, name, type, position }])
   }
 
   const addConnection = (start: INode, end: INode) => {
-    setConnections((prevConnections) => [...prevConnections, { start, end }])
+    if (start.id === end.id) return
+
+    const connectionExists = connections.some(
+      connection => 
+        (connection.start === start.id && connection.end === end.id) ||
+        (connection.start === end.id && connection.end === start.id)
+    )
+    if (connectionExists) return
+    setConnections((prevConnections) => [...prevConnections, { start: start.id, end: end.id }])
   }
 
   const handleNodeClick = (node: INode) => (e: React.MouseEvent) => {
@@ -61,7 +73,8 @@ export default function Canvas() {
 
   const handleCanvasDialogClose = (type?: INode["type"]) => {
     if (type && clickPosition) {
-      addNode(type, clickPosition)
+      const name = prompt("Enter name: ")
+      addNode(name, type, clickPosition)
     }
     setDialogOpen(false)
     setClickPosition(null)
@@ -79,13 +92,21 @@ export default function Canvas() {
         }}
         ref={canvasRef}
       >
-        {connections.map((connection, f) => (
-          <Connection key={f} connection={connection} />
-        ))}
+        {connections.map((connection, i) => {
+          const startNode = nodes.find(node => node.id === connection.start);
+          const endNode = nodes.find(node => node.id === connection.end);
+          if (!startNode || !endNode) return null; // Skip rendering if nodes are not found
+          return (
+            <Connection
+              key={i}
+              connection={{ start: startNode, end: endNode }}
+            />
+          );
+        })}
 
-        {nodes.map((node, i) => (
+        {nodes.map((node) => (
           <Node
-            key={i}
+            key={node.id}
             node={node}
             // setNodeClicked={setNodeClicked}
             handleNodeClick={handleNodeClick}

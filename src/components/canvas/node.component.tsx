@@ -17,7 +17,7 @@ interface NodeProps {
 }
 
 export default function Node(props: NodeProps) {
-  const { node, handleNodeClick, handleNodeMove} = props
+  const { node, handleNodeClick, handleNodeMove } = props
   const [dragging, setDragging] = useState(false)
   const [dragStartPos, setDragStartPos] = useState<INode["position"] | null>(null)
   const nodeRef = useRef<HTMLDivElement>(null)
