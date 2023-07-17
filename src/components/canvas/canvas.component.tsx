@@ -4,79 +4,132 @@ import { Paper } from "@mantine/core"
 import Node from "./node.component"
 import NavPlanet from "./nav-planet.component"
 import Connection from "./connection.component"
+import { TempConnection } from "./connection.component"
+import { IDConnection } from "./types/connection.type"
 
 import INode from "./types/node.type"
-type IDConnection = {
-  start: number,
-  end: number
+
+interface CanvasProps {
+  colorIndex: number
 }
 
-export default function Canvas() {
+export default function Canvas(props: CanvasProps) {
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNode, setSelectedNode] = useState<INode | null>(null)
-  // const [nodeClicked, setNodeClicked] = useState(false)
+  const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [connections, setConnections] = useState<IDConnection[]>([])
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedConnection, setSelectedConnection] =
+    useState<IDConnection | null>(null)
+  const [navOpen, setNavOpen] = useState(false)
+  const [navBlocked, setNavBlocked] = useState(false)
   const [clickPosition, setClickPosition] = useState<{
     x: number
     y: number
   } | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
+  const { colorIndex } = props
 
-  const addNode = (name: string | null, type: INode["type"], position: INode["position"]) => {
+  const addNode = (type: INode["type"], position: INode["position"]) => {
     const id = nodes.length
-    setNodes((prevNodes) => [...prevNodes, { id, name, type, position }])
+    setNodes((prevNodes) => [
+      ...prevNodes,
+      { id, name: "", type, position, isEditing: true },
+    ])
+  }
+
+  const handleNodeClick = (node: INode) => {
+    if (connectingNode && selectedNode) {
+      addConnection(selectedNode, node)
+      setSelectedNode(null)
+      setConnectingNode(null)
+    } else if (!navOpen) {
+      setSelectedNode(node)
+      setSelectedConnection(null)
+    } else {
+      setNavOpen(false)
+    }
+  }
+
+  const handleNodeNavSelect = (node: INode) => (action: string) => {
+    setNavBlocked(true)
+    switch (action) {
+      case "delete":
+        break
+      case "connect":
+        console.log("trying to connect")
+        setSelectedNode(node)
+        setConnectingNode(node)
+        break
+    }
+  }
+
+  const handleNodeMove = (node: INode, position: INode["position"]) => {
+    if (connectingNode) {
+      setConnectingNode(null)
+    }
+    setNodes((prevNodes) =>
+      prevNodes.map((n) => (n === node ? { ...node, position } : n))
+    )
+  }
+
+  const handleNodeNameChange = (node: INode, newName: string | null, byClick: boolean) => {
+    if (byClick) setNavBlocked(true)
+    setNodes((prevNodes) =>
+      prevNodes.map((n) =>
+        n.id === node.id ? { ...n, name: newName, isEditing: false } : n
+      )
+    )
   }
 
   const addConnection = (start: INode, end: INode) => {
     if (start.id === end.id) return
 
     const connectionExists = connections.some(
-      connection => 
+      (connection) =>
         (connection.start === start.id && connection.end === end.id) ||
         (connection.start === end.id && connection.end === start.id)
     )
     if (connectionExists) return
-    setConnections((prevConnections) => [...prevConnections, { start: start.id, end: end.id }])
+    setConnections((prevConnections) => [
+      ...prevConnections,
+      { start: start.id, end: end.id },
+    ])
   }
 
-  const handleNodeClick = (node: INode) => (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (selectedNode) {
-      addConnection(selectedNode, node)
-      setSelectedNode(null)
-    } else {
-      setSelectedNode(node)
+  const handleConnectionClick =
+    (connection: IDConnection) => (e: React.MouseEvent) => {
+      setNavBlocked(true)
+      setSelectedConnection(connection)
+      // setSelectedNode(null)
     }
-  }
-
-  const handleNodeMove = (node: INode, position: INode["position"]) => {
-    setSelectedNode(null)
-    setNodes(prevNodes => prevNodes.map(n => n === node ? { ...node, position } : n))
-  }
 
   const handleCanvasClick = (e: React.MouseEvent) => {
-    if (dialogOpen) {
-      setDialogOpen(false)
+    if (navOpen) {
+      setNavOpen(false)
       setClickPosition(null)
-    } else if (canvasRef.current) {
+    } else if (canvasRef.current && !selectedNode && !selectedConnection && !navBlocked) {
       const canvasRect = canvasRef.current.getBoundingClientRect()
       const canvasClickPosition = {
         x: e.clientX - canvasRect.left,
-        y: e.clientY - canvasRect.top
+        y: e.clientY - canvasRect.top,
       }
       setClickPosition(canvasClickPosition)
-      setDialogOpen(true)
-      setSelectedNode(null)
+      setNavOpen(true)
     }
+    if (!navBlocked) {
+      console.log("nav not blocked")
+      setSelectedNode(null)
+      setConnectingNode(null)
+      setSelectedConnection(null)
+    }
+    setNavBlocked(false)
   }
 
-  const handleCanvasDialogClose = (type?: INode["type"]) => {
+  const handleCanvasNavSelect = (type?: INode["type"]) => {
     if (type && clickPosition) {
-      const name = prompt("Enter name: ")
-      addNode(name, type, clickPosition)
+      addNode(type, clickPosition)
     }
-    setDialogOpen(false)
+    setNavOpen(false)
     setClickPosition(null)
   }
 
@@ -89,32 +142,43 @@ export default function Canvas() {
           width: "100vw",
           backgroundColor: "#1a1b1e",
           position: "relative",
+          transition: "filter 0.3s ease",
         }}
         ref={canvasRef}
       >
         {connections.map((connection, i) => {
-          const startNode = nodes.find(node => node.id === connection.start);
-          const endNode = nodes.find(node => node.id === connection.end);
-          if (!startNode || !endNode) return null; // Skip rendering if nodes are not found
+          const startNode = nodes.find((node) => node.id === connection.start)
+          const endNode = nodes.find((node) => node.id === connection.end)
+          if (!startNode || !endNode) return null // Skip rendering if nodes are not found
           return (
             <Connection
               key={i}
+              handleConnectionClick={handleConnectionClick(connection)}
               connection={{ start: startNode, end: endNode }}
+              isSelected={connection === selectedConnection}
             />
-          );
+          )
         })}
+
+        {connectingNode && selectedNode && (
+          <TempConnection start={selectedNode.position} canvasRef={canvasRef} />
+        )}
 
         {nodes.map((node) => (
           <Node
             key={node.id}
             node={node}
-            // setNodeClicked={setNodeClicked}
+            isSelected={node.id === selectedNode?.id}
+            connecting={Boolean(connectingNode)}
+            colorIndex={colorIndex}
             handleNodeClick={handleNodeClick}
             handleNodeMove={handleNodeMove}
+            handleNodeNameChange={handleNodeNameChange}
+            handleNodeNavSelect={handleNodeNavSelect(node)}
           />
         ))}
 
-        {dialogOpen && clickPosition && (
+        {navOpen && clickPosition && (
           <div
             style={{
               position: "absolute",
@@ -123,7 +187,11 @@ export default function Canvas() {
               transform: "translate(-50%, -50%)",
             }}
           >
-            <NavPlanet onSelect={handleCanvasDialogClose} open={dialogOpen} />
+            <NavPlanet
+              onSelect={handleCanvasNavSelect}
+              open={navOpen}
+              colorIndex={colorIndex}
+            />
           </div>
         )}
       </Paper>

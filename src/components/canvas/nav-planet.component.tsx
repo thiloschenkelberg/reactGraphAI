@@ -3,66 +3,53 @@
 // import OutputIcon from "@mui/icons-material/Output"
 // import ParameterIcon from "@mui/icons-material/Tune"
 
-import ProcessIcon from '@mui/icons-material/PrecisionManufacturing';
-import PropertyIcon from '@mui/icons-material/Description';
-import ParameterIcon from "@mui/icons-material/Tune"
-import MeasurementIcon from '@mui/icons-material/SquareFoot';
-import MatterIcon from '@mui/icons-material/Diamond';
-
+import { useState } from "react"
 import { Planet } from "react-planet"
+import chroma from "chroma-js"
 
-import nodeGreen from "../../img/node_green.png"
-import nodeRed from "../../img/node_red.png"
-import nodeBlue from "../../img/node_blue.png"
-import nodeGrey from "../../img/node_grey3.png"
-import nodeYellow from "../../img/node_yellow.png"
+import ProcessIcon from "@mui/icons-material/PrecisionManufacturing"
+import PropertyIcon from "@mui/icons-material/Description"
+import ParameterIcon from "@mui/icons-material/Tune"
+import MeasurementIcon from "@mui/icons-material/SquareFoot"
+import MatterIcon from "@mui/icons-material/Diamond"
 
-import INode from './types/node.type';
+import { colorPalette } from "./types/color.palette"
+import INode from "./types/node.type"
 
 interface NavPlanetProps {
   onSelect: (nodeType: INode["type"]) => void
   open: boolean
+  colorIndex: number
 }
 
-interface ButtonProps {
+interface NavButtonProps {
   onSelect: (nodeType: INode["type"]) => void
   nodeType: INode["type"]
   children: React.ReactNode
+  colorIndex: number
 }
 
-function NavButton(props: ButtonProps) {
-  const { onSelect, nodeType, children } = props
+function NavButton(props: NavButtonProps) {
+  const { onSelect, nodeType, children, colorIndex } = props
+  const [hovered, setHovered] = useState(false)
+  const [mouseDown, setMouseDown] = useState(false)
 
-  let backgroundImage = ""
-
-  switch (nodeType) {
-    case "matter":
-      backgroundImage = `url(${nodeGreen})`
-      break
-    case "process":
-      backgroundImage = `url(${nodeRed})`
-      break
-    case "measurement":
-      backgroundImage = `url(${nodeYellow})`
-      break
-    case "parameter":
-      backgroundImage = `url(${nodeBlue})`
-      break
-    case "property":
-      backgroundImage = `url(${nodeGrey})`
-      break
-    default:
-      break
-  }
+  const colors = colorPalette[colorIndex]
+  const backgroundColor = colors[nodeType]
 
   return (
     <div
       onClick={() => onSelect(nodeType)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onMouseDown={() => setMouseDown(true)}
       className="nav-button"
       style={{
-        backgroundImage,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundColor,
+        outline: hovered 
+          ? `3px solid ${chroma(backgroundColor).brighten().hex()}`
+          : `3px solid ${chroma(backgroundColor).darken(0.75).hex()}`,
+        outlineOffset: mouseDown ? "1px" : "-3px"
       }}
     >
       {children}
@@ -71,20 +58,11 @@ function NavButton(props: ButtonProps) {
 }
 
 export default function NavPlanet(props: NavPlanetProps) {
-  const { onSelect, open } = props
+  const { onSelect, open, colorIndex } = props
 
   return (
     <Planet
-      centerContent={
-        <div
-          style={{
-            width: "10px",
-            height: "10px",
-            borderRadius: "50%",
-            backgroundColor: "#808080",
-          }}
-        />
-      }
+      centerContent={<div className="nav-planet" />}
       open={open}
       hideOrbit
       orbitRadius={75}
@@ -93,27 +71,32 @@ export default function NavPlanet(props: NavPlanetProps) {
       <NavButton
         onSelect={onSelect}
         nodeType="matter"
-        children={<MatterIcon />}
+        children={<MatterIcon style={{ color: "#1a1b1e" }} />}
+        colorIndex={colorIndex}
       />
       <NavButton
         onSelect={onSelect}
         nodeType="process"
-        children={<ProcessIcon />}
+        children={<ProcessIcon style={{ color: "#ececec" }} />}
+        colorIndex={colorIndex}
       />
       <NavButton
         onSelect={onSelect}
         nodeType="parameter"
-        children={<ParameterIcon />}
+        children={<ParameterIcon style={{ color: "#ececec" }} />}
+        colorIndex={colorIndex}
       />
       <NavButton
         onSelect={onSelect}
         nodeType="property"
-        children={<PropertyIcon />}
+        children={<PropertyIcon style={{ color: "#ececec" }} />}
+        colorIndex={colorIndex}
       />
       <NavButton
         onSelect={onSelect}
         nodeType="measurement"
-        children={<MeasurementIcon />}
+        children={<MeasurementIcon style={{ color: "#1a1b1e" }} />}
+        colorIndex={colorIndex}
       />
     </Planet>
   )

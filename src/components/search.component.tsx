@@ -1,10 +1,15 @@
 import Canvas from "./canvas/canvas.component"
 
-export default function Search() {
+interface SearchProps {
+  colorIndex: number
+}
+
+export default function Search(props: SearchProps) {
+  const { colorIndex } = props
 
   return(
     <div>
-      <Canvas/>
+      <Canvas colorIndex={colorIndex} />
     </div>
   )
 }

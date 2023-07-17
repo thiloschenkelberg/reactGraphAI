@@ -60,6 +60,8 @@ export default function App() {
     navigate("/login")
   }
 
+  const currentColorIndex = 0 // make colorPalette choosable in settings later
+
   return (
     <div className="wrap-app">
       <userContext.Provider value={currentUser}>
@@ -70,7 +72,7 @@ export default function App() {
         )}
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
+          <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
           <Route path="/history" element={<History />} />
           <Route path="/login" element={<AuthenticationForm />} />
           <Route path="/account" element={<Account />} />
