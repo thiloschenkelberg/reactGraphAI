@@ -1,12 +1,8 @@
 import React, { useState, useRef, useEffect } from "react"
 import { Paper } from "@mantine/core"
 import chroma from "chroma-js"
-import { Planet } from "react-planet"
+import NodePlanet from "./node-planet.component"
 
-import CloseIcon from "@mui/icons-material/Close"
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
-import SyncAltIcon from "@mui/icons-material/SyncAlt"
-import StraightIcon from "@mui/icons-material/Straight"
 
 import INode from "./types/node.type"
 import { colorPalette } from "./types/color.palette"
@@ -24,30 +20,6 @@ interface NodeProps {
     byClick: boolean
   ) => void
   handleNodeNavSelect: (action: string) => void
-}
-
-interface NodeButtonProps {
-  onSelect: (action: string) => void
-  children: React.ReactNode
-  action: string
-}
-
-function NodeButton(props: NodeButtonProps) {
-  const { onSelect, children, action } = props
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onSelect(action)
-  }
-
-  return (
-    <div 
-      className="node-button"
-      onClick={handleClick}
-      >
-      {children}
-    </div>
-  )
 }
 
 export default function Node(props: NodeProps) {
@@ -68,7 +40,6 @@ export default function Node(props: NodeProps) {
   )
   const [dragOffset, setDragOffset] = useState<INode["position"] | null>(null)
   const [nodeHovered, setNodeHovered] = useState(false)
-  const [nodeButtonHovered, setNodeButtonHovered] = useState(false)
   const nodeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -86,11 +57,7 @@ export default function Node(props: NodeProps) {
     return () => {
       document.removeEventListener("mousemove", moveNode)
     }
-  }, [dragging, node, handleNodeMove])
-
-  const handleNameInputBlur = (byClick: boolean) => {
-    handleNodeNameChange(node, nodeName, byClick)
-  }
+  }, [node, dragging, dragOffset, handleNodeMove])
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setDragging(true)
@@ -119,11 +86,15 @@ export default function Node(props: NodeProps) {
     setDragOffset(null)
   }
 
-  const handleNodeClickLocal = (e: React.MouseEvent) => {
+  const handleClickLocal = (e: React.MouseEvent) => {
     e.stopPropagation()
   }
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNameInputBlur = (byClick: boolean) => {
+    handleNodeNameChange(node, nodeName, byClick)
+  }
+
+  const handleNameChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNodeName(e.target.value)
   }
 
@@ -152,24 +123,7 @@ export default function Node(props: NodeProps) {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Planet
-            centerContent={<div className="node-planet" />}
-            open={true}
-            hideOrbit
-            orbitRadius={100}
-            rotation={-90}
-          >
-            <NodeButton
-              onSelect={handleNodeNavSelect}
-              children={<CloseIcon />}
-              action="delete"
-            />
-            <NodeButton
-              onSelect={handleNodeNavSelect}
-              children={<StraightIcon style={{ color: "#1a1b1e" }} />}
-              action="connect"
-            />
-          </Planet>
+          <NodePlanet onSelect={handleNodeNavSelect} />
         </div>
       )}
       <Paper
@@ -183,7 +137,7 @@ export default function Node(props: NodeProps) {
             : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
           outlineOffset: isSelected ? "1px" : "-3px",
         }}
-        onClick={handleNodeClickLocal}
+        onClick={handleClickLocal}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseEnter={() => setNodeHovered(true)}
@@ -193,7 +147,7 @@ export default function Node(props: NodeProps) {
         {node.isEditing ? (
           <input
             type="text"
-            onChange={handleNameChange}
+            onChange={handleNameChangeLocal}
             onBlur={() => handleNameInputBlur(true)}
             onKeyUp={handleKeyUp}
             autoFocus
