@@ -3,10 +3,10 @@ import { Paper } from "@mantine/core"
 import chroma from "chroma-js"
 import { Planet } from "react-planet"
 
-import CloseIcon from '@mui/icons-material/Close'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import SyncAltIcon from '@mui/icons-material/SyncAlt';
-import StraightIcon from '@mui/icons-material/Straight';
+import CloseIcon from "@mui/icons-material/Close"
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
+import SyncAltIcon from "@mui/icons-material/SyncAlt"
+import StraightIcon from "@mui/icons-material/Straight"
 
 import INode from "./types/node.type"
 import { colorPalette } from "./types/color.palette"
@@ -18,7 +18,11 @@ interface NodeProps {
   colorIndex: number
   handleNodeClick: (node: INode) => void
   handleNodeMove: (node: INode, position: INode["position"]) => void
-  handleNodeNameChange: (node: INode, newName: string | null, byClick: boolean) => void
+  handleNodeNameChange: (
+    node: INode,
+    newName: string | null,
+    byClick: boolean
+  ) => void
   handleNodeNavSelect: (action: string) => void
 }
 
@@ -31,15 +35,16 @@ interface NodeButtonProps {
 function NodeButton(props: NodeButtonProps) {
   const { onSelect, children, action } = props
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     onSelect(action)
   }
 
   return (
-    <div
-      onClick={handleClick}
+    <div 
       className="node-button"
-    >
+      onClick={handleClick}
+      >
       {children}
     </div>
   )
@@ -56,12 +61,14 @@ export default function Node(props: NodeProps) {
     handleNodeNameChange,
     handleNodeNavSelect,
   } = props
-  const [dragging, setDragging] = useState(false)
   const [nodeName, setNodeName] = useState(node.name)
+  const [dragging, setDragging] = useState(false)
   const [dragStartPos, setDragStartPos] = useState<INode["position"] | null>(
     null
   )
   const [dragOffset, setDragOffset] = useState<INode["position"] | null>(null)
+  const [nodeHovered, setNodeHovered] = useState(false)
+  const [nodeButtonHovered, setNodeButtonHovered] = useState(false)
   const nodeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -95,12 +102,14 @@ export default function Node(props: NodeProps) {
   }
 
   const handleMouseUp = (e: React.MouseEvent) => {
-    if (connecting) { // always carry out node click if a node is trying to connect
-      handleNodeClick(node) 
-    } else if ( // carry out node click if node is not trying to connect when node has not been moved
+    if (connecting) {
+      // always carry out node click if a node is trying to connect
+      handleNodeClick(node)
+    } else if (
+      // carry out node click if node is not trying to connect when node has not been moved
       dragStartPos &&
-      Math.abs(dragStartPos.x - e.clientX) < 1 &&
-      Math.abs(dragStartPos.y - e.clientY) < 1
+      Math.abs(dragStartPos.x - e.clientX) < 10 &&
+      Math.abs(dragStartPos.y - e.clientY) < 10
     ) {
       handleNodeClick(node)
     }
@@ -131,7 +140,7 @@ export default function Node(props: NodeProps) {
     <div
       style={{
         position: "absolute",
-        zIndex: isSelected ? 1000 : 0
+        zIndex: isSelected ? 1000 : 0,
       }}
     >
       {isSelected && !connecting && (
@@ -144,20 +153,20 @@ export default function Node(props: NodeProps) {
           }}
         >
           <Planet
-            centerContent={<div className="node-planet"/>}
-            open={isSelected}
+            centerContent={<div className="node-planet" />}
+            open={true}
             hideOrbit
             orbitRadius={100}
             rotation={-90}
           >
             <NodeButton
               onSelect={handleNodeNavSelect}
-              children={<CloseIcon style={{color: "red"}} />}
+              children={<CloseIcon />}
               action="delete"
             />
             <NodeButton
               onSelect={handleNodeNavSelect}
-              children={<StraightIcon style={{color: "#1a1b1e"}} />}
+              children={<StraightIcon style={{ color: "#1a1b1e" }} />}
               action="connect"
             />
           </Planet>
@@ -169,7 +178,7 @@ export default function Node(props: NodeProps) {
           top: node.position.y - 50,
           left: node.position.x - 50,
           backgroundColor: colors[node.type],
-          outline: isSelected
+          outline: isSelected || nodeHovered
             ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
             : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
           outlineOffset: isSelected ? "1px" : "-3px",
@@ -177,6 +186,8 @@ export default function Node(props: NodeProps) {
         onClick={handleNodeClickLocal}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
+        onMouseEnter={() => setNodeHovered(true)}
+        onMouseLeave={() => setNodeHovered(false)}
         ref={nodeRef}
       >
         {node.isEditing ? (

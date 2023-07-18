@@ -32,24 +32,22 @@ interface NavButtonProps {
 function NavButton(props: NavButtonProps) {
   const { onSelect, nodeType, children, colorIndex } = props
   const [hovered, setHovered] = useState(false)
-  const [mouseDown, setMouseDown] = useState(false)
 
   const colors = colorPalette[colorIndex]
   const backgroundColor = colors[nodeType]
 
   return (
     <div
+      className="nav-button"
       onClick={() => onSelect(nodeType)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onMouseDown={() => setMouseDown(true)}
-      className="nav-button"
       style={{
         backgroundColor,
-        outline: hovered 
+        outline: hovered
           ? `3px solid ${chroma(backgroundColor).brighten().hex()}`
           : `3px solid ${chroma(backgroundColor).darken(0.75).hex()}`,
-        outlineOffset: mouseDown ? "1px" : "-3px"
+        outlineOffset: "-3px",
       }}
     >
       {children}

@@ -1,21 +1,22 @@
-import { useState, useEffect } from "react";
-import { IConnection, IDConnection } from "./types/connection.type";
+import { useState, useEffect } from "react"
+import { IConnection, IDConnection } from "./types/connection.type"
 
 interface TempConnectionProps {
-  start: {x: number, y: number}
+  start: { x: number; y: number }
   canvasRef: React.RefObject<HTMLDivElement>
 }
 
 interface ConnectionProps {
   connection: IConnection
   isSelected: boolean
-  handleConnectionClick: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
-
+  handleConnectionClick: (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+  ) => void
 }
 
 export function TempConnection(props: TempConnectionProps) {
   const { start, canvasRef } = props
-  const [end, setEnd] = useState({x: start.x, y: start.y})
+  const [end, setEnd] = useState({ x: start.x, y: start.y })
 
   useEffect(() => {
     const moveHandler = (e: MouseEvent) => {
@@ -23,7 +24,7 @@ export function TempConnection(props: TempConnectionProps) {
       if (!canvasRect) return
       const x = e.clientX - canvasRect.left
       const y = e.clientY - canvasRect.top
-      setEnd({x,y})
+      setEnd({ x, y })
     }
 
     document.addEventListener("mousemove", moveHandler)
@@ -34,7 +35,7 @@ export function TempConnection(props: TempConnectionProps) {
 
   return (
     <svg
-      style={{ 
+      style={{
         position: "absolute",
         top: 0,
         left: 0,
@@ -44,8 +45,16 @@ export function TempConnection(props: TempConnectionProps) {
       }}
     >
       <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" fill="#555"
-                markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <marker
+          id="arrow"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          fill="#555"
+          markerWidth="8"
+          markerHeight="8"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
       </defs>
@@ -62,7 +71,7 @@ export function TempConnection(props: TempConnectionProps) {
 }
 
 export default function Connection(props: ConnectionProps) {
-  const { connection, isSelected, handleConnectionClick } = props;
+  const { connection, isSelected, handleConnectionClick } = props
   const start = connection.start.position
   const end = connection.end.position
 
@@ -77,7 +86,7 @@ export default function Connection(props: ConnectionProps) {
 
   return (
     <svg
-      style={{ 
+      style={{
         position: "absolute",
         top: 0,
         left: 0,
@@ -87,12 +96,28 @@ export default function Connection(props: ConnectionProps) {
       }}
     >
       <defs>
-        <marker id="arrowSelect" viewBox="0 0 10 10" refX="7" refY="5" fill="#6f6f6f"
-                markerWidth="4" markerHeight="8" orient="auto-start-reverse">
+        <marker
+          id="arrowSelect"
+          viewBox="0 0 10 10"
+          refX="7"
+          refY="5"
+          fill="#6f6f6f"
+          markerWidth="4"
+          markerHeight="8"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" fill="#555"
-                markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <marker
+          id="arrow"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          fill="#555"
+          markerWidth="8"
+          markerHeight="8"
+          orient="auto-start-reverse"
+        >
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
       </defs>
@@ -124,5 +149,5 @@ export default function Connection(props: ConnectionProps) {
         />
       </a>
     </svg>
-  );
+  )
 }

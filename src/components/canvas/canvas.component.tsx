@@ -51,7 +51,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleNodeNavSelect = (node: INode) => (action: string) => {
-    setNavBlocked(true)
     switch (action) {
       case "delete":
         break
@@ -72,7 +71,11 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
-  const handleNodeNameChange = (node: INode, newName: string | null, byClick: boolean) => {
+  const handleNodeNameChange = (
+    node: INode,
+    newName: string | null,
+    byClick: boolean
+  ) => {
     if (byClick) setNavBlocked(true)
     setNodes((prevNodes) =>
       prevNodes.map((n) =>
@@ -107,7 +110,12 @@ export default function Canvas(props: CanvasProps) {
     if (navOpen) {
       setNavOpen(false)
       setClickPosition(null)
-    } else if (canvasRef.current && !selectedNode && !selectedConnection && !navBlocked) {
+    } else if (
+      canvasRef.current &&
+      !selectedNode &&
+      !selectedConnection &&
+      !navBlocked
+    ) {
       const canvasRect = canvasRef.current.getBoundingClientRect()
       const canvasClickPosition = {
         x: e.clientX - canvasRect.left,
