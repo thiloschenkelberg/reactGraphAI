@@ -42,7 +42,10 @@ export default function Node(props: NodeProps) {
   )
   const [dragOffset, setDragOffset] = useState<INode["position"] | null>(null)
   const [nodeHovered, setNodeHovered] = useState(false)
+  const [connectorPos, setConnectorPos] = useState<{x: number, y: number}>({x:0,y:0})
+  const [connectorVisible, setConnectorVisible] = useState(false)
   const nodeRef = useRef<HTMLDivElement>(null)
+  const borderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const moveNode = (e: MouseEvent) => {
@@ -90,6 +93,32 @@ export default function Node(props: NodeProps) {
     setDragging(false)
     setDragStartPos(null)
     setDragOffset(null)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!borderRef.current) return
+
+    // reference of .node-border div
+    const borderRect = borderRef.current.getBoundingClientRect()
+
+    // relative mousePos to center of .node-border
+    const relativeX = e.clientX - (borderRect.left + borderRect.width / 2)
+    const relativeY = e.clientY - (borderRect.top + borderRect.height / 2)
+
+    // calculate angle
+    const angle = Math.atan2(relativeY, relativeX)
+
+    // replace with node size / 2 later on
+    const radius = 55 
+    const connectorPosition = {
+      x: (borderRect.width / 2) + 55 * Math.cos(angle),
+      y: (borderRect.height / 2) + 55 * Math.sin(angle)
+    }
+
+    setConnectorPos(connectorPosition)
+
+    const dist = Math.sqrt(relativeX * relativeX + relativeY * relativeY)
+    setConnectorVisible(dist > 35)
   }
 
   const handleClickLocal = (e: React.MouseEvent) => {
@@ -154,6 +183,8 @@ export default function Node(props: NodeProps) {
         onMouseUp={handleMouseUp}
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
+        onMouseMove={handleMouseMove}
+        ref={borderRef}
       >
         <Paper // actual node
           className="node"
@@ -199,6 +230,16 @@ export default function Node(props: NodeProps) {
             </span>
           )}
         </Paper>
+        {nodeHovered && connectorVisible &&
+          <div
+            className="node-border-circle"
+            style={{
+              backgroundColor: "#fff",
+              top: connectorPos.y,
+              left: connectorPos.x,
+            }}
+          />
+        }
       </div>
     </div>
   )
