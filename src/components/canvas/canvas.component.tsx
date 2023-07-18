@@ -6,7 +6,7 @@ import Node from "./node.component"
 import NavPlanet from "./nav-planet.component"
 import Connection from "./connection.component"
 import { TempConnection } from "./connection.component"
-import { IDConnection } from "./types/connection.type"
+import { IConnection } from "./types/connection.type"
 import INode from "./types/node.type"
 
 interface CanvasProps {
@@ -17,9 +17,9 @@ export default function Canvas(props: CanvasProps) {
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNode, setSelectedNode] = useState<INode | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
-  const [connections, setConnections] = useState<IDConnection[]>([])
+  const [connections, setConnections] = useState<IConnection[]>([])
   const [selectedConnection, setSelectedConnection] =
-    useState<IDConnection | null>(null)
+    useState<IConnection | null>(null)
   const [navOpen, setNavOpen] = useState(false)
   const [navBlocked, setNavBlocked] = useState(false)
   const [clickPosition, setClickPosition] = useState<{
@@ -94,7 +94,7 @@ export default function Canvas(props: CanvasProps) {
     setConnections((prevConnections) =>
       prevConnections.filter(
         (connection) =>
-          connection.start !== node.id && connection.end !== node.id
+          connection.start.id !== node.id && connection.end.id !== node.id
       )
     )
     setSelectedNode(null)
@@ -125,18 +125,20 @@ export default function Canvas(props: CanvasProps) {
 
     const connectionExists = connections.some(
       (connection) =>
-        (connection.start === start.id && connection.end === end.id) ||
-        (connection.start === end.id && connection.end === start.id)
+        (connection.start.id === start.id && connection.end.id === end.id) ||
+        (connection.start.id === end.id && connection.end.id === start.id)
     )
     if (connectionExists) return
+    const connectionID = uuidv4()
     setConnections((prevConnections) => [
       ...prevConnections,
-      { start: start.id, end: end.id },
+      { start: start, end: end, id: connectionID },
     ])
   }
 
   const handleConnectionClick =
-    (connection: IDConnection) => (e: React.MouseEvent) => {
+    (connection: IConnection) => (e: React.MouseEvent<SVGPathElement, MouseEvent>) => {
+      console.log('test')
       e.stopPropagation()
       setSelectedConnection(connection)
     }
@@ -188,15 +190,15 @@ export default function Canvas(props: CanvasProps) {
         ref={canvasRef}
       >
         {connections.map((connection, i) => {
-          const startNode = nodes.find((node) => node.id === connection.start)
-          const endNode = nodes.find((node) => node.id === connection.end)
+          const startNode = nodes.find((node) => node.id === connection.start.id)
+          const endNode = nodes.find((node) => node.id === connection.end.id)
           if (!startNode || !endNode) return null // Skip rendering if nodes are not found
           return (
             <Connection
               key={i}
-              handleConnectionClick={handleConnectionClick(connection)}
-              connection={{ start: startNode, end: endNode }}
-              isSelected={connection === selectedConnection}
+              handleConnectionClick={handleConnectionClick}
+              connection={{start: startNode, end: endNode, id: connection.id}}
+              isSelected={connection.id === selectedConnection?.id}
             />
           )
         })}
@@ -209,9 +211,9 @@ export default function Canvas(props: CanvasProps) {
           />
         )}
 
-        {nodes.map((node) => (
+        {nodes.map((node, i) => (
           <Node
-            key={node.id}
+            key={i}
             node={node}
             isSelected={node.id === selectedNode?.id}
             connecting={Boolean(connectingNode)}

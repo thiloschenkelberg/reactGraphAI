@@ -4,8 +4,8 @@ import { IConnection } from "./types/connection.type"
 interface ConnectionProps {
   connection: IConnection
   isSelected: boolean
-  handleConnectionClick: (
-    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+  handleConnectionClick: (connection: IConnection) => (
+    e: React.MouseEvent<SVGPathElement, MouseEvent>
   ) => void
 }
 
@@ -36,7 +36,7 @@ export function TempConnection(props: TempConnectionProps) {
     return () => {
       document.removeEventListener("mousemove", moveHandler)
     }
-  }, [clickPosition])
+  }, [clickPosition, canvasRef])
 
   return (
     <svg
@@ -86,8 +86,8 @@ export default function Connection(props: ConnectionProps) {
   const normX = dx / len
   const normY = dy / len
 
-  const endX = end.x - normX * 55
-  const endY = end.y - normY * 55
+  const endX = end.x - normX * 56
+  const endY = end.y - normY * 56
 
   return (
     <svg
@@ -144,17 +144,14 @@ export default function Connection(props: ConnectionProps) {
         markerEnd="url(#arrow)"
         pointerEvents="none"
       />
-      <a 
-        // onClick={handleConnectionClick}
-      >
-        <path // connection clickable area
-          d={`M ${start.x},${start.y} L ${endX},${endY}`}
-          fill="none"
-          strokeWidth="20"
-          stroke="transparent"
-          pointerEvents="auto"
-        />
-      </a>
+      <path // connection clickable area
+        d={`M ${start.x},${start.y} L ${endX},${endY}`}
+        fill="none"
+        strokeWidth="20"
+        stroke="transparent"
+        pointerEvents="auto"
+        onClick={handleConnectionClick(connection)}
+      />
     </svg>
   )
 }

@@ -111,8 +111,8 @@ export default function Node(props: NodeProps) {
     // replace with node size / 2 later on
     const radius = 55 
     const connectorPosition = {
-      x: (borderRect.width / 2) + 55 * Math.cos(angle),
-      y: (borderRect.height / 2) + 55 * Math.sin(angle)
+      x: (borderRect.width / 2) + radius * Math.cos(angle),
+      y: (borderRect.height / 2) + radius * Math.sin(angle)
     }
 
     setConnectorPos(connectorPosition)
@@ -234,7 +234,7 @@ export default function Node(props: NodeProps) {
           <div
             className="node-border-circle"
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: chroma(colors[node.type]).brighten().hex(),
               top: connectorPos.y,
               left: connectorPos.x,
             }}

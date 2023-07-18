@@ -2,7 +2,8 @@ import INode from "./node.type"
 
 export interface IConnection {
   start: INode,
-  end: INode
+  end: INode,
+  id: string
 }
 
 export interface IDConnection {
