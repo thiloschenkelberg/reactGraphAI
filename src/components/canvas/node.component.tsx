@@ -128,7 +128,7 @@ export default function Node(props: NodeProps) {
         zIndex: isSelected ? 1000 : node.layer,
       }}
     >
-      {isSelected && !connecting && (
+      {isSelected && !connecting && ( // node nav menu
         <div
           style={{
             position: "absolute",
@@ -140,7 +140,7 @@ export default function Node(props: NodeProps) {
           <NodePlanet onSelect={handleNodeNavSelect} />
         </div>
       )}
-      <div 
+      <div // draggable node border to create connections
         className="node-border"
         style={{
           width: "130px",
@@ -155,7 +155,7 @@ export default function Node(props: NodeProps) {
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
       >
-        <Paper
+        <Paper // actual node
           className="node"
           style={{
             width: "100px",
@@ -173,7 +173,7 @@ export default function Node(props: NodeProps) {
           ref={nodeRef}
           tabIndex={0}
         >
-          {node.isEditing ? (
+          {node.isEditing ? ( // node name input field
             <input
               type="text"
               onChange={handleNameChangeLocal}
@@ -185,7 +185,7 @@ export default function Node(props: NodeProps) {
               }}
             />
           ) : (
-            <span
+            <span // node name tag
               style={{
                 userSelect: "none",
                 color:
