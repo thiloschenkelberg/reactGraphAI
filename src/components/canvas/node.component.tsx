@@ -14,6 +14,7 @@ interface NodeProps {
   colorIndex: number
   handleNodeClick: (node: INode) => void
   handleNodeMove: (node: INode, position: INode["position"]) => void
+  handleNodeConnect: (node: INode) => void
   handleNodeNameChange: (
     node: INode,
     newName: string | null,
@@ -30,6 +31,7 @@ export default function Node(props: NodeProps) {
     colorIndex,
     handleNodeClick,
     handleNodeMove,
+    handleNodeConnect,
     handleNodeNameChange,
     handleNodeNavSelect,
   } = props
@@ -60,6 +62,7 @@ export default function Node(props: NodeProps) {
   }, [node, dragging, dragOffset, handleNodeMove])
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setDragging(true)
     setDragStartPos({ x: e.clientX, y: e.clientY })
     setDragOffset({
@@ -69,14 +72,17 @@ export default function Node(props: NodeProps) {
   }
 
   const handleMouseUp = (e: React.MouseEvent) => {
+    //e.stopPropagation()
+
     if (connecting) {
-      // always carry out node click if a node is trying to connect
+      // always carry out node click if a node is trying to connect (favour connection)
       handleNodeClick(node)
     } else if (
-      // carry out node click if node is not trying to connect when node has not been moved
+      // carry out node click if node is not trying to connect
+      // only when node has not been moved significantly (prevent click after drag)
       dragStartPos &&
-      Math.abs(dragStartPos.x - e.clientX) < 10 &&
-      Math.abs(dragStartPos.y - e.clientY) < 10
+      Math.abs(dragStartPos.x - e.clientX) < 15 &&
+      Math.abs(dragStartPos.y - e.clientY) < 15
     ) {
       handleNodeClick(node)
     }
@@ -87,6 +93,7 @@ export default function Node(props: NodeProps) {
   }
 
   const handleClickLocal = (e: React.MouseEvent) => {
+    console.log("test")
     e.stopPropagation()
   }
 
@@ -98,10 +105,17 @@ export default function Node(props: NodeProps) {
     setNodeName(e.target.value)
   }
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault()
       handleNameInputBlur(false)
+    }
+  }
+
+  const handleNodeKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Delete") {
+      e.preventDefault()
+      handleNodeNavSelect("delete")
     }
   }
 
@@ -111,7 +125,7 @@ export default function Node(props: NodeProps) {
     <div
       style={{
         position: "absolute",
-        zIndex: isSelected ? 1000 : 0,
+        zIndex: isSelected ? 1000 : node.layer,
       }}
     >
       {isSelected && !connecting && (
@@ -126,50 +140,66 @@ export default function Node(props: NodeProps) {
           <NodePlanet onSelect={handleNodeNavSelect} />
         </div>
       )}
-      <Paper
-        className="node"
+      <div 
+        className="node-border"
         style={{
-          top: node.position.y - 50,
-          left: node.position.x - 50,
-          backgroundColor: colors[node.type],
-          outline: isSelected || nodeHovered
-            ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
-            : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
-          outlineOffset: isSelected ? "1px" : "-3px",
+          width: "130px",
+          height: "130px",
+          top: node.position.y,
+          left: node.position.x,
+          transform: "translate(-50%, -50%)",
         }}
         onClick={handleClickLocal}
-        onMouseDown={handleMouseDown}
+        onMouseDown={() => handleNodeConnect(node)}
         onMouseUp={handleMouseUp}
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
-        ref={nodeRef}
       >
-        {node.isEditing ? (
-          <input
-            type="text"
-            onChange={handleNameChangeLocal}
-            onBlur={() => handleNameInputBlur(true)}
-            onKeyUp={handleKeyUp}
-            autoFocus
-            style={{
-              zIndex: 10,
-            }}
-          />
-        ) : (
-          <span
-            style={{
-              userSelect: "none",
-              color:
-                node.type === "matter" || node.type === "measurement"
-                  ? "#1a1b1e"
-                  : "#ececec",
-              zIndex: 10,
-            }}
-          >
-            {node.name}
-          </span>
-        )}
-      </Paper>
+        <Paper
+          className="node"
+          style={{
+            width: "100px",
+            height: "100px",
+            backgroundColor: colors[node.type],
+            outline: isSelected || nodeHovered
+              ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
+              : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
+            outlineOffset: isSelected ? "3px" : "0px",
+          }}
+          onClick={handleClickLocal}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onKeyUp={handleNodeKeyUp}
+          ref={nodeRef}
+          tabIndex={0}
+        >
+          {node.isEditing ? (
+            <input
+              type="text"
+              onChange={handleNameChangeLocal}
+              onBlur={() => handleNameInputBlur(true)}
+              onKeyUp={handleInputKeyUp}
+              autoFocus
+              style={{
+                zIndex: node.layer + 1,
+              }}
+            />
+          ) : (
+            <span
+              style={{
+                userSelect: "none",
+                color:
+                  node.type === "matter" || node.type === "measurement"
+                    ? "#1a1b1e"
+                    : "#ececec",
+                zIndex: node.layer + 1,
+              }}
+            >
+              {node.name}
+            </span>
+          )}
+        </Paper>
+      </div>
     </div>
   )
 }

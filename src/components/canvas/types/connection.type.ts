@@ -6,6 +6,6 @@ export interface IConnection {
 }
 
 export interface IDConnection {
-  start: number,
-  end: number
+  start: string,
+  end: string
 }

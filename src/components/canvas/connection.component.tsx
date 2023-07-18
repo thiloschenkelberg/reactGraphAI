@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react"
-import { IConnection, IDConnection } from "./types/connection.type"
-
-interface TempConnectionProps {
-  start: { x: number; y: number }
-  canvasRef: React.RefObject<HTMLDivElement>
-}
+import { IConnection } from "./types/connection.type"
 
 interface ConnectionProps {
   connection: IConnection
@@ -14,11 +9,21 @@ interface ConnectionProps {
   ) => void
 }
 
+interface TempConnectionProps {
+  start: { x: number; y: number }
+  clickPosition: { x: number; y: number } | null
+  canvasRef: React.RefObject<HTMLDivElement>
+}
+
 export function TempConnection(props: TempConnectionProps) {
-  const { start, canvasRef } = props
+  const { start, clickPosition, canvasRef } = props
   const [end, setEnd] = useState({ x: start.x, y: start.y })
 
   useEffect(() => {
+    if (clickPosition) {
+      setEnd(clickPosition)
+      return
+    }
     const moveHandler = (e: MouseEvent) => {
       const canvasRect = canvasRef.current?.getBoundingClientRect()
       if (!canvasRect) return
@@ -31,7 +36,7 @@ export function TempConnection(props: TempConnectionProps) {
     return () => {
       document.removeEventListener("mousemove", moveHandler)
     }
-  }, [])
+  }, [clickPosition])
 
   return (
     <svg
@@ -139,7 +144,9 @@ export default function Connection(props: ConnectionProps) {
         markerEnd="url(#arrow)"
         pointerEvents="none"
       />
-      <a onClick={handleConnectionClick}>
+      <a 
+        // onClick={handleConnectionClick}
+      >
         <path // connection clickable area
           d={`M ${start.x},${start.y} L ${endX},${endY}`}
           fill="none"

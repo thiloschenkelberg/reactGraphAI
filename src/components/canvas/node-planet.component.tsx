@@ -5,6 +5,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 import SyncAltIcon from "@mui/icons-material/SyncAlt"
 import StraightIcon from "@mui/icons-material/Straight"
+import LayersIcon from "@mui/icons-material/Layers"
 
 import { hoverColors } from "./types/color.palette"
 
@@ -58,17 +59,29 @@ export default function NodePlanet(props: NodePlanetProps) {
       open={true}
       hideOrbit
       orbitRadius={100}
-      rotation={-90}
+      rotation={90}
     >
+      <NodeButton onSelect={onSelect} action="layerUp">
+        <div style={{ display: "inline-flex", alignItems: "center" }}>
+          <LayersIcon />
+          <StraightIcon />
+        </div>
+      </NodeButton>
       <NodeButton
         onSelect={onSelect}
-        children={<CloseIcon style={{ color: "#1a1b1e" }} />}
-        action="delete"
-      />
-      <NodeButton
-        onSelect={onSelect}
-        children={<StraightIcon style={{ color: "#1a1b1e" }} />}
+        children={<StraightIcon />}
         action="connect"
+      />
+      <NodeButton onSelect={onSelect} action="layerDown">
+        <div style={{ display: "inline-flex", alignItems: "center" }}>
+          <LayersIcon />
+          <StraightIcon />
+        </div>
+      </NodeButton>
+      <NodeButton
+        onSelect={onSelect}
+        children={<CloseIcon />}
+        action="delete"
       />
     </Planet>
   )

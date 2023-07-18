@@ -112,6 +112,8 @@ a:link {
 }
 
 .nav-planet {
+  position: absolute;
+  display: flex;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -120,14 +122,20 @@ a:link {
 
 .node {
   position: absolute;
-  width: 100px;
-  height: 100px;
   border-radius: 50%;
-  border: 2px solid #111;
   display: flex;
   align-items: center;
   justify-content: center;
   filter: drop-shadow(2px 2px 2px #111);
+}
+
+.node-border {
+  position: absolute;
+  background-color: transparent;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .node-button {

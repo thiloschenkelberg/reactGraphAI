@@ -60,7 +60,14 @@ export default function NavPlanet(props: NavPlanetProps) {
 
   return (
     <Planet
-      centerContent={<div className="nav-planet" />}
+      centerContent={
+        <div 
+          className="nav-planet"
+          style={{
+            transform: "translate(-50%, -50%)"
+          }}
+        />
+      }
       open={open}
       hideOrbit
       orbitRadius={75}

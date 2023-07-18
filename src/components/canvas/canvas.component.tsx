@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react"
 import { Paper } from "@mantine/core"
+import { v4 as uuidv4 } from "uuid"
 
 import Node from "./node.component"
 import NavPlanet from "./nav-planet.component"
 import Connection from "./connection.component"
 import { TempConnection } from "./connection.component"
 import { IDConnection } from "./types/connection.type"
-
 import INode from "./types/node.type"
 
 interface CanvasProps {
@@ -30,35 +30,22 @@ export default function Canvas(props: CanvasProps) {
   const { colorIndex } = props
 
   const addNode = (type: INode["type"], position: INode["position"]) => {
-    const id = nodes.length
-    setNodes((prevNodes) => [
-      ...prevNodes,
-      { id, name: "", type, position, isEditing: true },
-    ])
+    const id = uuidv4()
+    const layer = 0
+    const newNode = { id, name: "", type, position, layer, isEditing: true }
+    setNodes((prevNodes) => [...prevNodes, newNode])
+    if (connectingNode) addConnection(connectingNode, newNode)
   }
 
   const handleNodeClick = (node: INode) => {
-    if (connectingNode && selectedNode) {
-      addConnection(selectedNode, node)
-      setSelectedNode(null)
+    if (connectingNode) {
+      addConnection(connectingNode, node)
       setConnectingNode(null)
     } else if (!navOpen) {
       setSelectedNode(node)
       setSelectedConnection(null)
     } else {
       setNavOpen(false)
-    }
-  }
-
-  const handleNodeNavSelect = (node: INode) => (action: string) => {
-    switch (action) {
-      case "delete":
-        break
-      case "connect":
-        console.log("trying to connect")
-        setSelectedNode(node)
-        setConnectingNode(node)
-        break
     }
   }
 
@@ -69,6 +56,12 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => (n === node ? { ...node, position } : n))
     )
+  }
+
+  const handleNodeConnect = (node: INode) => {
+    setNavOpen(false)
+    setNavBlocked(true)
+    setConnectingNode(node)
   }
 
   const handleNodeNameChange = (
@@ -82,6 +75,49 @@ export default function Canvas(props: CanvasProps) {
         n.id === node.id ? { ...n, name: newName, isEditing: false } : n
       )
     )
+  }
+
+  const handleNodeLayerChange = (node: INode, up: boolean) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((n) => {
+        if (n.id === node.id) {
+          return { ...n, layer: up ? n.layer + 1 : n.layer - 1 }
+        } else {
+          return n
+        }
+      })
+    )
+  }
+
+  const handleNodeDelete = (node: INode) => {
+    setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id))
+    setConnections((prevConnections) =>
+      prevConnections.filter(
+        (connection) =>
+          connection.start !== node.id && connection.end !== node.id
+      )
+    )
+    setSelectedNode(null)
+  }
+
+  const handleNodeNavSelect = (node: INode) => (action: string) => {
+    switch (action) {
+      case "delete":
+        handleNodeDelete(node)
+        break
+      case "connect":
+        setSelectedNode(node)
+        setConnectingNode(node)
+        break
+      case "layerUp":
+        handleNodeLayerChange(node, true)
+        break
+      case "layerDown":
+        handleNodeLayerChange(node, false)
+        break
+      default:
+        break
+    }
   }
 
   const addConnection = (start: INode, end: INode) => {
@@ -101,9 +137,8 @@ export default function Canvas(props: CanvasProps) {
 
   const handleConnectionClick =
     (connection: IDConnection) => (e: React.MouseEvent) => {
-      setNavBlocked(true)
+      e.stopPropagation()
       setSelectedConnection(connection)
-      // setSelectedNode(null)
     }
 
   const handleCanvasClick = (e: React.MouseEvent) => {
@@ -112,9 +147,7 @@ export default function Canvas(props: CanvasProps) {
       setClickPosition(null)
     } else if (
       canvasRef.current &&
-      !selectedNode &&
-      !selectedConnection &&
-      !navBlocked
+      ((!selectedNode && !selectedConnection && !navBlocked) || connectingNode)
     ) {
       const canvasRect = canvasRef.current.getBoundingClientRect()
       const canvasClickPosition = {
@@ -125,12 +158,12 @@ export default function Canvas(props: CanvasProps) {
       setNavOpen(true)
     }
     if (!navBlocked) {
-      console.log("nav not blocked")
       setSelectedNode(null)
       setConnectingNode(null)
       setSelectedConnection(null)
+    } else {
+      setNavBlocked(false)
     }
-    setNavBlocked(false)
   }
 
   const handleCanvasNavSelect = (type?: INode["type"]) => {
@@ -168,8 +201,12 @@ export default function Canvas(props: CanvasProps) {
           )
         })}
 
-        {connectingNode && selectedNode && (
-          <TempConnection start={selectedNode.position} canvasRef={canvasRef} />
+        {connectingNode && (
+          <TempConnection
+            start={connectingNode.position}
+            clickPosition={clickPosition}
+            canvasRef={canvasRef}
+          />
         )}
 
         {nodes.map((node) => (
@@ -181,6 +218,7 @@ export default function Canvas(props: CanvasProps) {
             colorIndex={colorIndex}
             handleNodeClick={handleNodeClick}
             handleNodeMove={handleNodeMove}
+            handleNodeConnect={handleNodeConnect}
             handleNodeNameChange={handleNodeNameChange}
             handleNodeNavSelect={handleNodeNavSelect(node)}
           />
