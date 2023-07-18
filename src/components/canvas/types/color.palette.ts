@@ -7,3 +7,8 @@ export const colorPalette: { [key: number]: { [key: string]: string } } = {
     measurement: "#FFF07C", // Maize (b)
   }
 }
+
+export const hoverColors: { [key: string]: string } = {
+  default: "#fff",
+  delete: "#ff0000",
+}
