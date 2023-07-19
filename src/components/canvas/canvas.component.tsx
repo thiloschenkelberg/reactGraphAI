@@ -59,6 +59,7 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleNodeConnect = (node: INode) => {
+    console.log("connect")
     setNavOpen(false)
     setNavBlocked(true)
     setConnectingNode(node)
@@ -144,6 +145,7 @@ export default function Canvas(props: CanvasProps) {
     }
 
   const handleCanvasClick = (e: React.MouseEvent) => {
+    if (!selectedNode) console.log("fuck me")
     if (navOpen) {
       setNavOpen(false)
       setClickPosition(null)

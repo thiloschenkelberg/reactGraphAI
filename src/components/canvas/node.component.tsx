@@ -47,6 +47,7 @@ export default function Node(props: NodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
   const borderRef = useRef<HTMLDivElement>(null)
 
+  // move node
   useEffect(() => {
     const moveNode = (e: MouseEvent) => {
       if (dragging && dragOffset) {
@@ -64,6 +65,7 @@ export default function Node(props: NodeProps) {
     }
   }, [node, dragging, dragOffset, handleNodeMove])
 
+  // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation()
     setDragging(true)
@@ -74,9 +76,11 @@ export default function Node(props: NodeProps) {
     })
   }
 
+  // either complete connection between 2 nodes or
+  // open node nav menu (if node hasnt been moved significantly)
   const handleMouseUp = (e: React.MouseEvent) => {
     //e.stopPropagation()
-
+    console.log("etets")
     if (connecting) {
       // always carry out node click if a node is trying to connect (favour connection)
       handleNodeClick(node)
@@ -89,51 +93,49 @@ export default function Node(props: NodeProps) {
     ) {
       handleNodeClick(node)
     }
-
     setDragging(false)
     setDragStartPos(null)
     setDragOffset(null)
   }
 
+  // calculate connector circle position and visibility
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!borderRef.current) return
-
     // reference of .node-border div
     const borderRect = borderRef.current.getBoundingClientRect()
-
     // relative mousePos to center of .node-border
     const relativeX = e.clientX - (borderRect.left + borderRect.width / 2)
     const relativeY = e.clientY - (borderRect.top + borderRect.height / 2)
-
     // calculate angle
     const angle = Math.atan2(relativeY, relativeX)
-
     // replace with node size / 2 later on
     const radius = 55 
     const connectorPosition = {
       x: (borderRect.width / 2) + radius * Math.cos(angle),
       y: (borderRect.height / 2) + radius * Math.sin(angle)
     }
-
     setConnectorPos(connectorPosition)
-
+    // calculate dist from cursor to .node-border
     const dist = Math.sqrt(relativeX * relativeX + relativeY * relativeY)
     setConnectorVisible(dist > 35)
   }
 
+  // prevent event propagation (prevent canvas.tsx onClick)
   const handleClickLocal = (e: React.MouseEvent) => {
-    console.log("test")
     e.stopPropagation()
   }
 
+  // confirm node name
   const handleNameInputBlur = (byClick: boolean) => {
     handleNodeNameChange(node, nodeName, byClick)
   }
 
+  // update local node name
   const handleNameChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNodeName(e.target.value)
   }
 
+  // confirm node name with "Enter"
   const handleInputKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault()
@@ -141,6 +143,7 @@ export default function Node(props: NodeProps) {
     }
   }
 
+  // delete node on "Delete" key
   const handleNodeKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === "Delete") {
       e.preventDefault()
@@ -178,12 +181,12 @@ export default function Node(props: NodeProps) {
           left: node.position.x,
           transform: "translate(-50%, -50%)",
         }}
-        onClick={handleClickLocal}
-        onMouseDown={() => handleNodeConnect(node)}
-        onMouseUp={handleMouseUp}
+        onClick={handleClickLocal} // prevent propagation to canvas onClick
+        onMouseDown={() => handleNodeConnect(node)} // init connection
+        onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
-        onMouseMove={handleMouseMove}
+        onMouseMove={handleMouseMove} // calculate position of connector circle
         ref={borderRef}
       >
         <Paper // actual node
@@ -197,12 +200,10 @@ export default function Node(props: NodeProps) {
               : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
             outlineOffset: isSelected ? "3px" : "0px",
           }}
-          onClick={handleClickLocal}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onKeyUp={handleNodeKeyUp}
+          onMouseDown={handleMouseDown} // init moving node
+          onKeyUp={handleNodeKeyUp} // listen to key input (eg. del to delete node)
           ref={nodeRef}
-          tabIndex={0}
+          tabIndex={0} // needed for element focusing
         >
           {node.isEditing ? ( // node name input field
             <input
@@ -237,6 +238,7 @@ export default function Node(props: NodeProps) {
               backgroundColor: chroma(colors[node.type]).brighten().hex(),
               top: connectorPos.y,
               left: connectorPos.x,
+              pointerEvents: "none"
             }}
           />
         }

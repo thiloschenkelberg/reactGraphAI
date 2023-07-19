@@ -15,6 +15,9 @@ interface TempConnectionProps {
   canvasRef: React.RefObject<HTMLDivElement>
 }
 
+// Temporary connection from connection start node to
+// mouse cursor or the canvas nav menu onMouseUp.
+// Extinguished on completion of node connection
 export function TempConnection(props: TempConnectionProps) {
   const { start, clickPosition, canvasRef } = props
   const [end, setEnd] = useState({ x: start.x, y: start.y })
@@ -63,7 +66,7 @@ export function TempConnection(props: TempConnectionProps) {
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
       </defs>
-      <path // temporary connection
+      <path // temporary connection path
         d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
         stroke="#555"
         strokeWidth="2"
@@ -101,6 +104,8 @@ export default function Connection(props: ConnectionProps) {
       }}
     >
       <defs>
+        {/* Bigger arrowhead for selection path
+        (outline to actual connection path) */}
         <marker
           id="arrowSelect"
           viewBox="0 0 10 10"
@@ -113,6 +118,7 @@ export default function Connection(props: ConnectionProps) {
         >
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
+        {/* Arrowhead for actual connection path */}
         <marker
           id="arrow"
           viewBox="0 0 10 10"
@@ -127,7 +133,7 @@ export default function Connection(props: ConnectionProps) {
         </marker>
       </defs>
       {isSelected && (
-        <path // connection outline
+        <path // connection outline on selection
           d={`M ${start.x},${start.y} L ${endX},${endY}`}
           stroke="#6f6f6f"
           strokeWidth="6"
@@ -136,7 +142,7 @@ export default function Connection(props: ConnectionProps) {
           pointerEvents="none"
         />
       )}
-      <path // actual connection
+      <path // actual connection (always visible)
         d={`M ${start.x},${start.y} L ${endX},${endY}`}
         stroke="#555"
         strokeWidth="2"
@@ -144,7 +150,7 @@ export default function Connection(props: ConnectionProps) {
         markerEnd="url(#arrow)"
         pointerEvents="none"
       />
-      <path // connection clickable area
+      <path // connection clickable area (for better ux)
         d={`M ${start.x},${start.y} L ${endX},${endY}`}
         fill="none"
         strokeWidth="20"
