@@ -3,6 +3,7 @@ export default interface INode {
   name: string | null,
   type: "matter" | "process" | "measurement" | "parameter" | "property",
   position: {x: number, y: number},
+  size: number,
   layer: number,
   isEditing: boolean
 }

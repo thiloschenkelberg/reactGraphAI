@@ -13,20 +13,24 @@ import { hoverColors } from "./types/color.palette"
 
 interface NodePlanetProps {
   onSelect: (action: string) => void
+  isOpen: boolean
 }
 
 interface NodeButtonProps {
   onSelect: (action: string) => void
   children: React.ReactNode
   action: string
-  extended?: boolean
+  isSmall?: boolean
+  isPlanet?: boolean
+  planetOpen?: boolean
 }
 
 function NodeButton(props: NodeButtonProps) {
-  const { onSelect, children, action, extended } = props
+  const { onSelect, children, action, isSmall, isPlanet, planetOpen } = props
   const [hovered, setHovered] = useState(false)
 
   const handleClick = (e: React.MouseEvent) => {
+    if (isPlanet) return
     e.stopPropagation()
     onSelect(action)
   }
@@ -36,7 +40,7 @@ function NodeButton(props: NodeButtonProps) {
   const styledChild = React.Children.map(children, (child) =>
   React.isValidElement(child)
     ? React.cloneElement(child as React.ReactElement<any>, {
-        style: { color: hovered || extended ? "#1a1b1e" : hoverColor },
+        style: { color: hovered || planetOpen ? hoverColor : "#1a1b1e" },
       })
     : child
   )
@@ -47,6 +51,10 @@ function NodeButton(props: NodeButtonProps) {
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      style={{
+        width: isSmall ? 40 : 50,
+        height: isSmall ? 40 : 50
+      }}
     >
       {styledChild}
     </div>
@@ -54,54 +62,72 @@ function NodeButton(props: NodeButtonProps) {
 }
 
 export default function NodePlanet(props: NodePlanetProps) {
-  const { onSelect } = props
-  const [extended, setExtended] = useState(false)
+  const { onSelect, isOpen } = props
+  const [layerPlanetOpen, setLayerPlanetOpen] = useState(false)
 
-  const onSelectLocal = (action: string) => {
-
+  const planetClickLocal = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLayerPlanetOpen(!layerPlanetOpen)
   }
 
   return (
     <Planet
       centerContent={<div className="node-planet" />}
-      open={true}
+      open={isOpen}
+      autoClose
       hideOrbit
-      orbitRadius={100}
+      orbitRadius={90}
       rotation={90}
     >
-      <NodeButton
-        onSelect={onSelect}
-        action=""
-        extended={extended}
+      <div
+        style={{
+          transform: "translate(-25px, -25px)"
+        }}
       >
-        <LayersIcon />
         <Planet
-          centerContent={<div className="node-planet-2" />}
-          open={false}
-          autoClose
+          centerContent={
+                          <NodeButton 
+                            onSelect={onSelect}
+                            action=""
+                            children={<LayersIcon />}
+                            isPlanet={true}
+                            planetOpen={layerPlanetOpen}
+                          />
+                        }
+          open={layerPlanetOpen}
           hideOrbit
-          orbitRadius={70}
+          orbitRadius={55}
           rotation={0}
-          onClick={() => {setExtended(!extended)}}
+          onClick={planetClickLocal}
+          
         >
-          <div/>
           <div/>
           <div/>
           <NodeButton 
             onSelect={onSelect}
             action="layerUp"
             children={<AddIcon />}
+            isSmall
           />
           <NodeButton 
             onSelect={onSelect}
             action="layerDown"
             children={<RemoveIcon />}
+            isSmall
           />
           <div/>
           <div/>
-          <div/>
         </Planet>
-      </NodeButton>
+      </div>
+      <NodeButton
+        onSelect={onSelect}
+        children={<CloseIcon />}
+        action="delete"
+      />
+    </Planet>
+  )
+}
+
       {/* <NodeButton onSelect={onSelect} action="layerUp">
         <div style={{ display: "inline-flex", alignItems: "center" }}>
           <LayersIcon />
@@ -114,11 +140,3 @@ export default function NodePlanet(props: NodePlanetProps) {
           <StraightIcon />
         </div>
       </NodeButton> */}
-      <NodeButton
-        onSelect={onSelect}
-        children={<CloseIcon />}
-        action="delete"
-      />
-    </Planet>
-  )
-}

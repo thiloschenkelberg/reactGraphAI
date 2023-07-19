@@ -32,7 +32,8 @@ export default function Canvas(props: CanvasProps) {
   const addNode = (type: INode["type"], position: INode["position"]) => {
     const id = uuidv4()
     const layer = 0
-    const newNode = { id, name: "", type, position, layer, isEditing: true }
+    const size = 100
+    const newNode = { id, name: "", type, position, size, layer, isEditing: true }
     setNodes((prevNodes) => [...prevNodes, newNode])
     if (connectingNode) addConnection(connectingNode, newNode)
   }
@@ -41,6 +42,8 @@ export default function Canvas(props: CanvasProps) {
     if (connectingNode) {
       addConnection(connectingNode, node)
       setConnectingNode(null)
+    } else if (selectedNode?.id === node.id) {
+      setSelectedNode(null)
     } else if (!navOpen) {
       setSelectedNode(node)
       setSelectedConnection(null)
@@ -59,7 +62,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleNodeConnect = (node: INode) => {
-    console.log("connect")
     setNavOpen(false)
     setNavBlocked(true)
     setConnectingNode(node)
@@ -82,7 +84,19 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === node.id) {
-          return { ...n, layer: up ? n.layer + 1 : (n.layer - 1 > 0) ? n.layer - 1 : 0}
+          return { ...n, layer: up ? n.layer + 1 : (n.layer - 1 > 0) ? n.layer - 1 : 0 }
+        } else {
+          return n
+        }
+      })
+    )
+  }
+
+  const handleNodeScale = (node: INode, delta: number) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((n) => {
+        if (n.id === node.id) {
+          return { ...n, size: node.size + delta  * 5 }
         } else {
           return n
         }
@@ -101,7 +115,7 @@ export default function Canvas(props: CanvasProps) {
     setSelectedNode(null)
   }
 
-  const handleNodeNavSelect = (node: INode) => (action: string) => {
+  const handleNodeNavSelect = (node: INode, action: string) => {
     switch (action) {
       case "delete":
         handleNodeDelete(node)
@@ -135,13 +149,12 @@ export default function Canvas(props: CanvasProps) {
 
   const handleConnectionClick =
     (connection: IConnection) => (e: React.MouseEvent<SVGPathElement, MouseEvent>) => {
-      console.log('test')
       e.stopPropagation()
       setSelectedConnection(connection)
+      setSelectedNode(null)
     }
 
   const handleCanvasClick = (e: React.MouseEvent) => {
-    if (!selectedNode) console.log("fuck me")
     if (navOpen) {
       setNavOpen(false)
       setClickPosition(null)
@@ -200,7 +213,6 @@ export default function Canvas(props: CanvasProps) {
             />
           )
         })}
-
         {connectingNode && (
           <TempConnection
             start={connectingNode.position}
@@ -208,7 +220,6 @@ export default function Canvas(props: CanvasProps) {
             canvasRef={canvasRef}
           />
         )}
-
         {nodes.map((node, i) => (
           <Node
             key={i}
@@ -219,11 +230,11 @@ export default function Canvas(props: CanvasProps) {
             handleNodeClick={handleNodeClick}
             handleNodeMove={handleNodeMove}
             handleNodeConnect={handleNodeConnect}
+            handleNodeScale={handleNodeScale}
             handleNodeNameChange={handleNodeNameChange}
-            handleNodeNavSelect={handleNodeNavSelect(node)}
+            handleNodeNavSelect={handleNodeNavSelect}
           />
         ))}
-
         {navOpen && clickPosition && (
           <div
             style={{

@@ -15,12 +15,13 @@ interface NodeProps {
   handleNodeClick: (node: INode) => void
   handleNodeMove: (node: INode, position: INode["position"]) => void
   handleNodeConnect: (node: INode) => void
+  handleNodeScale: (node: INode, delta: number) => void
   handleNodeNameChange: (
     node: INode,
     newName: string | null,
     byClick: boolean
   ) => void
-  handleNodeNavSelect: (action: string) => void
+  handleNodeNavSelect: (node: INode, action: string) => void
 }
 
 export default function Node(props: NodeProps) {
@@ -32,6 +33,7 @@ export default function Node(props: NodeProps) {
     handleNodeClick,
     handleNodeMove,
     handleNodeConnect,
+    handleNodeScale,
     handleNodeNameChange,
     handleNodeNavSelect,
   } = props
@@ -43,12 +45,14 @@ export default function Node(props: NodeProps) {
   const [dragOffset, setDragOffset] = useState<INode["position"] | null>(null)
   const [nodeHovered, setNodeHovered] = useState(false)
   const [connectorPos, setConnectorPos] = useState<{x: number, y: number}>({x:0,y:0})
-  const [connectorVisible, setConnectorVisible] = useState(false)
+  const [connectorDist, setConnectorDist] = useState(0)
+  const [connectorActive, setConnectorActive] = useState(false)
   const nodeRef = useRef<HTMLDivElement>(null)
   const borderRef = useRef<HTMLDivElement>(null)
 
   // move node
   useEffect(() => {
+    if (!nodeRef.current) return
     const moveNode = (e: MouseEvent) => {
       if (dragging && dragOffset) {
         const newNodePosition = {
@@ -65,9 +69,26 @@ export default function Node(props: NodeProps) {
     }
   }, [node, dragging, dragOffset, handleNodeMove])
 
+  useEffect(() => {
+    if (!nodeRef.current) return
+    const scaleNode = (e: WheelEvent) => {
+      e.preventDefault()
+      const delta = Math.sign(e.deltaY)
+    }
+
+    nodeRef.current.addEventListener("wheel", scaleNode, { passive: false })
+    return () => {
+      nodeRef.current?.removeEventListener('wheel', scaleNode)
+    }
+  }, [nodeRef])
+
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation()
+    if (connectorActive) {
+      handleNodeConnect(node)
+      return
+    }
     setDragging(true)
     setDragStartPos({ x: e.clientX, y: e.clientY })
     setDragOffset({
@@ -80,7 +101,6 @@ export default function Node(props: NodeProps) {
   // open node nav menu (if node hasnt been moved significantly)
   const handleMouseUp = (e: React.MouseEvent) => {
     //e.stopPropagation()
-    console.log("etets")
     if (connecting) {
       // always carry out node click if a node is trying to connect (favour connection)
       handleNodeClick(node)
@@ -98,7 +118,9 @@ export default function Node(props: NodeProps) {
     setDragOffset(null)
   }
 
-  // calculate connector circle position and visibility
+  // calculate connector circle position,
+  // visibility (distance of mouse cursor)
+  // and activity status (depends on isSelected)
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!borderRef.current) return
     // reference of .node-border div
@@ -109,7 +131,7 @@ export default function Node(props: NodeProps) {
     // calculate angle
     const angle = Math.atan2(relativeY, relativeX)
     // replace with node size / 2 later on
-    const radius = 55 
+    const radius = isSelected ? node.size / 2 + 5 : node.size / 2 + 2
     const connectorPosition = {
       x: (borderRect.width / 2) + radius * Math.cos(angle),
       y: (borderRect.height / 2) + radius * Math.sin(angle)
@@ -117,7 +139,23 @@ export default function Node(props: NodeProps) {
     setConnectorPos(connectorPosition)
     // calculate dist from cursor to .node-border
     const dist = Math.sqrt(relativeX * relativeX + relativeY * relativeY)
-    setConnectorVisible(dist > 35)
+    setConnectorDist(dist)
+    if (
+      (isSelected &&
+      connectorDist > 49 &&
+      connectorDist < 63)
+      ||
+      (!isSelected &&
+      connectorDist > 45 &&
+      connectorDist < 60)
+    ) {
+      setConnectorActive(true)
+    } else setConnectorActive(false)
+  }
+
+  const handleNodeConnectLocal = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (connectorActive) handleNodeConnect(node)
   }
 
   // prevent event propagation (prevent canvas.tsx onClick)
@@ -147,9 +185,17 @@ export default function Node(props: NodeProps) {
   const handleNodeKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === "Delete") {
       e.preventDefault()
-      handleNodeNavSelect("delete")
+      handleNodeNavSelect(node, "delete")
     }
   }
+
+  // const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+  //   console.log("test")
+  //   e.preventDefault()
+  //   e.stopPropagation()
+  //   const delta = Math.sign(e.deltaY)
+  //   // handleNodeScale(node, delta)
+  // }
 
   const colors = colorPalette[colorIndex]
 
@@ -160,29 +206,26 @@ export default function Node(props: NodeProps) {
         zIndex: isSelected ? 1000 : node.layer,
       }}
     >
-      {isSelected && !connecting && ( // node nav menu
-        <div
-          style={{
-            position: "absolute",
-            left: node.position.x,
-            top: node.position.y,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <NodePlanet onSelect={handleNodeNavSelect} />
-        </div>
-      )}
+      <div
+        style={{
+          position: "relative",
+          left: node.position.x,
+          top: node.position.y,
+        }}
+      >
+        <NodePlanet onSelect={() => handleNodeNavSelect} isOpen={isSelected}/>
+      </div>
       <div // draggable node border to create connections
         className="node-border"
         style={{
-          width: "130px",
-          height: "130px",
+          width: node.size + 80,
+          height: node.size + 80,
           top: node.position.y,
           left: node.position.x,
           transform: "translate(-50%, -50%)",
         }}
         onClick={handleClickLocal} // prevent propagation to canvas onClick
-        onMouseDown={() => handleNodeConnect(node)} // init connection
+        onMouseDown={handleNodeConnectLocal} // init connection
         onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
@@ -192,17 +235,20 @@ export default function Node(props: NodeProps) {
         <Paper // actual node
           className="node"
           style={{
-            width: "100px",
-            height: "100px",
+            width: node.size,
+            height: node.size,
             zIndex: node.layer,
             backgroundColor: colors[node.type],
-            outline: isSelected || nodeHovered
+            outline: isSelected
               ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
+              : nodeHovered
+              ? `4px solid ${chroma(colors[node.type]).brighten(0.75).hex()}`
               : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
             outlineOffset: isSelected ? "3px" : "0px",
           }}
           onMouseDown={handleMouseDown} // init moving node
           onKeyUp={handleNodeKeyUp} // listen to key input (eg. del to delete node)
+          onWheel={handleWheel}
           ref={nodeRef}
           tabIndex={0} // needed for element focusing
         >
@@ -232,14 +278,16 @@ export default function Node(props: NodeProps) {
             </span>
           )}
         </Paper>
-        {nodeHovered && connectorVisible && // draw node connector circle
+        {nodeHovered && connectorDist > 25 && // draw node connector circle
           <div
             className="node-border-circle"
             style={{
-              backgroundColor: chroma(colors[node.type]).brighten().hex(),
+              border: `1px solid ${chroma(colors[node.type]).brighten().hex()}`,
+              backgroundColor: connectorActive ? chroma(colors[node.type]).brighten().hex() : "transparent",
               top: connectorPos.y,
               left: connectorPos.x,
-              pointerEvents: "none"
+              pointerEvents: "none",
+              zIndex: node.layer + 1
             }}
           />
         }
