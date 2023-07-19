@@ -109,7 +109,13 @@ export function HeaderTabs(props: HeaderTabsProps) {
   const { onHeaderLinkClick, onLogout } = props
   const { classes, theme, cx } = useStyles()
   const [userMenuOpened, setUserMenuOpened] = useState(false)
+  const [activeTab, setActiveTab] = useState<string | null>("")
   const user = useContext(userContext)
+
+  const onLogoutLocal = () => {
+    setActiveTab("")
+    onLogout()
+  }
 
   const items = tabs.map((tab) => (
     <Tabs.Tab value={tab} key={tab} onClick={() => onHeaderLinkClick(tab.toLowerCase())}>
@@ -123,14 +129,15 @@ export function HeaderTabs(props: HeaderTabsProps) {
         <Group position="apart" spacing="xl">
           {/* Logo */}
           <div className="logo-sm-container">
-            <Link to="/">
+            <Link to="/" onClick={() => setActiveTab("")}>
               <img src={logo_sm} alt="mgai" className="logo-sm" />
             </Link>
           </div>
 
           {/* Tabs */}
           <Tabs
-            defaultValue="Search"
+            value={activeTab}
+            onTabChange={setActiveTab}
             variant="outline"
             classNames={{
               root: classes.tabs,
@@ -141,7 +148,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
             <Tabs.List>{items}</Tabs.List>
           </Tabs>
 
-          {/* User Menu */}
+          {/* User (settings) Menu */}
           {user && (
             <Menu
               width={200}
@@ -167,13 +174,13 @@ export function HeaderTabs(props: HeaderTabsProps) {
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
-                <Link to='/account'>
+                <Link to='/account' onClick={() => setActiveTab("")}>
                   <Menu.Item icon={<IconSettings size="0.9rem" stroke={1.5} />}>
                     Account settings
                   </Menu.Item>
                 </Link>
                 <Menu.Divider />
-                <Menu.Item icon={<IconLogout size="0.9rem" stroke={1.5} />} onClick={onLogout}>
+                <Menu.Item icon={<IconLogout size="0.9rem" stroke={1.5} />} onClick={onLogoutLocal}>
                   Logout
                 </Menu.Item>
               </Menu.Dropdown>

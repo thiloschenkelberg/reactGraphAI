@@ -20,7 +20,7 @@ import "./App.css"
 
 export default function App() {
   const navigate = useNavigate()
-  const [active, setActive] = useState<number>(0)
+  const [active, setActive] = useState(0)
   const queryClient = useQueryClient()
 
   const {
