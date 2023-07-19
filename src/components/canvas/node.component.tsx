@@ -67,20 +67,22 @@ export default function Node(props: NodeProps) {
     return () => {
       document.removeEventListener("mousemove", moveNode)
     }
-  }, [node, dragging, dragOffset, handleNodeMove])
+  }, [dragging, dragOffset])
 
   useEffect(() => {
-    if (!nodeRef.current) return
+    const node = nodeRef.current
+    if (!node) return
+
     const scaleNode = (e: WheelEvent) => {
       e.preventDefault()
       const delta = Math.sign(e.deltaY)
     }
 
-    nodeRef.current.addEventListener("wheel", scaleNode, { passive: false })
+    node.addEventListener("wheel", scaleNode, { passive: false })
     return () => {
-      nodeRef.current?.removeEventListener('wheel', scaleNode)
+      node.removeEventListener('wheel', scaleNode)
     }
-  }, [nodeRef])
+  }, [])
 
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
