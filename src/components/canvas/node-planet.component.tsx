@@ -11,13 +11,15 @@ import RemoveIcon from '@mui/icons-material/Remove';
 
 import { hoverColors } from "./types/color.palette"
 
+import INode from "./types/node.type"
+
 interface NodePlanetProps {
   onSelect: (action: string) => void
   isOpen: boolean
 }
 
 interface NodeButtonProps {
-  onSelect: (action: string) => void
+  onSelect: (node: INode) => (action: string) => void
   children: React.ReactNode
   action: string
   isSmall?: boolean

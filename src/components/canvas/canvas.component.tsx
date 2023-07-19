@@ -96,7 +96,7 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === node.id) {
-          return { ...n, size: node.size + delta  * 5 }
+          return { ...n, size: n.size + delta * 5 }
         } else {
           return n
         }

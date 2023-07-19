@@ -67,22 +67,23 @@ export default function Node(props: NodeProps) {
     return () => {
       document.removeEventListener("mousemove", moveNode)
     }
-  }, [dragging, dragOffset])
+  }, [node, dragging, dragOffset, handleNodeMove])
 
-  useEffect(() => {
-    const node = nodeRef.current
-    if (!node) return
+  // useEffect(() => {
+  //   const nodeCpy = nodeRef.current
+  //   if (!nodeCpy) return
 
-    const scaleNode = (e: WheelEvent) => {
-      e.preventDefault()
-      const delta = Math.sign(e.deltaY)
-    }
+  //   const scaleNode = (e: WheelEvent) => {
+  //     e.preventDefault()
+  //     const delta = Math.sign(e.deltaY)
+  //     handleNodeScale(node, delta)
+  //   }
 
-    node.addEventListener("wheel", scaleNode, { passive: false })
-    return () => {
-      node.removeEventListener('wheel', scaleNode)
-    }
-  }, [])
+  //   nodeCpy.addEventListener("wheel", scaleNode, { passive: false })
+  //   return () => {
+  //     nodeCpy.removeEventListener('wheel', scaleNode)
+  //   }
+  // }, [node, handleNodeScale])
 
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -191,14 +192,6 @@ export default function Node(props: NodeProps) {
     }
   }
 
-  // const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-  //   console.log("test")
-  //   e.preventDefault()
-  //   e.stopPropagation()
-  //   const delta = Math.sign(e.deltaY)
-  //   // handleNodeScale(node, delta)
-  // }
-
   const colors = colorPalette[colorIndex]
 
   return (
@@ -250,7 +243,6 @@ export default function Node(props: NodeProps) {
           }}
           onMouseDown={handleMouseDown} // init moving node
           onKeyUp={handleNodeKeyUp} // listen to key input (eg. del to delete node)
-          onWheel={handleWheel}
           ref={nodeRef}
           tabIndex={0} // needed for element focusing
         >
