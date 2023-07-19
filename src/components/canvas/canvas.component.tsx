@@ -82,7 +82,7 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === node.id) {
-          return { ...n, layer: up ? n.layer + 1 : n.layer - 1 }
+          return { ...n, layer: up ? n.layer + 1 : (n.layer - 1 > 0) ? n.layer - 1 : 0}
         } else {
           return n
         }
@@ -105,10 +105,6 @@ export default function Canvas(props: CanvasProps) {
     switch (action) {
       case "delete":
         handleNodeDelete(node)
-        break
-      case "connect":
-        setSelectedNode(node)
-        setConnectingNode(node)
         break
       case "layerUp":
         handleNodeLayerChange(node, true)

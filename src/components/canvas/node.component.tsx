@@ -194,6 +194,7 @@ export default function Node(props: NodeProps) {
           style={{
             width: "100px",
             height: "100px",
+            zIndex: node.layer,
             backgroundColor: colors[node.type],
             outline: isSelected || nodeHovered
               ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
@@ -231,7 +232,7 @@ export default function Node(props: NodeProps) {
             </span>
           )}
         </Paper>
-        {nodeHovered && connectorVisible &&
+        {nodeHovered && connectorVisible && // draw node connector circle
           <div
             className="node-border-circle"
             style={{
