@@ -11,15 +11,14 @@ import RemoveIcon from '@mui/icons-material/Remove';
 
 import { hoverColors } from "./types/color.palette"
 
-import INode from "./types/node.type"
-
 interface NodePlanetProps {
   onSelect: (action: string) => void
   isOpen: boolean
+  nodeSize: number
 }
 
 interface NodeButtonProps {
-  onSelect: (node: INode) => (action: string) => void
+  onSelect: (action: string) => void
   children: React.ReactNode
   action: string
   isSmall?: boolean
@@ -64,7 +63,7 @@ function NodeButton(props: NodeButtonProps) {
 }
 
 export default function NodePlanet(props: NodePlanetProps) {
-  const { onSelect, isOpen } = props
+  const { onSelect, isOpen, nodeSize } = props
   const [layerPlanetOpen, setLayerPlanetOpen] = useState(false)
 
   const planetClickLocal = (e: React.MouseEvent) => {
@@ -78,7 +77,7 @@ export default function NodePlanet(props: NodePlanetProps) {
       open={isOpen}
       autoClose
       hideOrbit
-      orbitRadius={90}
+      orbitRadius={nodeSize / 2 + 40}
       rotation={90}
     >
       <div

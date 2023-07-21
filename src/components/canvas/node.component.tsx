@@ -69,21 +69,21 @@ export default function Node(props: NodeProps) {
     }
   }, [node, dragging, dragOffset, handleNodeMove])
 
-  // useEffect(() => {
-  //   const nodeCpy = nodeRef.current
-  //   if (!nodeCpy) return
+  useEffect(() => {
+    const nodeCpy = nodeRef.current
+    if (!nodeCpy) return
 
-  //   const scaleNode = (e: WheelEvent) => {
-  //     e.preventDefault()
-  //     const delta = Math.sign(e.deltaY)
-  //     handleNodeScale(node, delta)
-  //   }
+    const scaleNode = (e: WheelEvent) => {
+      e.preventDefault()
+      const delta = Math.sign(e.deltaY)
+      handleNodeScale(node, delta)
+    }
 
-  //   nodeCpy.addEventListener("wheel", scaleNode, { passive: false })
-  //   return () => {
-  //     nodeCpy.removeEventListener('wheel', scaleNode)
-  //   }
-  // }, [node, handleNodeScale])
+    nodeCpy.addEventListener("wheel", scaleNode, { passive: false })
+    return () => {
+      nodeCpy.removeEventListener('wheel', scaleNode)
+    }
+  }, [node, handleNodeScale])
 
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -145,12 +145,12 @@ export default function Node(props: NodeProps) {
     setConnectorDist(dist)
     if (
       (isSelected &&
-      connectorDist > 49 &&
-      connectorDist < 63)
+      connectorDist > node.size / 2 - 1 &&
+      connectorDist < node.size / 2 + 13)
       ||
       (!isSelected &&
-      connectorDist > 45 &&
-      connectorDist < 60)
+      connectorDist > node.size / 2 - 5 &&
+      connectorDist < node.size / 2 + 10)
     ) {
       setConnectorActive(true)
     } else setConnectorActive(false)
@@ -192,6 +192,10 @@ export default function Node(props: NodeProps) {
     }
   }
 
+  const handleNodeNavSelectLocal = (action: string) => {
+    handleNodeNavSelect(node, action)
+  }
+
   const colors = colorPalette[colorIndex]
 
   return (
@@ -208,7 +212,7 @@ export default function Node(props: NodeProps) {
           top: node.position.y,
         }}
       >
-        <NodePlanet onSelect={() => handleNodeNavSelect} isOpen={isSelected}/>
+        <NodePlanet onSelect={handleNodeNavSelectLocal} isOpen={isSelected} nodeSize={node.size}/>
       </div>
       <div // draggable node border to create connections
         className="node-border"

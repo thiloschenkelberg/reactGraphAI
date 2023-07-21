@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react"
-import { Paper } from "@mantine/core"
+import { Paper, Button } from "@mantine/core"
 import { v4 as uuidv4 } from "uuid"
+import cytoscape from 'cytoscape'
 
 import Node from "./node.component"
 import NavPlanet from "./nav-planet.component"
@@ -96,7 +97,7 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === node.id) {
-          return { ...n, size: n.size + delta * 5 }
+          return { ...n, size: (delta > 0 && n.size < 200) ? n.size + delta * 5 : (delta < 0 && n.size > 50) ? n.size + delta * 5 : n.size}
         } else {
           return n
         }
@@ -187,6 +188,56 @@ export default function Canvas(props: CanvasProps) {
     setClickPosition(null)
   }
 
+  const handleLayoutNodes = () => {
+    let options = {
+      name: 'breadthfirst',
+  
+      spacingFactor: 175,
+    };
+
+    const cy = cytoscape({
+      elements: {
+        nodes: nodes.map(node => ({ data: { id: node.id } })), // transforms your nodes to the format Cytoscape requires
+        edges: connections.map(connection => ({ 
+          data: { 
+            id: connection.id,
+            source: connection.start.id,
+            target: connection.end.id 
+          }
+        })) // transforms your connections to the format Cytoscape requires
+      },
+      headless: true,
+    })
+
+    const layout = cy.layout(options) // choose layout
+    layout.run()
+
+    const nodePositions = cy.nodes().map(node => ({
+      id: node.id(),
+      position: node.position()
+    }));
+
+    if (canvasRef.current) {
+      const canvasRect = canvasRef.current.getBoundingClientRect()
+    const updatedNodes = nodes.map(node => {
+
+
+
+      const newNode = { ...node }; // Copy node to not mutate the original object
+      const foundPosition = nodePositions.find(np => np.id === node.id);
+      if (foundPosition) {
+        console.log(foundPosition.position.x, foundPosition.position.y)
+        newNode.position.x = foundPosition.position.x + canvasRect.width / 2;
+        newNode.position.y = foundPosition.position.y + canvasRect.height / 2;
+      }
+      return newNode;
+
+    });
+    
+    setNodes(updatedNodes)
+  }
+  }
+
   return (
     <div>
       <Paper
@@ -235,6 +286,19 @@ export default function Canvas(props: CanvasProps) {
             handleNodeNavSelect={handleNodeNavSelect}
           />
         ))}
+        <div
+          style={{
+            position: "absolute",
+            top: 20,
+            left: 20,
+            // transform: "translateX(-50%)",
+            display: "flex",
+            justifyContent: "left",
+            width: "100%",
+          }}
+        >
+          <Button onClick={(e) => { e.stopPropagation(); handleLayoutNodes(); }}>Layout Nodes</Button>
+        </div>
         {navOpen && clickPosition && (
           <div
             style={{

@@ -80,17 +80,18 @@ export function TempConnection(props: TempConnectionProps) {
 
 export default function Connection(props: ConnectionProps) {
   const { connection, isSelected, handleConnectionClick } = props
-  const start = connection.start.position
-  const end = connection.end.position
+  const start = connection.start
+  const end = connection.end
+  
 
-  const dx = end.x - start.x
-  const dy = end.y - start.y
+  const dx = end.position.x - start.position.x
+  const dy = end.position.y - start.position.y
   const len = Math.sqrt(dx * dx + dy * dy)
   const normX = dx / len
   const normY = dy / len
 
-  const endX = end.x - normX * 56
-  const endY = end.y - normY * 56
+  const endX = end.position.x - normX * (end.size / 2 + 6)
+  const endY = end.position.y - normY * (end.size / 2 + 6)
 
   return (
     <svg
@@ -134,7 +135,7 @@ export default function Connection(props: ConnectionProps) {
       </defs>
       {isSelected && (
         <path // connection outline on selection
-          d={`M ${start.x},${start.y} L ${endX},${endY}`}
+          d={`M ${start.position.x},${start.position.y} L ${endX},${endY}`}
           stroke="#6f6f6f"
           strokeWidth="6"
           fill="none"
@@ -143,7 +144,7 @@ export default function Connection(props: ConnectionProps) {
         />
       )}
       <path // actual connection (always visible)
-        d={`M ${start.x},${start.y} L ${endX},${endY}`}
+        d={`M ${start.position.x},${start.position.y} L ${endX},${endY}`}
         stroke="#555"
         strokeWidth="2"
         fill="none"
@@ -151,7 +152,7 @@ export default function Connection(props: ConnectionProps) {
         pointerEvents="none"
       />
       <path // connection clickable area (for better ux)
-        d={`M ${start.x},${start.y} L ${endX},${endY}`}
+        d={`M ${start.position.x},${start.position.y} L ${endX},${endY}`}
         fill="none"
         strokeWidth="20"
         stroke="transparent"
