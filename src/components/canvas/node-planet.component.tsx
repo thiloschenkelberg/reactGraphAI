@@ -2,14 +2,14 @@ import React, { useState } from "react"
 import { Planet } from "react-planet"
 
 import CloseIcon from "@mui/icons-material/Close"
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
-import SyncAltIcon from "@mui/icons-material/SyncAlt"
-import StraightIcon from "@mui/icons-material/Straight"
+// import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
+// import SyncAltIcon from "@mui/icons-material/SyncAlt"
+// import StraightIcon from "@mui/icons-material/Straight"
 import LayersIcon from "@mui/icons-material/Layers"
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove';
 
-import { hoverColors } from "./types/color.palette"
+import { hoverColors } from "./types/colorPalette"
 
 interface NodePlanetProps {
   onSelect: (action: string) => void
@@ -128,16 +128,3 @@ export default function NodePlanet(props: NodePlanetProps) {
     </Planet>
   )
 }
-
-      {/* <NodeButton onSelect={onSelect} action="layerUp">
-        <div style={{ display: "inline-flex", alignItems: "center" }}>
-          <LayersIcon />
-          <StraightIcon />
-        </div>
-      </NodeButton>
-      <NodeButton onSelect={onSelect} action="layerDown">
-        <div style={{ display: "inline-flex", alignItems: "center" }}>
-          <LayersIcon />
-          <StraightIcon />
-        </div>
-      </NodeButton> */}

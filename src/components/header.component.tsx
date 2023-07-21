@@ -134,19 +134,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
             </Link>
           </div>
 
-          {/* Tabs */}
-          <Tabs
-            value={activeTab}
-            onTabChange={setActiveTab}
-            variant="outline"
-            classNames={{
-              root: classes.tabs,
-              tabsList: classes.tabsList,
-              tab: classes.tab,
-            }}
-          >
-            <Tabs.List>{items}</Tabs.List>
-          </Tabs>
+
 
           {/* User (settings) Menu */}
           {user && (
@@ -187,7 +175,21 @@ export function HeaderTabs(props: HeaderTabsProps) {
             </Menu>
           )}
         </Group>
+
       </Container>
+                        {/* Tabs */}
+                        <Tabs
+            value={activeTab}
+            onTabChange={setActiveTab}
+            variant="outline"
+            classNames={{
+              root: classes.tabs,
+              tabsList: classes.tabsList,
+              tab: classes.tab,
+            }}
+          >
+            <Tabs.List>{items}</Tabs.List>
+          </Tabs>
     </div>
   )
 }

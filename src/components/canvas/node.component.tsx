@@ -5,7 +5,7 @@ import NodePlanet from "./node-planet.component"
 
 
 import INode from "./types/node.type"
-import { colorPalette } from "./types/color.palette"
+import { colorPalette } from "./types/colorPalette"
 
 interface NodeProps {
   node: INode

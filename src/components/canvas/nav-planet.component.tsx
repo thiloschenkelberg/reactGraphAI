@@ -13,7 +13,7 @@ import ParameterIcon from "@mui/icons-material/Tune"
 import MeasurementIcon from "@mui/icons-material/SquareFoot"
 import MatterIcon from "@mui/icons-material/Diamond"
 
-import { colorPalette } from "./types/color.palette"
+import { colorPalette } from "./types/colorPalette"
 import INode from "./types/node.type"
 
 interface NavPlanetProps {

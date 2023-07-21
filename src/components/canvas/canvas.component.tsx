@@ -9,6 +9,7 @@ import Connection from "./connection.component"
 import { TempConnection } from "./connection.component"
 import { IConnection } from "./types/connection.type"
 import INode from "./types/node.type"
+import { graphLayouts } from "./types/graphLayouts"
 
 interface CanvasProps {
   colorIndex: number
@@ -168,6 +169,7 @@ export default function Canvas(props: CanvasProps) {
         x: e.clientX - canvasRect.left,
         y: e.clientY - canvasRect.top,
       }
+      console.log(canvasClickPosition)
       setClickPosition(canvasClickPosition)
       setNavOpen(true)
     }
@@ -189,12 +191,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleLayoutNodes = () => {
-    let options = {
-      name: 'breadthfirst',
-  
-      spacingFactor: 175,
-    };
-
     const cy = cytoscape({
       elements: {
         nodes: nodes.map(node => ({ data: { id: node.id } })), // transforms your nodes to the format Cytoscape requires
@@ -209,7 +205,7 @@ export default function Canvas(props: CanvasProps) {
       headless: true,
     })
 
-    const layout = cy.layout(options) // choose layout
+    const layout = cy.layout(graphLayouts[0]) // choose layout
     layout.run()
 
     const nodePositions = cy.nodes().map(node => ({
