@@ -169,7 +169,6 @@ export default function Canvas(props: CanvasProps) {
         x: e.clientX - canvasRect.left,
         y: e.clientY - canvasRect.top,
       }
-      console.log(canvasClickPosition)
       setClickPosition(canvasClickPosition)
       setNavOpen(true)
     }
@@ -222,7 +221,6 @@ export default function Canvas(props: CanvasProps) {
       const newNode = { ...node }; // Copy node to not mutate the original object
       const foundPosition = nodePositions.find(np => np.id === node.id);
       if (foundPosition) {
-        console.log(foundPosition.position.x, foundPosition.position.y)
         newNode.position.x = foundPosition.position.x + canvasRect.width / 2;
         newNode.position.y = foundPosition.position.y + canvasRect.height / 2;
       }

@@ -87,14 +87,14 @@ export default function NodePlanet(props: NodePlanetProps) {
       >
         <Planet
           centerContent={
-                          <NodeButton 
-                            onSelect={onSelect}
-                            action=""
-                            children={<LayersIcon />}
-                            isPlanet={true}
-                            planetOpen={layerPlanetOpen}
-                          />
-                        }
+            <NodeButton 
+              onSelect={onSelect}
+              action=""
+              children={<LayersIcon />}
+              isPlanet={true}
+              planetOpen={layerPlanetOpen}
+            />
+          }
           open={layerPlanetOpen}
           hideOrbit
           orbitRadius={55}

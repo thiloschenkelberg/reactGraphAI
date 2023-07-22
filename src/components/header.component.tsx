@@ -1,5 +1,5 @@
-import { useContext, useState } from "react"
-import { Link } from "react-router-dom"
+import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   createStyles,
   Container,
@@ -9,8 +9,8 @@ import {
   Menu,
   Tabs,
   rem,
-} from "@mantine/core"
-import { useDisclosure } from "@mantine/hooks"
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import {
   IconLogout,
   IconHeart,
@@ -21,13 +21,12 @@ import {
   IconTrash,
   IconSwitchHorizontal,
   IconChevronDown,
-} from "@tabler/icons-react"
-import logo_sm from "../img/logo_nodes.png"
-import IUser from "../types/user.type"
-import { userContext } from "../common/userContext"
+} from "@tabler/icons-react";
+import logo_sm from "../img/logo_nodes.png";
+import IUser from "../types/user.type";
+import { userContext } from "../common/userContext";
 
 const useStyles = createStyles((theme) => ({
-
   header: {
     paddingTop: theme.spacing.sm,
     backgroundColor:
@@ -46,7 +45,7 @@ const useStyles = createStyles((theme) => ({
 
   user: {
     color: theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
-    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+    // padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
     borderRadius: theme.radius.sm,
     transition: "background-color 100ms ease",
 
@@ -96,92 +95,61 @@ const useStyles = createStyles((theme) => ({
           : theme.colors.gray[2],
     },
   },
-}))
+}));
 
-const tabs = ["Search", "History"]
+const tabs = ["Search", "History"];
 
 interface HeaderTabsProps {
-  onHeaderLinkClick(key: string): void
-  onLogout(): void
+  onHeaderLinkClick(key: string): void;
+  onLogout(): void;
 }
 
 export function HeaderTabs(props: HeaderTabsProps) {
-  const { onHeaderLinkClick, onLogout } = props
-  const { classes, theme, cx } = useStyles()
-  const [userMenuOpened, setUserMenuOpened] = useState(false)
-  const [activeTab, setActiveTab] = useState<string | null>("")
-  const user = useContext(userContext)
+  const { onHeaderLinkClick, onLogout } = props;
+  const { classes, theme, cx } = useStyles();
+  const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | null>("");
+  const user = useContext(userContext);
 
   const onLogoutLocal = () => {
-    setActiveTab("")
-    onLogout()
-  }
+    setActiveTab("");
+    onLogout();
+  };
 
   const items = tabs.map((tab) => (
-    <Tabs.Tab value={tab} key={tab} onClick={() => onHeaderLinkClick(tab.toLowerCase())}>
+    <Tabs.Tab
+      value={tab}
+      key={tab}
+      onClick={() => onHeaderLinkClick(tab.toLowerCase())}
+    >
       {tab}
     </Tabs.Tab>
-  ))
+  ));
 
   return (
     <div className={classes.header}>
       <Container size="default" className={classes.mainSection}>
-        <Group position="apart" spacing="xl">
+        <Group position="apart">
           {/* Logo */}
-          <div className="logo-sm-container">
+          <div className="logo-sm-container" style={{ width: "25vw" }}>
             <Link to="/" onClick={() => setActiveTab("")}>
-              <img src={logo_sm} alt="mgai" className="logo-sm" />
+              <img
+                src={logo_sm}
+                alt="mgai"
+                className="logo-sm"
+                style={{ width: "30px" }}
+              />
             </Link>
           </div>
 
-
-
-          {/* User (settings) Menu */}
-          {user && (
-            <Menu
-              width={200}
-              position="bottom-end"
-              transitionProps={{ transition: "pop-top-right" }}
-              onClose={() => setUserMenuOpened(false)}
-              onOpen={() => setUserMenuOpened(true)}
-              withinPortal
-            >
-              <Menu.Target>
-                <UnstyledButton
-                  className={cx(classes.user, {
-                    [classes.userActive]: userMenuOpened,
-                  })}
-                >
-                  <Group spacing={7}>
-                    {user && (user.image ? <div></div> : <div></div>)}
-                    <Text weight={500} size="sm" sx={{ lineHeight: 1 }} mr={3}>
-                      {user.name ? user.name : "User"}
-                    </Text>
-                    <IconChevronDown size={rem(12)} stroke={1.5} />
-                  </Group>
-                </UnstyledButton>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Link to='/account' onClick={() => setActiveTab("")}>
-                  <Menu.Item icon={<IconSettings size="0.9rem" stroke={1.5} />}>
-                    Account settings
-                  </Menu.Item>
-                </Link>
-                <Menu.Divider />
-                <Menu.Item icon={<IconLogout size="0.9rem" stroke={1.5} />} onClick={onLogoutLocal}>
-                  Logout
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          )}
-        </Group>
-
-      </Container>
-                        {/* Tabs */}
-                        <Tabs
+          {/* Tabs */}
+          <Tabs
             value={activeTab}
             onTabChange={setActiveTab}
             variant="outline"
+            style={{
+              transform: "translate(0px,0)",
+            }}
             classNames={{
               root: classes.tabs,
               tabsList: classes.tabsList,
@@ -190,6 +158,65 @@ export function HeaderTabs(props: HeaderTabsProps) {
           >
             <Tabs.List>{items}</Tabs.List>
           </Tabs>
+
+          {/* User (settings) Menu */}
+          {user && (
+            <div
+              style={{
+                width: "25vw",
+                display: "flex",
+                justifyContent: "right",
+              }}
+            >
+              <Menu
+                width={200}
+                position="bottom-end"
+                transitionProps={{ transition: "pop-top-right" }}
+                onClose={() => setUserMenuOpened(false)}
+                onOpen={() => setUserMenuOpened(true)}
+                withinPortal
+              >
+                <Menu.Target>
+                  <UnstyledButton
+                    className={cx(classes.user, {
+                      [classes.userActive]: userMenuOpened,
+                    })}
+                  >
+                    <Group spacing={7}>
+                      {user && (user.image ? <div></div> : <div></div>)}
+                      <Text
+                        weight={500}
+                        size="sm"
+                        sx={{ lineHeight: 1 }}
+                        mr={3}
+                      >
+                        {user.name ? user.name : "User"}
+                      </Text>
+                      <IconChevronDown size={rem(12)} stroke={1.5} />
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Link to="/account" onClick={() => setActiveTab("")}>
+                    <Menu.Item
+                      icon={<IconSettings size="0.9rem" stroke={1.5} />}
+                    >
+                      Account settings
+                    </Menu.Item>
+                  </Link>
+                  <Menu.Divider />
+                  <Menu.Item
+                    icon={<IconLogout size="0.9rem" stroke={1.5} />}
+                    onClick={onLogoutLocal}
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
+          )}
+        </Group>
+      </Container>
     </div>
-  )
+  );
 }
