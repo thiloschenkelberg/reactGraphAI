@@ -89,7 +89,7 @@ a:link {
 }
 
 .logo-sm {
-  width: 100%;
+  width: 30px;
   height: auto;
   filter: drop-shadow(1px 1px 0px #111);
 }
@@ -97,8 +97,8 @@ a:link {
 .logo-sm-container {
   display: flex;
   justify-content: left;
+  width: 25vw;
   height: auto;
-  width: 28px;
 }
 
 .nav-button {

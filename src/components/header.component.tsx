@@ -131,13 +131,12 @@ export function HeaderTabs(props: HeaderTabsProps) {
       <Container size="default" className={classes.mainSection}>
         <Group position="apart">
           {/* Logo */}
-          <div className="logo-sm-container" style={{ width: "25vw" }}>
+          <div className="logo-sm-container">
             <Link to="/" onClick={() => setActiveTab("")}>
               <img
                 src={logo_sm}
                 alt="mgai"
                 className="logo-sm"
-                style={{ width: "30px" }}
               />
             </Link>
           </div>
@@ -164,6 +163,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
             <div
               style={{
                 width: "25vw",
+                height: "30px",
                 display: "flex",
                 justifyContent: "right",
               }}
