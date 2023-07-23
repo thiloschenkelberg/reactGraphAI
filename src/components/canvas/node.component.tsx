@@ -18,8 +18,7 @@ interface NodeProps {
   handleNodeScale: (node: INode, delta: number) => void
   handleNodeNameChange: (
     node: INode,
-    newName: string | null,
-    byClick: boolean
+    newName: string | null
   ) => void
   handleNodeNavSelect: (node: INode, action: string) => void
 }
@@ -131,10 +130,9 @@ export default function Node(props: NodeProps) {
     // relative mousePos to center of .node-border
     const relativeX = e.clientX - (borderRect.left + borderRect.width / 2)
     const relativeY = e.clientY - (borderRect.top + borderRect.height / 2)
-    // calculate angle
+    // calculate angle for selected and not selected Status
     const angle = Math.atan2(relativeY, relativeX)
-    // replace with node size / 2 later on
-    const radius = isSelected ? node.size / 2 + 5 : node.size / 2 + 2
+    const radius = isSelected === 1 ? node.size / 2 + 5 : node.size / 2 + 2
     const connectorPosition = {
       x: (borderRect.width / 2) + radius * Math.cos(angle),
       y: (borderRect.height / 2) + radius * Math.sin(angle)
@@ -144,11 +142,11 @@ export default function Node(props: NodeProps) {
     const dist = Math.sqrt(relativeX * relativeX + relativeY * relativeY)
     setConnectorDist(dist)
     if (
-      (isSelected &&
+      (isSelected > 0 &&
       connectorDist > node.size / 2 - 1 &&
       connectorDist < node.size / 2 + 13)
       ||
-      (!isSelected &&
+      (isSelected === 0 &&
       connectorDist > node.size / 2 - 5 &&
       connectorDist < node.size / 2 + 10)
     ) {
@@ -167,8 +165,8 @@ export default function Node(props: NodeProps) {
   }
 
   // confirm node name
-  const handleNameInputBlur = (byClick: boolean) => {
-    handleNodeNameChange(node, nodeName, byClick)
+  const handleNameInputBlur = () => {
+    handleNodeNameChange(node, nodeName)
   }
 
   // update local node name
@@ -180,7 +178,7 @@ export default function Node(props: NodeProps) {
   const handleInputKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      handleNameInputBlur(false)
+      handleNameInputBlur()
     }
   }
 
@@ -202,7 +200,7 @@ export default function Node(props: NodeProps) {
     <div
       style={{
         position: "absolute",
-        zIndex: isSelected ? 1000 : node.layer,
+        zIndex: isSelected === 1 ? 1000 : node.layer,
       }}
     >
       <div
@@ -212,7 +210,7 @@ export default function Node(props: NodeProps) {
           top: node.position.y,
         }}
       >
-        <NodePlanet onSelect={handleNodeNavSelectLocal} isOpen={isSelected} nodeSize={node.size}/>
+        <NodePlanet onSelect={handleNodeNavSelectLocal} isOpen={ isSelected === 1 } nodeSize={node.size}/>
       </div>
       <div // draggable node border to create connections
         className="node-border"
@@ -238,12 +236,12 @@ export default function Node(props: NodeProps) {
             height: node.size,
             zIndex: node.layer,
             backgroundColor: colors[node.type],
-            outline: isSelected
+            outline: isSelected > 0
               ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
               : nodeHovered
               ? `4px solid ${chroma(colors[node.type]).brighten(0.75).hex()}`
               : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
-            outlineOffset: isSelected ? "3px" : "0px",
+            outlineOffset: isSelected > 0 ? "3px" : "0px",
           }}
           onMouseDown={handleMouseDown} // init moving node
           onKeyUp={handleNodeKeyUp} // listen to key input (eg. del to delete node)
@@ -254,7 +252,7 @@ export default function Node(props: NodeProps) {
             <input
               type="text"
               onChange={handleNameChangeLocal}
-              onBlur={() => handleNameInputBlur(true)}
+              onBlur={handleNameInputBlur}
               onKeyUp={handleInputKeyUp}
               autoFocus
               style={{
