@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { Paper, Button } from "@mantine/core"
 import { v4 as uuidv4 } from "uuid"
-import cytoscape from 'cytoscape'
+import cytoscape from "cytoscape"
 
 import Node from "./node.component"
 import NavPlanet from "./nav-planet.component"
@@ -18,6 +18,7 @@ interface CanvasProps {
 export default function Canvas(props: CanvasProps) {
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNode, setSelectedNode] = useState<INode | null>(null)
+  const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [connections, setConnections] = useState<IConnection[]>([])
   const [selectedConnection, setSelectedConnection] =
@@ -50,7 +51,15 @@ export default function Canvas(props: CanvasProps) {
     const id = uuidv4()
     const layer = 0
     const size = 100
-    const newNode = { id, name: "", type, position, size, layer, isEditing: true }
+    const newNode = {
+      id,
+      name: "",
+      type,
+      position,
+      size,
+      layer,
+      isEditing: true,
+    }
     setNodes((prevNodes) => [...prevNodes, newNode])
     if (connectingNode) addConnection(connectingNode, newNode)
   }
@@ -59,10 +68,10 @@ export default function Canvas(props: CanvasProps) {
     if (connectingNode) {
       addConnection(connectingNode, node)
       setConnectingNode(null)
-    } else if (selectedNode?.id === node.id) {
-      setSelectedNode(null)
+    } else if (nodeSelectionStatus(node.id) === 1) {
+      setSelectedNodes([])
     } else if (!navOpen) {
-      setSelectedNode(node)
+      setSelectedNodes((prevNodes) => [...prevNodes, node])
       setSelectedConnection(null)
     } else {
       setNavOpen(false)
@@ -80,16 +89,10 @@ export default function Canvas(props: CanvasProps) {
 
   const handleNodeConnect = (node: INode) => {
     setNavOpen(false)
-    setNavBlocked(true)
     setConnectingNode(node)
   }
 
-  const handleNodeNameChange = (
-    node: INode,
-    newName: string | null,
-    byClick: boolean
-  ) => {
-    if (byClick) setNavBlocked(true)
+  const handleNodeNameChange = (node: INode, newName: string | null) => {
     setNodes((prevNodes) =>
       prevNodes.map((n) =>
         n.id === node.id ? { ...n, name: newName, isEditing: false } : n
@@ -101,7 +104,10 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === node.id) {
-          return { ...n, layer: up ? n.layer + 1 : (n.layer - 1 > 0) ? n.layer - 1 : 0 }
+          return {
+            ...n,
+            layer: up ? n.layer + 1 : n.layer - 1 > 0 ? n.layer - 1 : 0,
+          }
         } else {
           return n
         }
@@ -113,7 +119,15 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === node.id) {
-          return { ...n, size: (delta > 0 && n.size < 200) ? n.size + delta * 5 : (delta < 0 && n.size > 50) ? n.size + delta * 5 : n.size}
+          return {
+            ...n,
+            size:
+              delta > 0 && n.size < 200
+                ? n.size + delta * 5
+                : delta < 0 && n.size > 50
+                ? n.size + delta * 5
+                : n.size,
+          }
         } else {
           return n
         }
@@ -148,6 +162,17 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  const nodeSelectionStatus = (nodeID: string) => {
+    const isSelected = selectedNodes.some(
+      (selectedNode) => selectedNode.id === nodeID
+    )
+    if (isSelected) {
+      if (selectedNodes.length > 1) return 2
+      return 1
+    }
+    return 0
+  }
+
   const addConnection = (start: INode, end: INode) => {
     if (start.id === end.id) return
 
@@ -165,19 +190,21 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleConnectionClick =
-    (connection: IConnection) => (e: React.MouseEvent<SVGPathElement, MouseEvent>) => {
+    (connection: IConnection) =>
+    (e: React.MouseEvent<SVGPathElement, MouseEvent>) => {
       e.stopPropagation()
       setSelectedConnection(connection)
-      setSelectedNode(null)
+      setSelectedNodes([])
     }
 
-  const handleCanvasClick = (e: React.MouseEvent) => {
+  const handleContextMenu = (e: React.MouseEvent) => {
     if (navOpen) {
       setNavOpen(false)
       setClickPosition(null)
     } else if (
       canvasRef.current &&
-      ((!selectedNode && !selectedConnection && !navBlocked) || connectingNode)
+      ((selectedNodes.length === 0 && !selectedConnection && !navBlocked) ||
+        connectingNode)
     ) {
       const canvasRect = canvasRef.current.getBoundingClientRect()
       const canvasClickPosition = {
@@ -209,14 +236,14 @@ export default function Canvas(props: CanvasProps) {
 
     const cy = cytoscape({
       elements: {
-        nodes: nodes.map(node => ({ data: { id: node.id } })), // transforms your nodes to the format Cytoscape requires
-        edges: connections.map(connection => ({ 
-          data: { 
+        nodes: nodes.map((node) => ({ data: { id: node.id } })), // transforms your nodes to the format Cytoscape requires
+        edges: connections.map((connection) => ({
+          data: {
             id: connection.id,
             source: connection.start.id,
-            target: connection.end.id 
-          }
-        })) // transforms your connections to the format Cytoscape requires
+            target: connection.end.id,
+          },
+        })), // transforms your connections to the format Cytoscape requires
       },
       headless: true,
     })
@@ -224,35 +251,31 @@ export default function Canvas(props: CanvasProps) {
     const layout = cy.layout(graphLayouts[0]) // choose layout
     layout.run()
 
-    const nodePositions = cy.nodes().map(node => ({
+    const nodePositions = cy.nodes().map((node) => ({
       id: node.id(),
-      position: node.position()
-    }));
+      position: node.position(),
+    }))
 
     if (canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect()
-    const updatedNodes = nodes.map(node => {
+      const updatedNodes = nodes.map((node) => {
+        const newNode = { ...node } // Copy node to not mutate the original object
+        const foundPosition = nodePositions.find((np) => np.id === node.id)
+        if (foundPosition) {
+          newNode.position.x = foundPosition.position.x + canvasRect.width / 2
+          newNode.position.y = foundPosition.position.y + canvasRect.height / 2
+        }
+        return newNode
+      })
 
-
-
-      const newNode = { ...node }; // Copy node to not mutate the original object
-      const foundPosition = nodePositions.find(np => np.id === node.id);
-      if (foundPosition) {
-        newNode.position.x = foundPosition.position.x + canvasRect.width / 2;
-        newNode.position.y = foundPosition.position.y + canvasRect.height / 2;
-      }
-      return newNode;
-
-    });
-    
-    setNodes(updatedNodes)
-  }
+      setNodes(updatedNodes)
+    }
   }
 
   return (
     <div>
       <Paper
-        onClick={handleCanvasClick}
+        onContextMenu={handleContextMenu}
         style={{
           height: "100vh",
           width: "100vw",
@@ -263,14 +286,16 @@ export default function Canvas(props: CanvasProps) {
         ref={canvasRef}
       >
         {connections.map((connection, i) => {
-          const startNode = nodes.find((node) => node.id === connection.start.id)
+          const startNode = nodes.find(
+            (node) => node.id === connection.start.id
+          )
           const endNode = nodes.find((node) => node.id === connection.end.id)
           if (!startNode || !endNode) return null // Skip rendering if nodes are not found
           return (
             <Connection
               key={i}
               handleConnectionClick={handleConnectionClick}
-              connection={{start: startNode, end: endNode, id: connection.id}}
+              connection={{ start: startNode, end: endNode, id: connection.id }}
               isSelected={connection.id === selectedConnection?.id}
             />
           )
@@ -286,7 +311,7 @@ export default function Canvas(props: CanvasProps) {
           <Node
             key={i}
             node={node}
-            isSelected={node.id === selectedNode?.id}
+            isSelected={selectedNodes.length}
             connecting={Boolean(connectingNode)}
             colorIndex={colorIndex}
             handleNodeClick={handleNodeClick}
