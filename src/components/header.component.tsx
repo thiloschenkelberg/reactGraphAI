@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   createStyles,
@@ -36,7 +36,7 @@ const useStyles = createStyles((theme) => ({
     borderBottom: `${rem(1)} solid ${
       theme.colorScheme === "dark" ? "transparent" : theme.colors.gray[2]
     }`,
-    // marginBottom: rem(0),
+    marginBottom: rem(0),
   },
 
   mainSection: {
@@ -45,7 +45,7 @@ const useStyles = createStyles((theme) => ({
 
   user: {
     color: theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
-    // padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
     borderRadius: theme.radius.sm,
     transition: "background-color 100ms ease",
 
@@ -108,8 +108,14 @@ export function HeaderTabs(props: HeaderTabsProps) {
   const { onHeaderLinkClick, onLogout } = props;
   const { classes, theme, cx } = useStyles();
   const [userMenuOpened, setUserMenuOpened] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>("");
+  const [activeTab, setActiveTab] = useState<string | null>(
+    () => localStorage.getItem("activeTab") || null
+  )
   const user = useContext(userContext);
+
+  useEffect(() => {
+    localStorage.setItem("activeTab", activeTab || "")
+  }, [activeTab])
 
   const onLogoutLocal = () => {
     setActiveTab("");
@@ -126,8 +132,12 @@ export function HeaderTabs(props: HeaderTabsProps) {
     </Tabs.Tab>
   ));
 
+  const printTab = () => {
+    console.log(activeTab)
+  }
+
   return (
-    <div className={classes.header}>
+    <div className={classes.header} onClick={printTab}>
       <Container size="default" className={classes.mainSection}>
         <Group position="apart">
           {/* Logo */}
@@ -160,14 +170,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
 
           {/* User (settings) Menu */}
           {user && (
-            <div
-              style={{
-                width: "25vw",
-                height: "30px",
-                display: "flex",
-                justifyContent: "right",
-              }}
-            >
+            <div className="user-menu-container">
               <Menu
                 width={200}
                 position="bottom-end"

@@ -182,6 +182,13 @@ a:link {
   border-radius: 50%;
 }
 
+.user-menu-container {
+  width: 25vw;
+  height: auto;
+  display: flex;
+  justify-content: right;
+}
+
 .wrap-account {
   width: 600px;
   position: absolute;

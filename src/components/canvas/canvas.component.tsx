@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { Paper, Button } from "@mantine/core"
 import { v4 as uuidv4 } from "uuid"
 import cytoscape from 'cytoscape'
@@ -30,6 +30,21 @@ export default function Canvas(props: CanvasProps) {
   } | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const { colorIndex } = props
+
+  useEffect(() => {
+    const savedNodes = localStorage.getItem("nodes")
+    const savedConnections = localStorage.getItem("connections")
+
+    if (savedNodes) {
+      setNodes(JSON.parse(savedNodes))
+      if (savedConnections) setConnections(JSON.parse(savedConnections))
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem("nodes", JSON.stringify(nodes))
+    localStorage.setItem("connections", JSON.stringify(connections))
+  }, [nodes, connections])
 
   const addNode = (type: INode["type"], position: INode["position"]) => {
     const id = uuidv4()
@@ -189,7 +204,9 @@ export default function Canvas(props: CanvasProps) {
     setClickPosition(null)
   }
 
-  const handleLayoutNodes = () => {
+  const handleLayoutNodes = (e: React.MouseEvent) => {
+    e.stopPropagation()
+
     const cy = cytoscape({
       elements: {
         nodes: nodes.map(node => ({ data: { id: node.id } })), // transforms your nodes to the format Cytoscape requires
@@ -291,7 +308,7 @@ export default function Canvas(props: CanvasProps) {
             width: "100%",
           }}
         >
-          <Button onClick={(e) => { e.stopPropagation(); handleLayoutNodes(); }}>Layout Nodes</Button>
+          <Button onClick={handleLayoutNodes}>Layout Nodes</Button>
         </div>
         {navOpen && clickPosition && (
           <div
