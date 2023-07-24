@@ -16,21 +16,23 @@ interface CanvasProps {
 }
 
 export default function Canvas(props: CanvasProps) {
+  const { colorIndex } = props
   const [nodes, setNodes] = useState<INode[]>([])
-  const [selectedNode, setSelectedNode] = useState<INode | null>(null)
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [connections, setConnections] = useState<IConnection[]>([])
   const [selectedConnection, setSelectedConnection] =
     useState<IConnection | null>(null)
   const [navOpen, setNavOpen] = useState(false)
-  const [navBlocked, setNavBlocked] = useState(false)
   const [clickPosition, setClickPosition] = useState<{
     x: number
     y: number
   } | null>(null)
+  const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(
+    null
+  )
   const canvasRef = useRef<HTMLDivElement>(null)
-  const { colorIndex } = props
 
   useEffect(() => {
     const savedNodes = localStorage.getItem("nodes")
@@ -46,6 +48,14 @@ export default function Canvas(props: CanvasProps) {
     localStorage.setItem("nodes", JSON.stringify(nodes))
     localStorage.setItem("connections", JSON.stringify(connections))
   }, [nodes, connections])
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      setCanvasRect(canvasRef.current.getBoundingClientRect())
+    } else {
+      setCanvasRect(null)
+    }
+  }, [canvasRef])
 
   const addNode = (type: INode["type"], position: INode["position"]) => {
     const id = uuidv4()
@@ -68,10 +78,10 @@ export default function Canvas(props: CanvasProps) {
     if (connectingNode) {
       addConnection(connectingNode, node)
       setConnectingNode(null)
-    } else if (nodeSelectionStatus(node.id) === 1) {
+    } else if (selectedNodes.length > 0 && nodeSelectionStatus(node.id) > 0) {
       setSelectedNodes([])
     } else if (!navOpen) {
-      setSelectedNodes((prevNodes) => [...prevNodes, node])
+      setSelectedNodes([node])
       setSelectedConnection(null)
     } else {
       setNavOpen(false)
@@ -146,7 +156,7 @@ export default function Canvas(props: CanvasProps) {
           connection.start.id !== node.id && connection.end.id !== node.id
       )
     )
-    setSelectedNode(null)
+    setSelectedNodes([])
   }
 
   const handleNodeNavSelect = (node: INode, action: string) => {
@@ -203,9 +213,9 @@ export default function Canvas(props: CanvasProps) {
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (navOpen) {
       setNavOpen(false)
+      setConnectingNode(null)
     } else if (connectingNode) {
-      if (canvasRef.current) {
-        const canvasRect = canvasRef.current.getBoundingClientRect()
+      if (canvasRect) {
         const canvasClickPosition = {
           x: e.clientX - canvasRect.left,
           y: e.clientY - canvasRect.top,
@@ -213,38 +223,15 @@ export default function Canvas(props: CanvasProps) {
         setClickPosition(canvasClickPosition)
         setNavOpen(true)
       }
+    } else {
+      setSelectedConnection(null)
+      setSelectedNodes([])
     }
   }
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    // e.preventDefault();
-    // if (navOpen) {
-    //   setNavOpen(false);
-    //   setClickPosition(null);
-    // } else if (
-    //   canvasRef.current &&
-    //   ((selectedNodes.length === 0 && !selectedConnection && !navBlocked) ||
-    //     connectingNode)
-    // ) {
-    //   const canvasRect = canvasRef.current.getBoundingClientRect();
-    //   const canvasClickPosition = {
-    //     x: e.clientX - canvasRect.left,
-    //     y: e.clientY - canvasRect.top,
-    //   };
-    //   setClickPosition(canvasClickPosition);
-    //   setNavOpen(true);
-    // }
-    // if (!navBlocked) {
-    //   setSelectedNode(null);
-    //   setConnectingNode(null);
-    //   setSelectedConnection(null);
-    // } else {
-    //   setNavBlocked(false);
-    // }
-
     e.preventDefault()
-    if (canvasRef.current) {
-      const canvasRect = canvasRef.current.getBoundingClientRect()
+    if (canvasRect) {
       const canvasClickPosition = {
         x: e.clientX - canvasRect.left,
         y: e.clientY - canvasRect.top,
@@ -290,8 +277,7 @@ export default function Canvas(props: CanvasProps) {
       position: node.position(),
     }))
 
-    if (canvasRef.current) {
-      const canvasRect = canvasRef.current.getBoundingClientRect()
+    if (canvasRect) {
       const updatedNodes = nodes.map((node) => {
         const newNode = { ...node } // Copy node to not mutate the original object
         const foundPosition = nodePositions.find((np) => np.id === node.id)
@@ -306,11 +292,23 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos(
+      canvasRect
+        ? {
+            x: e.clientX - canvasRect.left,
+            y: e.clientY - canvasRect.top,
+          }
+        : null
+    )
+  }
+
   return (
     <div>
       <Paper
         onClick={handleCanvasClick}
         onContextMenu={handleContextMenu}
+        onMouseMove={handleMouseMove}
         style={{
           height: "100vh",
           width: "100vw",
@@ -346,9 +344,10 @@ export default function Canvas(props: CanvasProps) {
           <Node
             key={i}
             node={node}
-            isSelected={selectedNodes.length}
+            isSelected={nodeSelectionStatus(node.id)}
             connecting={Boolean(connectingNode)}
             colorIndex={colorIndex}
+            mousePos={mousePos}
             handleNodeClick={handleNodeClick}
             handleNodeMove={handleNodeMove}
             handleNodeConnect={handleNodeConnect}

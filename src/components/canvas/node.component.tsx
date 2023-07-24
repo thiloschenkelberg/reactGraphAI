@@ -12,6 +12,7 @@ interface NodeProps {
   isSelected: number
   connecting: boolean
   colorIndex: number
+  mousePos: {x: number, y: number} | null
   handleNodeClick: (node: INode) => void
   handleNodeMove: (node: INode, position: INode["position"]) => void
   handleNodeConnect: (node: INode) => void
@@ -29,6 +30,7 @@ export default function Node(props: NodeProps) {
     isSelected,
     connecting,
     colorIndex,
+    mousePos,
     handleNodeClick,
     handleNodeMove,
     handleNodeConnect,
@@ -44,8 +46,8 @@ export default function Node(props: NodeProps) {
   const [dragOffset, setDragOffset] = useState<INode["position"] | null>(null)
   const [nodeHovered, setNodeHovered] = useState(false)
   const [connectorPos, setConnectorPos] = useState<{x: number, y: number}>({x:0,y:0})
-  const [connectorDist, setConnectorDist] = useState(0)
   const [connectorActive, setConnectorActive] = useState(false)
+  const [mouseDist, setMouseDist] = useState(0)
   const nodeRef = useRef<HTMLDivElement>(null)
   const borderRef = useRef<HTMLDivElement>(null)
 
@@ -84,6 +86,43 @@ export default function Node(props: NodeProps) {
     }
   }, [node, handleNodeScale])
 
+  useEffect(() => {
+    if (!mousePos) return
+
+    const dx = mousePos.x - node.position.x
+    const dy = mousePos.y - node.position.y
+    const dist = Math.sqrt(dx*dx + dy*dy)
+
+    setMouseDist(dist)
+    
+    if (mouseDist < node.size / 2 + 30) {
+      
+      const angle = Math.atan2(dy, dx)
+      const radius = isSelected === 1 ? node.size / 2 + 5 : node.size / 2 + 2
+
+      const connectorPosition = {
+        x: (node.size / 2) + radius * Math.cos(angle) + 10,
+        y: (node.size / 2) + radius * Math.sin(angle) + 10
+      }
+
+      setConnectorPos(connectorPosition)
+      
+      if (
+        (isSelected !== 0 &&
+          mouseDist > node.size / 2 - 1 &&
+          nodeHovered)
+        ||
+        (isSelected === 0 &&
+          mouseDist > node.size / 2 - 5 &&
+          nodeHovered)
+      ) {
+        setConnectorActive(true)
+      } else {
+        setConnectorActive(false)
+      }
+    }
+  }, [mousePos, node, mouseDist, isSelected, nodeHovered])
+
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -120,49 +159,15 @@ export default function Node(props: NodeProps) {
     setDragOffset(null)
   }
 
-  // calculate connector circle position,
-  // visibility (distance of mouse cursor)
-  // and activity status (depends on isSelected)
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!borderRef.current) return
-    // reference of .node-border div
-    const borderRect = borderRef.current.getBoundingClientRect()
-    // relative mousePos to center of .node-border
-    const relativeX = e.clientX - (borderRect.left + borderRect.width / 2)
-    const relativeY = e.clientY - (borderRect.top + borderRect.height / 2)
-    // calculate angle for selected and not selected Status
-    const angle = Math.atan2(relativeY, relativeX)
-    const radius = isSelected === 1 ? node.size / 2 + 5 : node.size / 2 + 2
-    const connectorPosition = {
-      x: (borderRect.width / 2) + radius * Math.cos(angle),
-      y: (borderRect.height / 2) + radius * Math.sin(angle)
-    }
-    setConnectorPos(connectorPosition)
-    // calculate dist from cursor to .node-border
-    const dist = Math.sqrt(relativeX * relativeX + relativeY * relativeY)
-    setConnectorDist(dist)
-    if (
-      (isSelected > 0 &&
-      connectorDist > node.size / 2 - 1 &&
-      connectorDist < node.size / 2 + 13)
-      ||
-      (isSelected === 0 &&
-      connectorDist > node.size / 2 - 5 &&
-      connectorDist < node.size / 2 + 10)
-    ) {
-      setConnectorActive(true)
-    } else setConnectorActive(false)
-  }
-
   const handleNodeConnectLocal = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (connectorActive) handleNodeConnect(node)
   }
 
-  // // prevent event propagation (prevent canvas.tsx onClick)
-  // const handleClickLocal = (e: React.MouseEvent) => {
-  //   e.stopPropagation()
-  // }
+  // prevent event propagation (prevent canvas.tsx onClick)
+  const handleClickLocal = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
 
   // confirm node name
   const handleNameInputBlur = () => {
@@ -184,7 +189,7 @@ export default function Node(props: NodeProps) {
 
   // delete node on "Delete" key
   const handleNodeKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (e.key === "Delete") {
+    if (e.key === "Delete" && isSelected) {
       e.preventDefault()
       handleNodeNavSelect(node, "delete")
     }
@@ -215,18 +220,18 @@ export default function Node(props: NodeProps) {
       <div // draggable node border to create connections
         className="node-border"
         style={{
-          width: node.size + 80,
-          height: node.size + 80,
+          width: node.size + 20,
+          height: node.size + 20,
           top: node.position.y,
           left: node.position.x,
           transform: "translate(-50%, -50%)",
         }}
-        // onClick={handleClickLocal} // prevent propagation to canvas onClick
+        onClick={handleClickLocal} // prevent propagation to canvas onClick
         onMouseDown={handleNodeConnectLocal} // init connection
         onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
-        onMouseMove={handleMouseMove} // calculate position of connector circle
+        // onMouseMove={handleMouseMove} // calculate position of connector circle
         ref={borderRef}
       >
         <Paper // actual node
@@ -274,7 +279,7 @@ export default function Node(props: NodeProps) {
             </span>
           )}
         </Paper>
-        {nodeHovered && connectorDist > 25 && // draw node connector circle
+        {mouseDist < node.size / 2 + 30 && // draw node connector circle
           <div
             className="node-border-circle"
             style={{

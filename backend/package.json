@@ -29,5 +29,11 @@
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/jsonwebtoken": "^9.0.2"
+  },
+  "prettier": {
+      "trailingComma": "es5",
+      "tabWidth": 2,
+      "semi": false,
+      "singleQuote": false
   }
 }
