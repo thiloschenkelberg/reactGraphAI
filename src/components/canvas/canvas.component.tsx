@@ -79,9 +79,9 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleNodeMove = (node: INode, position: INode["position"]) => {
-    if (connectingNode) {
-      setConnectingNode(null)
-    }
+    // if (connectingNode) {
+    //   setConnectingNode(null);
+    // }
     setNodes((prevNodes) =>
       prevNodes.map((n) => (n === node ? { ...node, position } : n))
     )
@@ -89,6 +89,9 @@ export default function Canvas(props: CanvasProps) {
 
   const handleNodeConnect = (node: INode) => {
     setNavOpen(false)
+    setClickPosition(null)
+    setSelectedNodes([])
+    setSelectedConnection(null)
     setConnectingNode(node)
   }
 
@@ -197,15 +200,50 @@ export default function Canvas(props: CanvasProps) {
       setSelectedNodes([])
     }
 
-  const handleContextMenu = (e: React.MouseEvent) => {
+  const handleCanvasClick = (e: React.MouseEvent) => {
     if (navOpen) {
       setNavOpen(false)
-      setClickPosition(null)
-    } else if (
-      canvasRef.current &&
-      ((selectedNodes.length === 0 && !selectedConnection && !navBlocked) ||
-        connectingNode)
-    ) {
+    } else if (connectingNode) {
+      if (canvasRef.current) {
+        const canvasRect = canvasRef.current.getBoundingClientRect()
+        const canvasClickPosition = {
+          x: e.clientX - canvasRect.left,
+          y: e.clientY - canvasRect.top,
+        }
+        setClickPosition(canvasClickPosition)
+        setNavOpen(true)
+      }
+    }
+  }
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    // e.preventDefault();
+    // if (navOpen) {
+    //   setNavOpen(false);
+    //   setClickPosition(null);
+    // } else if (
+    //   canvasRef.current &&
+    //   ((selectedNodes.length === 0 && !selectedConnection && !navBlocked) ||
+    //     connectingNode)
+    // ) {
+    //   const canvasRect = canvasRef.current.getBoundingClientRect();
+    //   const canvasClickPosition = {
+    //     x: e.clientX - canvasRect.left,
+    //     y: e.clientY - canvasRect.top,
+    //   };
+    //   setClickPosition(canvasClickPosition);
+    //   setNavOpen(true);
+    // }
+    // if (!navBlocked) {
+    //   setSelectedNode(null);
+    //   setConnectingNode(null);
+    //   setSelectedConnection(null);
+    // } else {
+    //   setNavBlocked(false);
+    // }
+
+    e.preventDefault()
+    if (canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect()
       const canvasClickPosition = {
         x: e.clientX - canvasRect.left,
@@ -214,16 +252,12 @@ export default function Canvas(props: CanvasProps) {
       setClickPosition(canvasClickPosition)
       setNavOpen(true)
     }
-    if (!navBlocked) {
-      setSelectedNode(null)
-      setConnectingNode(null)
-      setSelectedConnection(null)
-    } else {
-      setNavBlocked(false)
-    }
+    setSelectedNodes([])
+    setSelectedConnection(null)
+    setConnectingNode(null)
   }
 
-  const handleCanvasNavSelect = (type?: INode["type"]) => {
+  const handleContextSelect = (type?: INode["type"]) => {
     if (type && clickPosition) {
       addNode(type, clickPosition)
     }
@@ -275,6 +309,7 @@ export default function Canvas(props: CanvasProps) {
   return (
     <div>
       <Paper
+        onClick={handleCanvasClick}
         onContextMenu={handleContextMenu}
         style={{
           height: "100vh",
@@ -345,7 +380,7 @@ export default function Canvas(props: CanvasProps) {
             }}
           >
             <NavPlanet
-              onSelect={handleCanvasNavSelect}
+              onSelect={handleContextSelect}
               open={navOpen}
               colorIndex={colorIndex}
             />

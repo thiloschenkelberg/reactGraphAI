@@ -9,7 +9,7 @@ import { colorPalette } from "./types/colorPalette"
 
 interface NodeProps {
   node: INode
-  isSelected: boolean
+  isSelected: number
   connecting: boolean
   colorIndex: number
   handleNodeClick: (node: INode) => void
@@ -159,10 +159,10 @@ export default function Node(props: NodeProps) {
     if (connectorActive) handleNodeConnect(node)
   }
 
-  // prevent event propagation (prevent canvas.tsx onClick)
-  const handleClickLocal = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
+  // // prevent event propagation (prevent canvas.tsx onClick)
+  // const handleClickLocal = (e: React.MouseEvent) => {
+  //   e.stopPropagation()
+  // }
 
   // confirm node name
   const handleNameInputBlur = () => {
@@ -221,7 +221,7 @@ export default function Node(props: NodeProps) {
           left: node.position.x,
           transform: "translate(-50%, -50%)",
         }}
-        onClick={handleClickLocal} // prevent propagation to canvas onClick
+        // onClick={handleClickLocal} // prevent propagation to canvas onClick
         onMouseDown={handleNodeConnectLocal} // init connection
         onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
