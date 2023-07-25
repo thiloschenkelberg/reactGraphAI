@@ -89,37 +89,46 @@ export default function Node(props: NodeProps) {
   useEffect(() => {
     if (!mousePos) return
 
-    const dx = mousePos.x - node.position.x
-    const dy = mousePos.y - node.position.y
-    const dist = Math.sqrt(dx*dx + dy*dy)
-
-    setMouseDist(dist)
-    
-    if (mouseDist < node.size / 2 + 30) {
+    if (mousePos.x >= node.position.x - (node.size / 2 + 32) &&
+        mousePos.x <= node.position.x + (node.size / 2 + 32) &&
+        mousePos.y >= node.position.y - (node.size / 2 + 32) &&
+        mousePos.y <= node.position.y + (node.size / 2 + 32))
+    {
+      const dx = mousePos.x - node.position.x
+      const dy = mousePos.y - node.position.y
+      const dist = Math.sqrt(dx*dx + dy*dy)
+  
+      setMouseDist(dist)
       
-      const angle = Math.atan2(dy, dx)
-      const radius = isSelected === 1 ? node.size / 2 + 5 : node.size / 2 + 2
-
-      const connectorPosition = {
-        x: (node.size / 2) + radius * Math.cos(angle) + 10,
-        y: (node.size / 2) + radius * Math.sin(angle) + 10
+      if (mouseDist < node.size / 2 + 30) {
+        
+        const angle = Math.atan2(dy, dx)
+        const radius = isSelected === 1 ? node.size / 2 + 5 : node.size / 2 + 2
+  
+        const connectorPosition = {
+          x: (node.size / 2) + radius * Math.cos(angle) + 10,
+          y: (node.size / 2) + radius * Math.sin(angle) + 10
+        }
+  
+        setConnectorPos(connectorPosition)
+        
+        if (
+          (isSelected !== 0 &&
+            mouseDist > node.size / 2 - 1 &&
+            nodeHovered)
+          ||
+          (isSelected === 0 &&
+            mouseDist > node.size / 2 - 5 &&
+            nodeHovered)
+        ) {
+          setConnectorActive(true)
+        } else {
+          setConnectorActive(false)
+        }
       }
-
-      setConnectorPos(connectorPosition)
-      
-      if (
-        (isSelected !== 0 &&
-          mouseDist > node.size / 2 - 1 &&
-          nodeHovered)
-        ||
-        (isSelected === 0 &&
-          mouseDist > node.size / 2 - 5 &&
-          nodeHovered)
-      ) {
-        setConnectorActive(true)
-      } else {
-        setConnectorActive(false)
-      }
+    } else {
+      setMouseDist(1000)
+      setConnectorActive(false)
     }
   }, [mousePos, node, mouseDist, isSelected, nodeHovered])
 
