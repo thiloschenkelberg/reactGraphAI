@@ -35,7 +35,7 @@ const useStyles = createStyles((theme) => ({
         ? theme.colors.dark[6]
         : theme.colors.gray[0],
     borderBottom: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? "transparent" : theme.colors.gray[2]
+      theme.colorScheme === "dark" ? "#333" : theme.colors.gray[2]
     }`,
     marginBottom: rem(0),
   },
@@ -119,6 +119,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
 
   const onLogoutLocal = () => {
     setActiveTab("");
+    localStorage.setItem("activeTab", "")
     onLogout();
   };
 

@@ -181,7 +181,6 @@ export default React.memo(function Node(props: NodeProps) {
     setDragStartPos(null)
     setDragCurrentPos(null)
     setDragOffset(null)
-
   }
 
   const handleNodeConnectLocal = (e: React.MouseEvent) => {
@@ -263,7 +262,7 @@ export default React.memo(function Node(props: NodeProps) {
         // onMouseMove={handleMouseMove} // calculate position of connector circle
         ref={borderRef}
       >
-        <Paper // actual node
+        <div // actual node
           className="node"
           style={{
             width: node.size,
@@ -308,7 +307,7 @@ export default React.memo(function Node(props: NodeProps) {
               {node.name}
             </span>
           )}
-        </Paper>
+        </div>
         {mouseDist < node.size / 2 + 30 && mouseDist > 25 &&( // draw node connector circle
           <div
             className="node-border-circle"

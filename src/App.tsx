@@ -80,7 +80,19 @@ export default function App() {
           </Routes>
         </div>
       </userContext.Provider>
-      <Toaster />
+      <Toaster
+        position="top-center"
+        containerStyle={{
+          top: "80px"
+        }}
+        toastOptions={{
+          style: {
+            borderRadius: "5px",
+            background: "#25262b",
+            color: "#C1C2C5"
+          }
+        }}
+      />
     </div>
   )
 }
