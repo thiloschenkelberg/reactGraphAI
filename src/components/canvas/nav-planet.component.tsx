@@ -14,7 +14,7 @@ import MeasurementIcon from "@mui/icons-material/SquareFoot"
 import MatterIcon from "@mui/icons-material/Diamond"
 
 import { colorPalette } from "./types/colorPalette"
-import INode from "./types/node.type"
+import { INode } from "./types/canvas.types"
 
 interface NavPlanetProps {
   onSelect: (nodeType: INode["type"]) => void

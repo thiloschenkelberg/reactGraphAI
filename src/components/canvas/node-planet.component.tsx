@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Planet } from "react-planet"
 
 import CloseIcon from "@mui/icons-material/Close"
@@ -75,7 +75,7 @@ export default function NodePlanet(props: NodePlanetProps) {
     <Planet
       centerContent={<div className="node-planet" />}
       open={isOpen}
-      autoClose
+      // autoClose
       hideOrbit
       orbitRadius={nodeSize / 2 + 40}
       rotation={90}

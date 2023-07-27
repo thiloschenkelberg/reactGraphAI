@@ -8,7 +8,7 @@ export default function Search(props: SearchProps) {
   const { colorIndex } = props
 
   return(
-    <div>
+    <div style={{position: "fixed"}}>
       <Canvas colorIndex={colorIndex} />
     </div>
   )

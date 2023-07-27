@@ -74,6 +74,13 @@ a:link {
   padding: 0 30px 0 68px;
 }
 
+.header {
+  position: fixed;
+  width: 100%;
+  height: 60px;
+  z-index: 1001;
+}
+
 .header-width {
   max-width: 100%;
 }
@@ -99,6 +106,10 @@ a:link {
   justify-content: left;
   width: 25vw;
   height: auto;
+}
+
+.main-window {
+  padding-top: 60px;
 }
 
 .nav-button {
@@ -182,6 +193,13 @@ a:link {
   border-radius: 50%;
 }
 
+.selection-rect {
+  position: absolute;
+  background-color: rgba(52, 54, 61, 0.5);
+  border: 2px dashed rgb(25, 25, 25);
+  border-radius: 0px;
+}
+
 .user-menu-container {
   width: 25vw;
   height: auto;
@@ -199,6 +217,7 @@ a:link {
 
 .wrap-app {
   overflow: hidden;
+  /* position: relative; */
 }
 
 .wrap-input {

@@ -1,0 +1,60 @@
+  const handleNodeMove = (
+    node: INode,
+    opts: any,
+    position?: INode["position"]
+  ) => {
+    switch (opts["method"]) {
+      case "init":
+        setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id))
+        setMovingNodes((prevMovingNodes) => [...prevMovingNodes, node])
+        setMovingConnections((prevMovingConnections) => {
+          const newMovingConnections = connections.filter((c) => {
+            return c.start.id === node.id || c.end.id === node.id
+          })
+          return [...prevMovingConnections, ...newMovingConnections]
+        })
+        setConnections((prevConnections) => {
+          return prevConnections.filter((c) => {
+            return c.start.id !== node.id && c.end.id !== node.id
+          })
+        })
+        console.log(nodes.length)
+        console.log(movingNodes.length)
+        console.log(connections.length)
+        console.log(movingConnections.length)
+        break
+      case "move":
+        if (!position) return
+        setMovingNodes((prevMovingNodes) =>
+          prevMovingNodes.map((n) =>
+            n.id === node.id ? { ...node, position } : n
+          )
+        )
+        break
+      case "cleanup":
+        setMovingNodes((prevMovingNodes) => {
+          const updatedNode = prevMovingNodes.find((n) => n.id === node.id)
+
+          if (updatedNode) {
+            setNodes((prevNodes) => [...prevNodes, updatedNode])
+          }
+
+          return []
+        })
+        setMovingConnections((prevMovingConnections) => {
+          const updatedConnections = prevMovingConnections.filter(c =>
+            c.start.id === node.id || c.end.id === node.id
+          )
+
+          setConnections((prevConnections) => {
+            return [...prevConnections, ...updatedConnections]
+          })
+
+          return []
+
+        })
+        break
+      default:
+        console.error("Invalid method: ", opts["method"])
+    }
+  }

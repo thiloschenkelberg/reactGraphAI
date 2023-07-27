@@ -66,17 +66,19 @@ export default function App() {
     <div className="wrap-app">
       <userContext.Provider value={currentUser}>
         {currentUser && (
-          <div>
+          <div className="header">
             <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout}/>
           </div>
         )}
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/login" element={<AuthenticationForm />} />
-          <Route path="/account" element={<Account />} />
-        </Routes>
+        <div className="main-window">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/login" element={<AuthenticationForm />} />
+            <Route path="/account" element={<Account />} />
+          </Routes>
+        </div>
       </userContext.Provider>
       <Toaster />
     </div>

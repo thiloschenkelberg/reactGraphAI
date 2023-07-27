@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { IConnection } from "./types/connection.type"
+import { IConnection } from "./types/canvas.types"
 
 interface ConnectionProps {
   connection: IConnection
@@ -10,25 +10,24 @@ interface ConnectionProps {
 }
 
 interface TempConnectionProps {
-  start: { x: number; y: number }
-  clickPosition: { x: number; y: number } | null
-  canvasRef: React.RefObject<HTMLDivElement>
+  startPosition: { x: number; y: number }
+  endPosition: { x: number; y: number } | null
+  canvasRect: DOMRect | null
 }
 
 // Temporary connection from connection start node to
 // mouse cursor or the canvas nav menu onMouseUp.
 // Extinguished on completion of node connection
 export function TempConnection(props: TempConnectionProps) {
-  const { start, clickPosition, canvasRef } = props
-  const [end, setEnd] = useState({ x: start.x, y: start.y })
+  const { startPosition, endPosition, canvasRect } = props
+  const [end, setEnd] = useState({ x: startPosition.x, y: startPosition.y })
 
   useEffect(() => {
-    if (clickPosition) {
-      setEnd(clickPosition)
+    if (endPosition) {
+      setEnd(endPosition)
       return
     }
     const moveHandler = (e: MouseEvent) => {
-      const canvasRect = canvasRef.current?.getBoundingClientRect()
       if (!canvasRect) return
       const x = e.clientX - canvasRect.left
       const y = e.clientY - canvasRect.top
@@ -39,7 +38,7 @@ export function TempConnection(props: TempConnectionProps) {
     return () => {
       document.removeEventListener("mousemove", moveHandler)
     }
-  }, [clickPosition, canvasRef])
+  }, [endPosition, canvasRect])
 
   return (
     <svg
@@ -67,7 +66,7 @@ export function TempConnection(props: TempConnectionProps) {
         </marker>
       </defs>
       <path // temporary connection path
-        d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
+        d={`M ${startPosition.x},${startPosition.y} L ${end.x},${end.y}`}
         stroke="#555"
         strokeWidth="2"
         fill="none"

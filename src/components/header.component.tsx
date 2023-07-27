@@ -29,6 +29,7 @@ import { userContext } from "../common/userContext";
 const useStyles = createStyles((theme) => ({
   header: {
     paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.sm,
     backgroundColor:
       theme.colorScheme === "dark"
         ? theme.colors.dark[6]
@@ -40,7 +41,6 @@ const useStyles = createStyles((theme) => ({
   },
 
   mainSection: {
-    paddingBottom: theme.spacing.sm,
   },
 
   user: {
