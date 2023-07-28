@@ -19,7 +19,7 @@ export interface Rect {
 
 export interface INode {
   id: string
-  name: string | null
+  name: string | undefined
   type: "matter" | "process" | "measurement" | "parameter" | "property"
   position: {x: number, y: number}
   size: number

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Paper, Button } from "@mantine/core"
 import { v4 as uuidv4 } from "uuid"
 import cytoscape from "cytoscape"
@@ -7,6 +7,7 @@ import _ from "lodash"
 import { TbBinaryTree } from "react-icons/tb"
 import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
 
 import Node from "./node.component"
 import NavPlanet from "./nav-planet.component"
@@ -28,19 +29,16 @@ interface CanvasProps {
 export default function Canvas(props: CanvasProps) {
   const { colorIndex, getWorkflow } = props
   const [nodes, setNodes] = useState<INode[]>([])
-  const [history, setHistory] = useState<{nodes: INode[][], connections: IConnection[][]}>({nodes:[], connections:[]})
-  const [nodesHistory, setNodesHistory] = useState<INode[][]>([]);
-  const [nodesFuture, setNodesFuture] = useState<INode[][]>([]);
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [selectedNodeIDs, setSelectedNodeIDs] = useState<Set<string> | null>(
     null
   )
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [connections, setConnections] = useState<IConnection[]>([])
-  const [connectionsHistory, setConnectionsHistory] = useState<IConnection[][]>([]);
-  const [connectionsFuture, setConnectionsFuture] = useState<IConnection[][]>([])
   const [selectedConnection, setSelectedConnection] =
     useState<IConnection | null>(null)
+  const [history, setHistory] = useState<{nodes: INode[][], connections: IConnection[][]}>({nodes:[], connections:[]})
+  const [future, setFuture] = useState<{nodes: INode[][], connections: IConnection[][]}>({nodes:[], connections:[]})
   const [navOpen, setNavOpen] = useState(false)
   const [clickPosition, setClickPosition] = useState<Position | null>(null)
   const [selectionRect, setSelectionRect] = useState<Rect | null>(null)
@@ -117,9 +115,9 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
-  const initNodeMove = (node: INode) => {
+  const initNodeMove = (nodeID: INode["id"]) => {
     updateHistory()
-    switch (nodeSelectionStatus(node.id)) {
+    switch (nodeSelectionStatus(nodeID)) {
       case 0:
         setSelectedNodes([])
         setSelectedNodeIDs(null)
@@ -179,10 +177,20 @@ export default function Canvas(props: CanvasProps) {
     setConnectingNode(node)
   }
 
-  const handleNodeNameChange = (node: INode, newName: string | null) => {
+  const initNodeNameChange = (nodeID: INode["id"]) => {
+    updateHistory()
+    setNodes(prevNodes => 
+      prevNodes.map(node => 
+        node.id === nodeID ? { ...node, isEditing: true } : node
+      )
+    )
+  }
+
+  const handleNodeNameChange = (nodeID: INode["id"], name?: string) => {
+    const newName = name ? name : ""
     setNodes((prevNodes) =>
       prevNodes.map((n) =>
-        n.id === node.id ? { ...n, name: newName, isEditing: false } : n
+        n.id === nodeID ? { ...n, name: newName, isEditing: false } : n
       )
     )
   }
@@ -203,11 +211,12 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
-  const handleNodeScale = (node: INode, delta: number) => {
+  const handleNodeScale = (nodeID: INode["id"], delta?: number) => {
+    if (!delta) return
     updateHistory()
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
-        if (n.id === node.id) {
+        if (n.id === nodeID) {
           return {
             ...n,
             size:
@@ -224,23 +233,41 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
-  const handleNodeDelete = (node: INode) => {
+  const handleNodeDelete = (nodeID: INode["id"]) => {
     updateHistory()
-    setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id))
+    setNodes((prevNodes) => prevNodes.filter((n) => n.id !== nodeID))
     setConnections((prevConnections) =>
       prevConnections.filter(
         (connection) =>
-          connection.start.id !== node.id && connection.end.id !== node.id
+          connection.start.id !== nodeID && connection.end.id !== nodeID
       )
     )
     setSelectedNodes([])
   }
 
-  const handleNodeNavSelect = (node: INode, action: string) => {
+  const handleNodeAction = (node: INode, action: string, delta?: number, name?: string) => {
     switch (action) {
+      case "click":
+        handleNodeClick(node)
+        break
+      case "initMove":
+        initNodeMove(node.id)
+        break
+      case "scale":
+        handleNodeScale(node.id, delta)
+        break
+      case "connect":
+        handleNodeConnect(node)
+        break
+      case "rename":
+        handleNodeNameChange(node.id, name)
+        break
+      case "setIsEditing":
+        initNodeNameChange(node.id)
+        break
       case "delete":
         setSelectedNodes([])
-        handleNodeDelete(node)
+        handleNodeDelete(node.id)
         break
       case "layerUp":
         handleNodeLayerChange(node, true)
@@ -427,36 +454,72 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistory = () => {
-    setNodesHistory(prev => [...prev, nodes].slice(-20))
-    setNodesFuture([])
-    setConnectionsHistory(prev => [...prev, connections].slice(-20))
-    setConnectionsFuture([])
+    setHistory(prev => ({
+      nodes: [...prev.nodes, nodes].slice(-20),
+      connections: [...prev.connections, connections].slice(-20)
+    }))
+    setFuture({nodes:[], connections:[]})
   }
 
   const handleReset = () => {
+    if (!nodes.length) return
     updateHistory()
     setNodes([])
     setConnections([])
-    setNodesHistory([])
-    setConnectionsHistory([])
   }
 
-  const undo = () => {
-    if (nodesHistory.length) {
-      setNodesFuture(prev => [nodes, ...prev].slice(-20))
-      setNodes(nodesHistory[nodesHistory.length - 1])
-      setNodesHistory(nodesHistory.slice(0,-1))
+  const undo = useCallback(() => {
+    if (history.nodes.length) {
+      setFuture(prev => ({
+          nodes: [nodes, ...prev.nodes].slice(-20),
+          connections: [connections, ...prev.connections].slice(-20)
+      }))
+      setNodes(history.nodes[history.nodes.length - 1])
+      setConnections(history.connections[history.connections.length - 1])
+      setHistory(prev => ({
+          nodes: prev.nodes.slice(0,-1),
+          connections: prev.connections.slice(0,-1)
+      }))
     }
-    if (connectionsHistory.length) {
-      setConnectionsFuture(prev => [connections, ...prev].slice(-20))
-      setConnections(connectionsHistory[connectionsHistory.length -1])
-      setConnectionsHistory(connectionsHistory.slice(0,-1))
-    }
-  }
+  }, [history, nodes, connections])
 
-  const redo = () {
-    if (nodes)
-  }
+  const redo = useCallback(() => {
+    if (future.nodes.length) {
+      setHistory(prev => ({
+        nodes: [...prev.nodes, nodes].slice(-20),
+        connections: [...prev.connections, connections].slice(-20)
+      }))
+      setNodes(future.nodes[0])
+      setConnections(future.connections[0])
+      setFuture(prev => ({
+        nodes: prev.nodes.slice(1),
+        connections: prev.connections.slice(1)
+      }))
+    }
+  }, [future, nodes, connections])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey) {
+        switch(e.key) {
+          case "z":
+            undo()
+            break
+          case "y":
+            redo()
+            break
+          default:
+            break
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [undo, redo])
 
   return (
     <div
@@ -501,13 +564,8 @@ export default function Canvas(props: CanvasProps) {
           connecting={Boolean(connectingNode)}
           colorIndex={colorIndex}
           canvasRect={canvasRect}
-          handleNodeClick={handleNodeClick}
-          initNodeMove={initNodeMove}
           handleNodeMove={handleNodeMove}
-          handleNodeConnect={handleNodeConnect}
-          handleNodeScale={handleNodeScale}
-          handleNodeNameChange={handleNodeNameChange}
-          handleNodeNavSelect={handleNodeNavSelect}
+          handleNodeAction={handleNodeAction}
         />
       ))}
       {/* Selection rectangle */}
@@ -523,25 +581,36 @@ export default function Canvas(props: CanvasProps) {
         />
       )}
       {/* Canvas Buttons */}
-      <div className="canvas-btn-wrap">
-        {nodesHistory.length}
-        <div className="canvas-btn-divider" />
-        {connectionsHistory.length}
-        <div className="canvas-btn-divider" />
+      <div className="canvas-btn-wrap" style={{left: canvasRect ? canvasRect.width/2 : "50%"}}>
+      
+      {history.nodes.length}
+      <div className="canvas-btn-divider" />
+
         <div className="canvas-btn" onClick={undo}>
           <UndoIcon className="canvas-btn-icon" />
         </div>
+
         <div className="canvas-btn-divider" />
+
+        <div className="canvas-btn" onClick={handleReset}>
+          <RestartAltIcon className="canvas-btn-icon" />
+        </div>
+
+        <div className="canvas-btn-divider" />
+
+        <div className="canvas-btn" onClick={redo}>
+          <RedoIcon className="canvas-btn-icon" />
+        </div>
+
+        <div className="canvas-btn-divider" />
+
         <div className="canvas-btn" onClick={handleLayoutNodes}>
           <TbBinaryTree
             className="canvas-btn-icon"
             style={{ width: "80%", height: "80%", marginLeft: "3px" }}
           />
         </div>
-        <div className="canvas-btn-divider" />
-        <div className="canvas-btn" onClick={handleReset}>
-          <RestartAltIcon className="canvas-btn-icon" />
-        </div>
+
       </div>
       {/* Canvas Context Menu */}
       {navOpen && clickPosition && (

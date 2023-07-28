@@ -12,13 +12,8 @@ interface NodeProps {
   connecting: boolean
   colorIndex: number
   canvasRect: DOMRect | null
-  handleNodeClick: (node: INode) => void
-  initNodeMove: (node: INode) => void
   handleNodeMove: (nodeID: INode["id"], displacement: Vector2D) => void
-  handleNodeConnect: (node: INode) => void
-  handleNodeScale: (node: INode, delta: number) => void
-  handleNodeNameChange: (node: INode, newName: string | null) => void
-  handleNodeNavSelect: (node: INode, action: string) => void
+  handleNodeAction: (node: INode, action: string, delta?: number, name?: string) => void
 }
 
 export default React.memo(function Node(props: NodeProps) {
@@ -28,15 +23,10 @@ export default React.memo(function Node(props: NodeProps) {
     connecting,
     colorIndex,
     canvasRect,
-    handleNodeClick,
-    initNodeMove,
     handleNodeMove,
-    handleNodeConnect,
-    handleNodeScale,
-    handleNodeNameChange,
-    handleNodeNavSelect,
+    handleNodeAction,
   } = props
-  const [nodeName, setNodeName] = useState(node.name)
+  const [nodeName, setNodeName] = useState<string | undefined>(node.name)
   const [dragging, setDragging] = useState(false)
   const [dragStartPos, setDragStartPos] = useState<Position | null>(
     null
@@ -52,6 +42,7 @@ export default React.memo(function Node(props: NodeProps) {
   })
   const [connectorActive, setConnectorActive] = useState(false)
   const [mouseDist, setMouseDist] = useState(0)
+  const [colors, setColors] = useState<string[]>([])
   const nodeRef = useRef<HTMLDivElement>(null)
   const borderRef = useRef<HTMLDivElement>(null)
 
@@ -63,14 +54,25 @@ export default React.memo(function Node(props: NodeProps) {
     const scaleNode = (e: WheelEvent) => {
       e.preventDefault()
       const delta = Math.sign(e.deltaY)
-      handleNodeScale(node, delta)
+      handleNodeAction(node, "scale", delta)
     }
 
     nodeCpy.addEventListener("wheel", scaleNode, { passive: false })
     return () => {
       nodeCpy.removeEventListener("wheel", scaleNode)
     }
-  }, [node, handleNodeScale])
+  }, [node, handleNodeAction])
+
+  useEffect(() => {
+    const paletteColors = colorPalette[colorIndex]
+
+    setColors([
+      paletteColors[node.type],
+      chroma(paletteColors[node.type]).brighten().hex(),
+      chroma(paletteColors[node.type]).brighten(0.75).hex(),
+      chroma(paletteColors[node.type]).darken(0.75).hex(),
+    ])
+  }, [node.type, colorIndex])
 
   // calculate connector stats (position, and active status)
   // is called when mousePos is inside node bounding box
@@ -146,8 +148,8 @@ export default React.memo(function Node(props: NodeProps) {
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (connectorActive && isSelected === 1) {
-      handleNodeConnect(node)
+    if (connectorActive) {
+      handleNodeAction(node, "connect")
     } else {
       if (!canvasRect) return
       setDragging(true)
@@ -157,7 +159,7 @@ export default React.memo(function Node(props: NodeProps) {
         x: e.clientX - node.position.x - canvasRect.left,
         y: e.clientY - node.position.y - canvasRect.top,
       })
-      initNodeMove(node)
+      handleNodeAction(node, "initMove")
     }
   }
 
@@ -167,7 +169,7 @@ export default React.memo(function Node(props: NodeProps) {
     //e.stopPropagation()
     if (connecting) {
       // always carry out node click if a node is trying to connect (favour connection)
-      handleNodeClick(node)
+      handleNodeAction(node, "click")
     } else if (
       // carry out node click if node is not trying to connect
       // only when node has not been moved significantly (prevent click after drag)
@@ -175,17 +177,15 @@ export default React.memo(function Node(props: NodeProps) {
       Math.abs(dragStartPos.x - node.position.x) < 15 &&
       Math.abs(dragStartPos.y - node.position.y) < 15
     ) {
-      handleNodeClick(node)
+      handleNodeAction(node, "click")
     }
-    setDragging(false)
-    setDragStartPos(null)
-    setDragCurrentPos(null)
-    setDragOffset(null)
+    cleanupDrag()
   }
 
   const handleNodeConnectLocal = (e: React.MouseEvent) => {
+    console.log("here")
     e.stopPropagation()
-    if (connectorActive) handleNodeConnect(node)
+    if (connectorActive) handleNodeAction(node, "connect")
   }
 
   // prevent event propagation (prevent canvas.tsx onClick)
@@ -195,7 +195,7 @@ export default React.memo(function Node(props: NodeProps) {
 
   // confirm node name
   const handleNameInputBlur = () => {
-    handleNodeNameChange(node, nodeName)
+    handleNodeAction(node, "rename", undefined, nodeName)
   }
 
   // update local node name
@@ -215,15 +215,32 @@ export default React.memo(function Node(props: NodeProps) {
   const handleNodeKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === "Delete" && isSelected > 0) {
       e.preventDefault()
-      handleNodeNavSelect(node, "delete")
+      handleNodeAction(node, "delete")
     }
   }
 
-  const handleNodeNavSelectLocal = (action: string) => {
-    handleNodeNavSelect(node, action)
+  const handleNodeActionLocal = (action: string) => {
+    handleNodeAction(node, action)
   }
 
-  const colors = colorPalette[colorIndex]
+  const handleNameMouseUp = (e: React.MouseEvent) => {
+    if (isSelected === 1 && 
+        dragStartPos && canvasRect &&
+        Math.abs(dragStartPos.x - node.position.x) < 15 &&
+        Math.abs(dragStartPos.y - node.position.y) < 15
+    ) {
+      e.stopPropagation()
+      handleNodeAction(node, "setIsEditing")
+      cleanupDrag()
+    }
+  }
+
+  const cleanupDrag = () => {
+    setDragging(false)
+    setDragStartPos(null)
+    setDragCurrentPos(null)
+    setDragOffset(null)
+  }
 
   return (
     <div
@@ -240,7 +257,7 @@ export default React.memo(function Node(props: NodeProps) {
         }}
       >
         <NodePlanet
-          onSelect={handleNodeNavSelectLocal}
+          onSelect={handleNodeActionLocal}
           isOpen={isSelected === 1}
           nodeSize={node.size}
         />
@@ -268,13 +285,13 @@ export default React.memo(function Node(props: NodeProps) {
             width: node.size,
             height: node.size,
             zIndex: node.layer,
-            backgroundColor: colors[node.type],
+            backgroundColor: colors[0],
             outline:
               isSelected > 0
-                ? `4px solid ${chroma(colors[node.type]).brighten().hex()}`
+                ? `4px solid ${colors[1]}`
                 : nodeHovered
-                ? `4px solid ${chroma(colors[node.type]).brighten(0.75).hex()}`
-                : `4px solid ${chroma(colors[node.type]).darken(0.75).hex()}`,
+                ? `4px solid ${colors[2]}`
+                : `4px solid ${colors[3]}`,
             outlineOffset: isSelected > 0 ? "3px" : "0px",
           }}
           onMouseDown={handleMouseDown} // init moving node
@@ -285,6 +302,7 @@ export default React.memo(function Node(props: NodeProps) {
           {node.isEditing ? ( // node name input field
             <input
               type="text"
+              defaultValue={nodeName}
               onChange={handleNameChangeLocal}
               onBlur={handleNameInputBlur}
               onKeyUp={handleInputKeyUp}
@@ -295,6 +313,8 @@ export default React.memo(function Node(props: NodeProps) {
             />
           ) : (
             <span // node name tag
+              onMouseUp={handleNameMouseUp}
+              // onDoubleClick={() => handleNodeAction(node, "setIsEditing")}
               style={{
                 userSelect: "none",
                 color:
@@ -304,7 +324,7 @@ export default React.memo(function Node(props: NodeProps) {
                 zIndex: node.layer + 1,
               }}
             >
-              {node.name}
+              {nodeName ? node.name : `${node.id.substring(0,6)}...`}
             </span>
           )}
         </div>
@@ -312,9 +332,9 @@ export default React.memo(function Node(props: NodeProps) {
           <div
             className="node-border-circle"
             style={{
-              border: `1px solid ${chroma(colors[node.type]).brighten().hex()}`,
+              border: `1px solid ${colors[1]}`,
               backgroundColor: connectorActive
-                ? chroma(colors[node.type]).brighten().hex()
+                ? colors[1]
                 : "transparent",
               top: connectorPos.y,
               left: connectorPos.x,
