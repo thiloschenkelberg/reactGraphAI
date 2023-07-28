@@ -11,13 +11,13 @@ import RemoveIcon from '@mui/icons-material/Remove';
 
 import { hoverColors } from "./types/colorPalette"
 
-interface NodePlanetProps {
+interface NodeContextProps {
   onSelect: (action: string) => void
   isOpen: boolean
   nodeSize: number
 }
 
-interface NodeButtonProps {
+interface ContextButtonProps {
   onSelect: (action: string) => void
   children: React.ReactNode
   action: string
@@ -26,7 +26,7 @@ interface NodeButtonProps {
   planetOpen?: boolean
 }
 
-function NodeButton(props: NodeButtonProps) {
+function ContextButton(props: ContextButtonProps) {
   const { onSelect, children, action, isSmall, isPlanet, planetOpen } = props
   const [hovered, setHovered] = useState(false)
 
@@ -62,7 +62,7 @@ function NodeButton(props: NodeButtonProps) {
   )
 }
 
-export default function NodePlanet(props: NodePlanetProps) {
+export default function NodeContext(props: NodeContextProps) {
   const { onSelect, isOpen, nodeSize } = props
   const [layerPlanetOpen, setLayerPlanetOpen] = useState(false)
 
@@ -80,7 +80,7 @@ export default function NodePlanet(props: NodePlanetProps) {
       orbitRadius={nodeSize / 2 + 40}
       rotation={90}
     >
-      <div
+      {/* <div
         style={{
           transform: "translate(-25px, -25px)"
         }}
@@ -119,8 +119,9 @@ export default function NodePlanet(props: NodePlanetProps) {
           <div/>
           <div/>
         </Planet>
-      </div>
-      <NodeButton
+      </div> */}
+      <div/>
+      <ContextButton
         onSelect={onSelect}
         children={<CloseIcon />}
         action="delete"

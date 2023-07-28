@@ -16,20 +16,20 @@ import MatterIcon from "@mui/icons-material/Diamond"
 import { colorPalette } from "./types/colorPalette"
 import { INode } from "./types/canvas.types"
 
-interface NavPlanetProps {
+interface CanvasContextProps {
   onSelect: (nodeType: INode["type"]) => void
   open: boolean
   colorIndex: number
 }
 
-interface NavButtonProps {
+interface ContextButtonProps {
   onSelect: (nodeType: INode["type"]) => void
   nodeType: INode["type"]
   children: React.ReactNode
   colorIndex: number
 }
 
-function NavButton(props: NavButtonProps) {
+function ContextButton(props: ContextButtonProps) {
   const { onSelect, nodeType, children, colorIndex } = props
   const [hovered, setHovered] = useState(false)
 
@@ -55,7 +55,7 @@ function NavButton(props: NavButtonProps) {
   )
 }
 
-export default function NavPlanet(props: NavPlanetProps) {
+export default function CanvasContext(props: CanvasContextProps) {
   const { onSelect, open, colorIndex } = props
 
   return (
@@ -73,31 +73,31 @@ export default function NavPlanet(props: NavPlanetProps) {
       orbitRadius={75}
       rotation={144}
     >
-      <NavButton
+      <ContextButton
         onSelect={onSelect}
         nodeType="matter"
         children={<MatterIcon style={{ color: "#1a1b1e" }} />}
         colorIndex={colorIndex}
       />
-      <NavButton
+      <ContextButton
         onSelect={onSelect}
         nodeType="process"
         children={<ProcessIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
       />
-      <NavButton
+      <ContextButton
         onSelect={onSelect}
         nodeType="parameter"
         children={<ParameterIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
       />
-      <NavButton
+      <ContextButton
         onSelect={onSelect}
         nodeType="property"
         children={<PropertyIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
       />
-      <NavButton
+      <ContextButton
         onSelect={onSelect}
         nodeType="measurement"
         children={<MeasurementIcon style={{ color: "#1a1b1e" }} />}

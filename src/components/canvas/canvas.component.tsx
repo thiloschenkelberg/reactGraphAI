@@ -10,7 +10,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 
 import Node from "./node.component"
-import NavPlanet from "./nav-planet.component"
+import ContextCanvas from "./canvas-ctxt.component"
 import Connection, { TempConnection } from "./connection.component"
 import {
   Rect,
@@ -222,7 +222,7 @@ export default function Canvas(props: CanvasProps) {
             size:
               delta > 0 && n.size < 200
                 ? n.size + delta * 5
-                : delta < 0 && n.size > 50
+                : delta < 0 && n.size > 75
                 ? n.size + delta * 5
                 : n.size,
           }
@@ -622,7 +622,7 @@ export default function Canvas(props: CanvasProps) {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <NavPlanet
+          <ContextCanvas
             onSelect={handleContextSelect}
             open={navOpen}
             colorIndex={colorIndex}

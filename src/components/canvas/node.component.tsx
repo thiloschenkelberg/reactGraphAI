@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Paper } from "@mantine/core"
 import chroma from "chroma-js"
 
-import NodePlanet from "./node-planet.component"
+import NodeContext from "./node-ctxt.component"
 import { INode, Position, Vector2D } from "./types/canvas.types"
 import { colorPalette } from "./types/colorPalette"
 
@@ -256,7 +256,7 @@ export default React.memo(function Node(props: NodeProps) {
           top: node.position.y,
         }}
       >
-        <NodePlanet
+        <NodeContext
           onSelect={handleNodeActionLocal}
           isOpen={isSelected === 1}
           nodeSize={node.size}
@@ -324,11 +324,11 @@ export default React.memo(function Node(props: NodeProps) {
                 zIndex: node.layer + 1,
               }}
             >
-              {nodeName ? node.name : `${node.id.substring(0,6)}...`}
+              {nodeName ? node.name : `${node.id.substring(0,node.size/8 - 4)}...`}
             </span>
           )}
         </div>
-        {mouseDist < node.size / 2 + 30 && mouseDist > 25 &&( // draw node connector circle
+        {mouseDist < node.size / 2 + 30 && mouseDist > 30 &&( // draw node connector circle
           <div
             className="node-border-circle"
             style={{
