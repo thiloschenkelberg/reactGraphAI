@@ -9,7 +9,7 @@ import LayersIcon from "@mui/icons-material/Layers"
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove';
 
-import { hoverColors } from "./types/colorPalette"
+import { hoverColors } from "../types/colorPalette"
 
 interface NodeContextProps {
   onSelect: (action: string) => void
@@ -48,13 +48,14 @@ function ContextButton(props: ContextButtonProps) {
 
   return (
     <div
-      className="node-button"
+      className="ctxt-button"
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         width: isSmall ? 40 : 50,
-        height: isSmall ? 40 : 50
+        height: isSmall ? 40 : 50,
+        backgroundColor: "#666666",
       }}
     >
       {styledChild}
@@ -73,7 +74,7 @@ export default function NodeContext(props: NodeContextProps) {
 
   return (
     <Planet
-      centerContent={<div className="node-planet" />}
+      centerContent={<div className="ctxt-planet" />}
       open={isOpen}
       // autoClose
       hideOrbit

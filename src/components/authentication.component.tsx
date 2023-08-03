@@ -30,7 +30,12 @@ import client from "../client"
 //     terms: boolean,
 // }
 
-export default function AuthenticationForm(props: PaperProps) {
+interface AuthenticationFormProps {
+  setTab: (tab: string) => void
+}
+
+export default function AuthenticationForm(props: AuthenticationFormProps) {
+  const { setTab } = props
   const queryClient = useQueryClient()
   const currentUser = useContext(userContext)
   const navigate = useNavigate()
@@ -46,6 +51,7 @@ export default function AuthenticationForm(props: PaperProps) {
     onSuccess: () => {
       queryClient.prefetchQuery<IUser | null | undefined>('getCurrentUser', client.getCurrentUser)
       toast.success("User logged in successfully!")
+      setTab("")
       navigate("/")
     },
     onError: () => {

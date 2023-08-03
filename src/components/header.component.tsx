@@ -10,20 +10,8 @@ import {
   Tabs,
   rem,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import {
-  IconLogout,
-  IconHeart,
-  IconStar,
-  IconMessage,
-  IconSettings,
-  IconPlayerPause,
-  IconTrash,
-  IconSwitchHorizontal,
-  IconChevronDown,
-} from "@tabler/icons-react";
+import { IconLogout, IconSettings, IconChevronDown } from "@tabler/icons-react";
 import logo_sm from "../img/logo_nodes.png";
-import IUser from "../types/user.type";
 import { userContext } from "../common/userContext";
 
 const useStyles = createStyles((theme) => ({
@@ -100,26 +88,19 @@ const useStyles = createStyles((theme) => ({
 const tabs = ["Search", "History"];
 
 interface HeaderTabsProps {
-  onHeaderLinkClick(key: string): void;
-  onLogout(): void;
+  onHeaderLinkClick: (key: string) => void
+  onLogout: () => void;
+  tab: string | null
+  setTab: (tab: string) => void
 }
 
 export function HeaderTabs(props: HeaderTabsProps) {
-  const { onHeaderLinkClick, onLogout } = props;
-  const { classes, theme, cx } = useStyles();
+  const { onHeaderLinkClick, onLogout, tab, setTab } = props;
+  const { classes, cx } = useStyles();
   const [userMenuOpened, setUserMenuOpened] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>(
-    () => localStorage.getItem("activeTab") || null
-  )
   const user = useContext(userContext);
 
-  useEffect(() => {
-    localStorage.setItem("activeTab", activeTab || "")
-  }, [activeTab])
-
   const onLogoutLocal = () => {
-    setActiveTab("");
-    localStorage.setItem("activeTab", "")
     onLogout();
   };
 
@@ -133,17 +114,13 @@ export function HeaderTabs(props: HeaderTabsProps) {
     </Tabs.Tab>
   ));
 
-  const printTab = () => {
-    console.log(activeTab)
-  }
-
   return (
-    <div className={classes.header} onClick={printTab}>
+    <div className={classes.header}>
       <Container size="default" className={classes.mainSection}>
         <Group position="apart">
           {/* Logo */}
           <div className="logo-sm-container">
-            <Link to="/" onClick={() => setActiveTab("")}>
+            <Link to="/" onClick={() => setTab("")}>
               <img
                 src={logo_sm}
                 alt="mgai"
@@ -154,8 +131,8 @@ export function HeaderTabs(props: HeaderTabsProps) {
 
           {/* Tabs */}
           <Tabs
-            value={activeTab}
-            onTabChange={setActiveTab}
+            value={tab}
+            onTabChange={setTab}
             variant="outline"
             style={{
               transform: "translate(0px,0)",
@@ -201,7 +178,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
                   </UnstyledButton>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Link to="/account" onClick={() => setActiveTab("")}>
+                  <Link to="/account" onClick={() => setTab("")}>
                     <Menu.Item
                       icon={<IconSettings size="0.9rem" stroke={1.5} />}
                     >

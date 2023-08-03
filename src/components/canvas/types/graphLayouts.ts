@@ -14,7 +14,15 @@ export const graphLayouts = [
         rows: 3,
     },
     {
-        name: "cose",
+        name: "fcose",
+        animate: false,
+        idealEdgeLength: 300,
+        nodeSeparation: 1000,
+        nodeRepulsion: 500_000,
+        edgeElasticity: .45,
+        numIter: 0,
+        tile:false,
+
     }
 ]
 

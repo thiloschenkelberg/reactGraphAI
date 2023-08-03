@@ -20,8 +20,10 @@ import "./App.css"
 
 export default function App() {
   const navigate = useNavigate()
-  const [active, setActive] = useState(0)
   const queryClient = useQueryClient()
+  const [activeTab, setActiveTab] = useState<string | null>(
+    () => localStorage.getItem("activeTab") || null
+  )
 
   const {
     data: currentUser,
@@ -33,12 +35,20 @@ export default function App() {
   )
 
   useEffect(() => {
-    // navigate to login after getCurrentUser is successfully 
+    // navigate to login after getCurrentUser is 
     // resolved and currentUser is undefined
     if (!isLoading && !isError && !currentUser) {
       navigate("/login")
     }
   }, [isLoading, isError, currentUser, navigate])
+
+  useEffect(() => {
+    localStorage.setItem("activeTab", activeTab || "")
+  }, [activeTab])
+
+  const setTab = (tab: string) => {
+    setActiveTab(tab)
+  }
 
   if (isLoading) {
     console.log("loading")
@@ -56,8 +66,10 @@ export default function App() {
 
   const handleLogout = () => {
     queryClient.setQueryData<IUser | null | undefined>("getCurrentUser", undefined)
+    setActiveTab("")
     document.cookie = "token="
     navigate("/login")
+
   }
 
   const currentColorIndex = 0 // make colorPalette choosable in settings later
@@ -67,7 +79,7 @@ export default function App() {
       <userContext.Provider value={currentUser}>
         {currentUser && (
           <div className="header">
-            <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout}/>
+            <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab}/>
           </div>
         )}
         <div className="main-window">
@@ -75,7 +87,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
             <Route path="/history" element={<History />} />
-            <Route path="/login" element={<AuthenticationForm />} />
+            <Route path="/login" element={<AuthenticationForm setTab={setTab}/>} />
             <Route path="/account" element={<Account />} />
           </Routes>
         </div>

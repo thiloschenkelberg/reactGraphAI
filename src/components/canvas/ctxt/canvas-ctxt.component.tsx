@@ -13,8 +13,8 @@ import ParameterIcon from "@mui/icons-material/Tune"
 import MeasurementIcon from "@mui/icons-material/SquareFoot"
 import MatterIcon from "@mui/icons-material/Diamond"
 
-import { colorPalette } from "./types/colorPalette"
-import { INode } from "./types/canvas.types"
+import { colorPalette } from "../types/colorPalette"
+import { INode } from "../types/canvas.types"
 
 interface CanvasContextProps {
   onSelect: (nodeType: INode["type"]) => void
@@ -38,11 +38,13 @@ function ContextButton(props: ContextButtonProps) {
 
   return (
     <div
-      className="nav-button"
+      className="ctxt-button"
       onClick={() => onSelect(nodeType)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        width: "80px",
+        height: "80px",
         backgroundColor,
         outline: hovered
           ? `3px solid ${chroma(backgroundColor).brighten().hex()}`
@@ -62,8 +64,11 @@ export default function CanvasContext(props: CanvasContextProps) {
     <Planet
       centerContent={
         <div 
-          className="nav-planet"
+          className="ctxt-planet"
           style={{
+            width: "10px",
+            height: "10px",
+            backgroundColor: "#808080",
             transform: "translate(-50%, -50%)"
           }}
         />

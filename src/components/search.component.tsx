@@ -14,18 +14,14 @@ export default function Search(props: SearchProps) {
   const [workflow, setWorkflow] = useState<JSON | null>(null)
   const [splitView, setSplitView] = useState(false)
 
-  const getWorkflow = (workflow: JSON) => {
-
-  }
-
   return(
     <div style={{position: "fixed", display: "flex"}}>
-      <Canvas colorIndex={colorIndex} getWorkflow={getWorkflow}/>
+      <Canvas colorIndex={colorIndex} setWorkflow={setWorkflow}/>
       {splitView && (
         <div>
           <textarea
             readOnly
-            // value={workflow}
+            value={workflow ? JSON.stringify(workflow, null, 2) : ""}
             style={{
               width: "400px", height: "100vh"
             }}
