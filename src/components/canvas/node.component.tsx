@@ -231,6 +231,8 @@ export default React.memo(function Node(props: NodeProps) {
     setDragOffset(null)
   }
 
+  // const iconAnimProps = 
+
   return (
     <div
       style={{
