@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
+import { useSpring, animated } from "react-spring"
 import chroma from "chroma-js"
 
 import WarningAmberIcon from "@mui/icons-material/WarningAmber"
@@ -231,7 +232,13 @@ export default React.memo(function Node(props: NodeProps) {
     setDragOffset(null)
   }
 
-  // const iconAnimProps = 
+  const iconAnimProps = useSpring({
+    color: nodeHovered ? '#E15554' : colors[0],
+    config: {
+      tension: nodeHovered ? 170 : 150,
+      friction: nodeHovered ? 26 : 170
+    }
+  })
 
   return (
     <div
@@ -288,7 +295,7 @@ export default React.memo(function Node(props: NodeProps) {
           }}
         >
           {node.isEditing || // node name input field
-          (isSelected && !node.name) ? (
+          (isSelected === 1 && !node.name) ? (
             <input
               type="text"
               defaultValue={node.name}
@@ -347,21 +354,22 @@ export default React.memo(function Node(props: NodeProps) {
                 pointerEvents: "none",
               }}
             >
-              <WarningIcon
-                style={{
-                  position: "absolute",
-                  color: nodeHovered ? "#E15554" : colors[0],
-                  fontSize: "30px",
-                  transform: `translate(
-                      ${nodeHovered ? -82 : 0}px,
-                      ${nodeHovered ? -1 : -6}px
-                    )`,
-                  transition: "color 0.3s linear, transform 0.1s ease-in-out",
-                  zIndex: node.layer + 1,
-                }}
-              />
+              <animated.div style={iconAnimProps}>
+                <WarningIcon
+                  style={{
+                    position: "relative",
+                    fontSize: "30px",
+                    transform: `translate(
+                        ${nodeHovered ? -66 : 0}px,
+                        ${nodeHovered ? -1 : -4}px
+                      )`,
+                    transition: "transform 0.1s ease-in-out",
+                    zIndex: node.layer + 1,
+                  }}
+                />
+              </animated.div>
               {nodeHovered && (
-                <div className="node-warning-label">Node must be named!</div>
+                <div className="node-warning-label">Identifier missing!</div>
               )}
             </div>
           )}
