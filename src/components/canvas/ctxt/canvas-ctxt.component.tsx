@@ -50,9 +50,22 @@ function ContextButton(props: ContextButtonProps) {
           ? `3px solid ${chroma(backgroundColor).brighten().hex()}`
           : `3px solid ${chroma(backgroundColor).darken(0.75).hex()}`,
         outlineOffset: "-3px",
+        zIndex: hovered ? 5 : 3
       }}
     >
       {children}
+      {hovered &&
+      <div 
+        style={{
+          position: "absolute",
+          pointerEvents: "none",
+          display: "flex",
+          justifyContent: "center",
+          left: -60,
+        }}
+      >
+      </div>
+      }
     </div>
   )
 }
