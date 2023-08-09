@@ -7,7 +7,7 @@ import { useState } from "react"
 import { Planet } from "react-planet"
 import chroma from "chroma-js"
 
-import ProcessIcon from "@mui/icons-material/PrecisionManufacturing"
+import ManufacturingIcon from "@mui/icons-material/PrecisionManufacturing"
 import PropertyIcon from "@mui/icons-material/Description"
 import ParameterIcon from "@mui/icons-material/Tune"
 import MeasurementIcon from "@mui/icons-material/SquareFoot"
@@ -99,8 +99,8 @@ export default function CanvasContext(props: CanvasContextProps) {
       />
       <ContextButton
         onSelect={onSelect}
-        nodeType="process"
-        children={<ProcessIcon style={{ color: "#ececec" }} />}
+        nodeType="manufacturing"
+        children={<ManufacturingIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
       />
       <ContextButton

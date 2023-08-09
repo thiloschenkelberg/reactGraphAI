@@ -155,7 +155,7 @@ export default React.memo(function Node(props: NodeProps) {
     if (connectorActive && !node.isEditing) {
       handleNodeAction(node, "connect")
     } else {
-      if (!canvasRect) return
+      if (!canvasRect || node.isEditing) return
       setDragging(true)
       setDragStartPos({ x: node.position.x, y: node.position.y })
       setDragCurrentPos({ x: node.position.x, y: node.position.y })
