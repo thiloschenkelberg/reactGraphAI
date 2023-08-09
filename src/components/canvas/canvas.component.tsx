@@ -580,7 +580,9 @@ export default function Canvas(props: CanvasProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.code === "KeyZ") {
+      console.log(e.key)
+      if (e.ctrlKey && e.shiftKey && e.key === "Z") {
+        console.log("test")
         e.preventDefault()
         redo()
       } else if (e.ctrlKey) {
