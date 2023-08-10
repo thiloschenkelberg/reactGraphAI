@@ -692,7 +692,9 @@ export default function Canvas(props: CanvasProps) {
         className="canvas-btn-wrap"
         style={{ left: canvasRect ? canvasRect.width / 2 : "50%" }}
       >
-        {history.nodes.length}
+        <div className="canvas-btn" style={{textAlign: "center"}}>
+          {history.nodes.length}
+        </div>
         <div className="canvas-btn-divider" />
         <div className="canvas-btn" onClick={undo}>
           <UndoIcon className="canvas-btn-icon" />

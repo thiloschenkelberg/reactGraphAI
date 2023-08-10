@@ -13,7 +13,7 @@ export default function Search(props: SearchProps) {
   const { colorIndex } = props
   const [workflow, setWorkflow] = useState<string | null>(null)
   const [splitView, setSplitView] = useState(false)
-  const [splitViewWidth, setSplitViewWidth] = useState(400)
+  const [splitViewWidth, setSplitViewWidth] = useState(0)
 
   const handleSplitView = () => {
     if (splitView) {
@@ -35,16 +35,13 @@ export default function Search(props: SearchProps) {
         }}
       />
       {splitView && (
-        <div>
+        <div className="wflow-text"> 
           <textarea
             readOnly
             value={workflow ? workflow : "asd"}
             style={{
               width: splitViewWidth,
               height: "100vh",
-              backgroundColor: "#25262b",
-              position: "relative",
-              color: "#A6A7AB"
             }}
           />
         </div>
@@ -55,8 +52,8 @@ export default function Search(props: SearchProps) {
           position: "absolute",
           top: "42%",
           right: splitView ? splitViewWidth + 10 : 10,
-          width: 40,
-          height: 40,
+          width: 35,
+          height: 35,
         }}
         onClick={handleSplitView}
       >

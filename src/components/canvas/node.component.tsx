@@ -304,14 +304,15 @@ export default React.memo(function Node(props: NodeProps) {
               onKeyUp={handleInputKeyUp} // confirm name with enter
               autoFocus
               style={{
+                // borderColor: colors[1],
                 zIndex: node.layer + 1,
               }}
             />
           ) : (
             <span // node name tag
               onMouseUp={handleNameMouseUp}
+              className="node-name"
               style={{
-                userSelect: "none",
                 color:
                   node.type === "matter" || node.type === "measurement"
                     ? "#1a1b1e"
@@ -321,7 +322,7 @@ export default React.memo(function Node(props: NodeProps) {
             >
               {/* {nodeName
                 ? node.name
-                : `id: ${node.id.substring(0, node.size / 8 - 8)}...`} */}
+                : `id: ${node.id.substring(0, node.size / 4 - 8)}...`} */}
               {nodeName ? node.name : ""}
             </span>
           )}
