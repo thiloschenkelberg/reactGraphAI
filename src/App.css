@@ -280,11 +280,26 @@ a:link {
   justify-content: right;
 }
 
+.wflow-buttons {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #25262b;
+  height: 50px;
+  color: #a6a7ab;
+  outline: none;
+  border: none;
+  border-left: 1px solid #333;
+}
+
 .wflow-text textarea {
   background-color: #25262b;
   position: relative;
   color: #a6a7ab;
   outline: none;
+  border: none;
+  border-left: 1px solid #333;
 }
 
 .wrap-account {

@@ -2,8 +2,11 @@ import { useState } from "react"
 
 import DoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import DoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
+import SearchIcon from '@mui/icons-material/Search';
 
 import Canvas from "./canvas/canvas.component"
+import client from "../client"
+import { saveToFile } from "../common/helpers"
 
 interface SearchProps {
   colorIndex: number
@@ -14,6 +17,17 @@ export default function Search(props: SearchProps) {
   const [workflow, setWorkflow] = useState<string | null>(null)
   const [splitView, setSplitView] = useState(false)
   const [splitViewWidth, setSplitViewWidth] = useState(0)
+
+  async function workflowSearch() {
+    try {
+      const response = await client.workflowSearch(workflow)
+      if (response) {
+        saveToFile(response.data, "csv", "workflows.csv")
+      }
+    } catch (err: any) {
+      throw new Error("Search failed")
+    }
+  }
 
   const handleSplitView = () => {
     if (splitView) {
@@ -35,15 +49,27 @@ export default function Search(props: SearchProps) {
         }}
       />
       {splitView && (
-        <div className="wflow-text"> 
-          <textarea
-            readOnly
-            value={workflow ? workflow : "asd"}
-            style={{
-              width: splitViewWidth,
-              height: "100vh",
-            }}
-          />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
+          <div
+            className="wflow-buttons" 
+          >
+            <SearchIcon onClick={workflowSearch}/>
+          </div>
+          <div className="wflow-text"> 
+            <textarea
+              readOnly
+              value={workflow ? workflow : "asd"}
+              style={{
+                width: splitViewWidth,
+                height: "100vh",
+              }}
+            />
+          </div>
         </div>
       )}
       <div

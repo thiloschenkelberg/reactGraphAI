@@ -21,7 +21,7 @@ import {
   Vector2D,
 } from "./types/canvas.types"
 import { graphLayouts } from "./types/graphLayouts"
-import { isConnectionLegitimate, convertToJSONFormat, saveToFile } from "./helper/canvas.helpers"
+import { isConnectionLegitimate, convertToJSONFormat, saveToFile } from "../../common/helpers"
 
 interface CanvasProps {
   colorIndex: number
@@ -96,7 +96,7 @@ export default function Canvas(props: CanvasProps) {
 
   const saveWorkflow = () => {
     const workflow = convertToJSONFormat(nodes, connections) //stringified
-    saveToFile(workflow)
+    saveToFile(workflow, "json", "workflow.json")
   }
 
   const addNode = (type: INode["type"], position: Position) => {

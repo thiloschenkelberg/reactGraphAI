@@ -20,7 +20,9 @@ interface NodeProps {
     node: INode,
     action: string,
     delta?: number,
-    name?: string
+    name?: string,
+    value?: number,
+    operator?: "<" | ">" | "="
   ) => void
 }
 
@@ -35,6 +37,8 @@ export default React.memo(function Node(props: NodeProps) {
     handleNodeAction,
   } = props
   const [nodeName, setNodeName] = useState<string | undefined>(node.name)
+  const [fieldsMissing, setFieldsMissing] = useState(false)
+  const [focusedInside, setFocusedInside] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [dragStartPos, setDragStartPos] = useState<Position | null>(null)
   const [dragCurrentPos, setDragCurrentPos] = useState<Position | null>(null)
@@ -62,6 +66,10 @@ export default React.memo(function Node(props: NodeProps) {
       nodeCpy.removeEventListener("wheel", scaleNode)
     }
   }, [node, handleNodeAction])
+
+  useEffect(() => {
+
+  })
 
   useEffect(() => {
     const paletteColors = colorPalette[colorIndex]

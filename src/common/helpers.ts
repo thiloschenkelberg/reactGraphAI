@@ -1,7 +1,7 @@
 import {
   INode,
   IConnection
-} from "../types/canvas.types"
+} from "../components/canvas/types/canvas.types"
 
 /**
  * Map a node type from the application's internal format to the desired output format.
@@ -102,12 +102,12 @@ export function isConnectionLegitimate(start: INode, end: INode): boolean {
   );
 }
 
-export function saveToFile(data: string, filename: string = 'workflow.json') {
+export function saveToFile(data: string, type: "json" | "csv", filename: string) {
   // Convert the data to a JSON string
   //const jsonString = JSON.stringify(data, null, 2);  // 2 spaces for indentation
 
   // Create a blob with the JSON string
-  const blob = new Blob([data], { type: 'application/json' });
+  const blob = new Blob([data], { type: `application/${type}` });
 
   // Create a URL for the blob
   const url = URL.createObjectURL(blob);
