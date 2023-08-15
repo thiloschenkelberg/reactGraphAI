@@ -109,41 +109,6 @@ export default function CanvasContext(props: CanvasContextProps) {
           colorIndex={colorIndex}
         />
       ))} 
-      {/* {(buttonList.includes("matter") || !contextRestrict) &&
-        <ContextButton
-        onSelect={onSelect}
-        nodeType="matter"
-        children={<MatterIcon style={{ color: "#1a1b1e" }} />}
-        colorIndex={colorIndex}
-      />}
-      {(buttonList.includes("manufacturing") || !contextRestrict) &&
-        <ContextButton
-        onSelect={onSelect}
-        nodeType="manufacturing"
-        children={<ManufacturingIcon style={{ color: "#ececec" }} />}
-        colorIndex={colorIndex}
-      />}
-      {(buttonList.includes("parameter") || !contextRestrict)  &&
-        <ContextButton
-        onSelect={onSelect}
-        nodeType="parameter"
-        children={<ParameterIcon style={{ color: "#ececec" }} />}
-        colorIndex={colorIndex}
-      />}
-      {(buttonList.includes("property") || !contextRestrict)  &&
-        <ContextButton
-        onSelect={onSelect}
-        nodeType="property"
-        children={<PropertyIcon style={{ color: "#ececec" }} />}
-        colorIndex={colorIndex}
-      />}
-      {(buttonList.includes("measurement") || !contextRestrict)  &&
-        <ContextButton
-        onSelect={onSelect}
-        nodeType="measurement"
-        children={<MeasurementIcon style={{ color: "#1a1b1e" }} />}
-        colorIndex={colorIndex}
-      />} */}
     </Planet>
   )
 }
