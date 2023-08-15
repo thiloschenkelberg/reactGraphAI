@@ -98,7 +98,7 @@ export default function CanvasContext(props: CanvasContextProps) {
       open={open}
       hideOrbit
       orbitRadius={buttonsToRender.length > 1 ? 75 : 1}
-      rotation={ROTATIONS[buttonsToRender.length]}
+      rotation={ROTATIONS[buttonsToRender.length] || 0}
     >
       {buttonsToRender.map(button => (
         <ContextButton

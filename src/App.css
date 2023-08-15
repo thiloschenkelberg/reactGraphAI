@@ -236,6 +236,8 @@ a:link {
   font-size: 85%;
   font-family: monospace;
   vertical-align: middle;
+  border-radius: 3px;
+  padding: 0px 3px 0px 3px;
 }
 
 .node-label-wrap {

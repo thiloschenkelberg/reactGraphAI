@@ -22,7 +22,8 @@ interface NodeProps {
     action: string,
     name?: string,
     value?: number,
-    operator?: INode["operator"]
+    operator?: INode["operator"],
+    condition?: boolean
   ) => void
 }
 
@@ -55,6 +56,7 @@ export default React.memo(function Node(props: NodeProps) {
   const nameInputRef = useRef<HTMLInputElement>(null)
   const valueInputRef = useRef<HTMLInputElement>(null)
   const operatorInputRef = useRef<HTMLInputElement>(null)
+  const valueLabelRef = useRef<HTMLSpanElement>(null)
   const isValueNode = ["property", "parameter"].includes(node.type)
   // const shouldFocusNameInput = !nodeName || !isValueNode
 
@@ -208,6 +210,7 @@ export default React.memo(function Node(props: NodeProps) {
     ) {
       handleNodeAction(node, "click")
       if (fieldsMissing) handleNodeAction(node, "setIsEditing")
+
     }
     cleanupDrag()
   }
@@ -225,7 +228,6 @@ export default React.memo(function Node(props: NodeProps) {
         document.activeElement === valueInputRef.current ||
         document.activeElement === operatorInputRef.current
       ) return
-      console.log(nodeValue)
       handleNodeAction(node, "rename", nodeName, nodeValue, nodeOperator)
       updateMissingFields()
     }, 100)
@@ -262,7 +264,7 @@ export default React.memo(function Node(props: NodeProps) {
       Math.abs(dragStartPos.y - node.position.y) < 15
     ) {
       e.stopPropagation()
-      handleNodeAction(node, "setIsEditing")
+      handleNodeAction(node, "setIsEditing", undefined, undefined, undefined, true)
       cleanupDrag()
     }
   }
@@ -359,7 +361,7 @@ export default React.memo(function Node(props: NodeProps) {
           {/* node labels */}
           {!node.isEditing && (
             <div className="node-label-wrap">
-              <span // name
+              <span // name label
                 onMouseUp={handleNameMouseUp}
                 className="node-label"
                 style={{
@@ -378,7 +380,8 @@ export default React.memo(function Node(props: NodeProps) {
                 {nodeName ? node.name : ""}
               </span>
               {nodeValue !== undefined &&
-                <span
+                <span // value label
+                  ref={valueLabelRef}
                   onMouseUp={handleNameMouseUp}
                   className="node-label node-label-value"
                   style={{
@@ -390,10 +393,16 @@ export default React.memo(function Node(props: NodeProps) {
                       ["matter", "measurement"].includes(node.type)
                         ? "#1a1b1e"
                         : "#ececec",
+                    backgroundColor: (valueLabelRef.current && valueLabelRef.current.offsetWidth > node.size)
+                                      ? colors[0]
+                                      : "transparent",
                     zIndex: node.layer + 1,
                   }}
                 >
-                  {(nodeOperator ? mapOperatorSign() : "") + " " + node.value}
+                  {(valueLabelRef.current && valueLabelRef.current.offsetWidth > node.size)
+                    ? (nodeOperator ? mapOperatorSign() : "") + " " + node.value
+                    : (nodeOperator ? mapOperatorSign() : "") + " " + node.value
+                  }
                 </span>}
             </div>
           )}
