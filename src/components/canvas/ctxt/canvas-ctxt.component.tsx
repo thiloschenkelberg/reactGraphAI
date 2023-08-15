@@ -3,7 +3,7 @@
 // import OutputIcon from "@mui/icons-material/Output"
 // import ParameterIcon from "@mui/icons-material/Tune"
 
-import { useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { Planet } from "react-planet"
 import chroma from "chroma-js"
 
@@ -15,11 +15,13 @@ import MatterIcon from "@mui/icons-material/Diamond"
 
 import { colorPalette } from "../types/colorPalette"
 import { INode } from "../types/canvas.types"
+import { possibleConnections } from "../../../common/helpers"
 
 interface CanvasContextProps {
   onSelect: (nodeType: INode["type"]) => void
   open: boolean
   colorIndex: number
+  contextRestrict?: INode["type"]
 }
 
 interface ContextButtonProps {
@@ -71,7 +73,14 @@ function ContextButton(props: ContextButtonProps) {
 }
 
 export default function CanvasContext(props: CanvasContextProps) {
-  const { onSelect, open, colorIndex } = props
+  const { onSelect, open, colorIndex, contextRestrict } = props
+
+  const buttonsToRender = useMemo(() => {
+    const buttonList = possibleConnections(contextRestrict)
+    return BUTTON_TYPES.filter(button => 
+      buttonList.includes(button.type) || !contextRestrict
+    );
+  }, [contextRestrict]);
 
   return (
     <Planet
@@ -88,39 +97,68 @@ export default function CanvasContext(props: CanvasContextProps) {
       }
       open={open}
       hideOrbit
-      orbitRadius={75}
-      rotation={144}
+      orbitRadius={buttonsToRender.length > 1 ? 75 : 1}
+      rotation={ROTATIONS[buttonsToRender.length]}
     >
-      <ContextButton
+      {buttonsToRender.map(button => (
+        <ContextButton
+          key={button.type}
+          onSelect={onSelect}
+          nodeType={button.type}
+          children={button.icon}
+          colorIndex={colorIndex}
+        />
+      ))} 
+      {/* {(buttonList.includes("matter") || !contextRestrict) &&
+        <ContextButton
         onSelect={onSelect}
         nodeType="matter"
         children={<MatterIcon style={{ color: "#1a1b1e" }} />}
         colorIndex={colorIndex}
-      />
-      <ContextButton
+      />}
+      {(buttonList.includes("manufacturing") || !contextRestrict) &&
+        <ContextButton
         onSelect={onSelect}
         nodeType="manufacturing"
         children={<ManufacturingIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
-      />
-      <ContextButton
+      />}
+      {(buttonList.includes("parameter") || !contextRestrict)  &&
+        <ContextButton
         onSelect={onSelect}
         nodeType="parameter"
         children={<ParameterIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
-      />
-      <ContextButton
+      />}
+      {(buttonList.includes("property") || !contextRestrict)  &&
+        <ContextButton
         onSelect={onSelect}
         nodeType="property"
         children={<PropertyIcon style={{ color: "#ececec" }} />}
         colorIndex={colorIndex}
-      />
-      <ContextButton
+      />}
+      {(buttonList.includes("measurement") || !contextRestrict)  &&
+        <ContextButton
         onSelect={onSelect}
         nodeType="measurement"
         children={<MeasurementIcon style={{ color: "#1a1b1e" }} />}
         colorIndex={colorIndex}
-      />
+      />} */}
     </Planet>
   )
 }
+
+const BUTTON_TYPES: { type: INode["type"], icon: JSX.Element }[] = [
+  { type: 'matter', icon: <MatterIcon style={{ color: "#1a1b1e" }} /> },
+  { type: 'manufacturing', icon: <ManufacturingIcon style={{ color: "#ececec" }} /> },
+  { type: 'parameter', icon: <ParameterIcon style={{ color: "#ececec" }} /> },
+  { type: 'property', icon: <PropertyIcon style={{ color: "#ececec" }} /> },
+  { type: 'measurement', icon: <MeasurementIcon style={{ color: "#1a1b1e" }} /> },
+];
+
+const ROTATIONS: { [key: number]: number } = {
+  1: 0,
+  2: 90,
+  3: 120,
+  5: 144
+};

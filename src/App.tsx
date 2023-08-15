@@ -95,7 +95,7 @@ export default function App() {
       <Toaster
         position="top-center"
         containerStyle={{
-          top: "80px"
+          top: "105px"
         }}
         toastOptions={{
           style: {

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid"
 import cytoscape from "cytoscape"
 import fcose from "cytoscape-fcose"
 import _ from "lodash"
+import { toast } from "react-hot-toast"
 
 import { TbBinaryTree } from "react-icons/tb"
 import RestartAltIcon from "@mui/icons-material/RestartAlt"
@@ -21,7 +22,7 @@ import {
   Vector2D,
 } from "./types/canvas.types"
 import { graphLayouts } from "./types/graphLayouts"
-import { isConnectionLegitimate, convertToJSONFormat, saveToFile } from "../../common/helpers"
+import { isConnectableNode, isConnectionLegitimate, convertToJSONFormat, saveToFile } from "../../common/helpers"
 
 interface CanvasProps {
   colorIndex: number
@@ -210,14 +211,16 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
-  const handleNodeNameChange = (nodeID: INode["id"], name?: string) => {
+  const handleNodeNameChange = (nodeID: INode["id"], name?: string, value?: number, operator?: INode["operator"]) => {
     updateHistory()
     const newName = name ? name : ""
+    const newVal = value ? value : undefined
     setNodes((prevNodes) =>
       prevNodes.map((n) =>
-        n.id === nodeID ? { ...n, name: newName, isEditing: false } : n
+        n.id === nodeID ? { ...n, name: newName, value: newVal, operator: operator, isEditing: false } : n
       )
     )
+    setSelectedNodes([])
   }
 
   const handleNodeLayerChange = (node: INode, up: boolean) => {
@@ -273,8 +276,10 @@ export default function Canvas(props: CanvasProps) {
   const handleNodeAction = (
     node: INode,
     action: string,
-    delta?: number,
-    name?: string
+    name?: string,
+    value?: number,
+    operator?: INode["operator"],
+
   ) => {
     switch (action) {
       case "click":
@@ -284,13 +289,13 @@ export default function Canvas(props: CanvasProps) {
         initNodeMove(node.id)
         break
       case "scale":
-        handleNodeScale(node.id, delta)
+        handleNodeScale(node.id, value)
         break
       case "connect":
         handleNodeConnect(node)
         break
       case "rename":
-        handleNodeNameChange(node.id, name)
+        handleNodeNameChange(node.id, name, value, operator)
         break
       case "setIsEditing":
         initNodeNameChange(node.id)
@@ -328,7 +333,10 @@ export default function Canvas(props: CanvasProps) {
         (connection.start.id === start.id && connection.end.id === end.id) ||
         (connection.start.id === end.id && connection.end.id === start.id)
     )
-    if (connectionExists || !isConnectionLegitimate(start, end)) return //add toast or something later
+    if (connectionExists || !isConnectionLegitimate(start, end)) {
+      toast.error("Connection invalid!")
+      return
+    }
     updateHistory()
     const connectionID = uuidv4().replaceAll("-", "")
     setConnections((prevConnections) => [
@@ -414,7 +422,7 @@ export default function Canvas(props: CanvasProps) {
   const handleCanvasMouseUp = (e: React.MouseEvent) => {
     setDragging(false)
     if (selectionRect) {
-      const newSelectedNodes = nodes.filter((node) => {
+      const rectSelectedNodes = nodes.filter((node) => {
         return (
           node.position.x >= selectionRect.left &&
           node.position.x <= selectionRect.left + selectionRect.width &&
@@ -422,7 +430,7 @@ export default function Canvas(props: CanvasProps) {
           node.position.y <= selectionRect.top + selectionRect.height
         )
       })
-      setSelectedNodes(newSelectedNodes)
+      setSelectedNodes(rectSelectedNodes)
       setClickPosition(null)
     }
   }
@@ -431,7 +439,7 @@ export default function Canvas(props: CanvasProps) {
     if (navOpen) {
       setNavOpen(false)
       setConnectingNode(null)
-    } else if (connectingNode) {
+    } else if (connectingNode && isConnectableNode(connectingNode.type)) {
       if (canvasRect) {
         const canvasClickPosition = {
           x: e.clientX - canvasRect.left,
@@ -443,12 +451,13 @@ export default function Canvas(props: CanvasProps) {
     } else if (selectionRect) {
       setSelectionRect(null)
     } else {
+      setConnectingNode(null)
       setSelectedNodes([])
     }
     setSelectedConnectionID(null)
   }
 
-  const handleContextMenu = (e: React.MouseEvent) => {
+  const handleDefaultContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     setSelectionRect(null)
     if (canvasRect) {
@@ -634,7 +643,7 @@ export default function Canvas(props: CanvasProps) {
       onMouseUp={handleCanvasMouseUp}
       // Context menu
       onClick={handleCanvasClick}
-      onContextMenu={handleContextMenu}
+      onContextMenu={handleDefaultContextMenu}
       // Delete stuff
       onKeyUp={handleCanvasKeyUp}
       ref={canvasRef}
@@ -742,6 +751,7 @@ export default function Canvas(props: CanvasProps) {
             onSelect={handleContextSelect}
             open={navOpen}
             colorIndex={colorIndex}
+            contextRestrict={connectingNode?.type}
           />
         </div>
       )}

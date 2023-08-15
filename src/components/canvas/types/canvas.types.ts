@@ -21,7 +21,7 @@ export interface INode {
   id: string
   name?: string
   value?: number
-  operator?: "<" | ">" | "="
+  operator?: "<" | "<=" | "=" | "!=" | ">=" | ">"
   type: "matter" | "manufacturing" | "measurement" | "parameter" | "property"
   position: {x: number, y: number}
   size: number
