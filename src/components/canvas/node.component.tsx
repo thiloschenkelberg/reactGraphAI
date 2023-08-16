@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { useSpring, animated } from "react-spring"
 import chroma from "chroma-js"
-import { Select, Code } from "@mantine/core"
+import { Select } from "@mantine/core"
 
-import WarningAmberIcon from "@mui/icons-material/WarningAmber"
+// import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import WarningIcon from "@mui/icons-material/Warning"
 
 import NodeContext from "./ctxt/node-ctxt.component"
@@ -52,11 +52,12 @@ export default React.memo(function Node(props: NodeProps) {
   const [connectorActive, setConnectorActive] = useState(false)
   const [mouseDist, setMouseDist] = useState(0)
   const [colors, setColors] = useState<string[]>([])
+  const [hasLabelOverflow, setHasLabelOverflow] = useState(false)
   const nodeRef = useRef<HTMLDivElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const valueInputRef = useRef<HTMLInputElement>(null)
   const operatorInputRef = useRef<HTMLInputElement>(null)
-  const valueLabelRef = useRef<HTMLSpanElement>(null)
+  const nodeLabelRef = useRef<HTMLDivElement>(null)
   const isValueNode = ["property", "parameter"].includes(node.type)
   // const shouldFocusNameInput = !nodeName || !isValueNode
 
@@ -78,25 +79,32 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [node, handleNodeAction])
 
-  const updateMissingFields = useCallback(() => {
+  // update missing fields
+  useEffect(() => {
     if (isValueNode) {
-      setFieldsMissing(!nodeName || nodeValue === undefined || !nodeOperator)
+      setFieldsMissing(!node.name || node.value === undefined || !node.operator)
     } else {
-      setFieldsMissing(!nodeName)
+      setFieldsMissing(!node.name)
     }
-  }, [isValueNode, nodeName, nodeOperator, nodeValue])
+  }, [isValueNode, node.name, node.value, node.operator])
 
   useEffect(() => {
-    updateMissingFields()
-  }, [updateMissingFields])
+    setNodeName(node.name)
+    setNodeValue(node.value)
+    setNodeOperator(node.operator)
+  }, [node.name, node.value, node.operator])
 
+  // setup color array
   useEffect(() => {
     const paletteColors = colorPalette[colorIndex]
 
     setColors([
       paletteColors[node.type],
-      chroma(paletteColors[node.type]).brighten().hex(),
-      chroma(paletteColors[node.type]).darken(0.75).hex(),
+      chroma(paletteColors[node.type]).brighten(0.75).hex(),
+      chroma(paletteColors[node.type]).brighten(1.15).hex(),
+      chroma(paletteColors[node.type]).darken(0.5).hex(), // base
+      chroma(paletteColors[node.type]).brighten(0.35).hex(),
+      chroma(paletteColors[node.type]).darken(0.3).hex(),
     ])
   }, [node.type, colorIndex])
 
@@ -105,7 +113,7 @@ export default React.memo(function Node(props: NodeProps) {
   const calculateConnector = useCallback(
     (dx: number, dy: number) => {
       const angle = Math.atan2(dy, dx)
-      const radius = isSelected > 0 ? node.size / 2 + 5 : node.size / 2 + 2
+      const radius = node.size / 2 + 2
 
       const connectorPosition = {
         x: node.size / 2 + radius * Math.cos(angle),
@@ -114,15 +122,14 @@ export default React.memo(function Node(props: NodeProps) {
       setConnectorPos(connectorPosition)
 
       if (
-        (isSelected !== 0 && mouseDist > node.size / 2 - 1 && nodeHovered) ||
-        (isSelected === 0 && mouseDist > node.size / 2 - 5 && nodeHovered)
+        (mouseDist > node.size / 2 - 5 && nodeHovered)
       ) {
         setConnectorActive(true)
       } else {
         setConnectorActive(false)
       }
     },
-    [isSelected, nodeHovered, node.size, mouseDist]
+    [nodeHovered, node.size, mouseDist]
   )
 
   // handle node movement and check if mousePos is inside node
@@ -140,7 +147,7 @@ export default React.memo(function Node(props: NodeProps) {
           x: node.position.x + displacement.x,
           y: node.position.y + displacement.y,
         })
-      } else if (canvasRect && !connecting) {
+      } else if (!connecting) {
         const mousePos = {
           x: e.clientX - canvasRect.left,
           y: e.clientY - canvasRect.top,
@@ -171,6 +178,11 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [node, canvasRect, connecting, dragging, dragCurrentPos, dragOffset, handleNodeMove, calculateConnector])
 
+  useEffect(() => {
+    if (!nodeLabelRef.current) return
+    setHasLabelOverflow(nodeLabelRef.current.offsetWidth > node.size)
+  }, [nodeLabelRef.current?.offsetWidth, node.size])
+
   const handleContextActionLocal = (ctxtAction: string) => {
     handleNodeAction(node, ctxtAction)
   }
@@ -196,29 +208,32 @@ export default React.memo(function Node(props: NodeProps) {
 
   // either complete connection between 2 nodes or
   // open node nav menu (if node hasnt been moved significantly)
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (connecting) {
+
       // always carry out node click if a node is trying to connect (favour connection)
       handleNodeAction(node, "click")
     } else if (
       // carry out node click if node is not trying to connect
       // only when node has not been moved significantly (prevent click after drag)
       dragStartPos &&
-      canvasRect &&
       Math.abs(dragStartPos.x - node.position.x) < 15 &&
       Math.abs(dragStartPos.y - node.position.y) < 15
     ) {
       handleNodeAction(node, "click")
       if (fieldsMissing) handleNodeAction(node, "setIsEditing")
-
+    } else {
+      handleNodeAction(node, "completeMove")
     }
     cleanupDrag()
   }
 
   // prevent event propagation (prevent canvas.tsx onClick)
   const handleClickLocal = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    console.log("toaskdo")
+    // e.preventDefault()
+    // e.stopPropagation()
   }
 
   const handleInputBlur = () => {
@@ -229,7 +244,6 @@ export default React.memo(function Node(props: NodeProps) {
         document.activeElement === operatorInputRef.current
       ) return
       handleNodeAction(node, "rename", nodeName, nodeValue, nodeOperator)
-      updateMissingFields()
     }, 100)
   }
 
@@ -238,7 +252,6 @@ export default React.memo(function Node(props: NodeProps) {
     if (e.key === "Enter") {
       e.preventDefault()
       handleNodeAction(node, "rename", nodeName, nodeValue, nodeOperator)
-      updateMissingFields()
     }
   }
 
@@ -259,7 +272,6 @@ export default React.memo(function Node(props: NodeProps) {
     if (
       isSelected === 1 &&
       dragStartPos &&
-      canvasRect &&
       Math.abs(dragStartPos.x - node.position.x) < 15 &&
       Math.abs(dragStartPos.y - node.position.y) < 15
     ) {
@@ -352,15 +364,39 @@ export default React.memo(function Node(props: NodeProps) {
             height: node.size,
             backgroundColor: colors[0],
             opacity: !fieldsMissing ? 1 : 0.7,
-            outlineColor: isSelected > 0 || nodeHovered ? colors[1] : colors[2],
+            outlineColor: isSelected > 0 ? colors[2] : nodeHovered ? colors[4] : colors[3],
             outlineStyle: "solid",
             outlineWidth: "4px",
-            outlineOffset: isSelected > 0 ? "3px" : "0px",
+            // outlineOffset: isSelected > 0 ? "3px" : "0px",
+            outlineOffset: "-1px",
+            zIndex: node.layer
           }}
         >
           {/* node labels */}
           {!node.isEditing && (
-            <div className="node-label-wrap">
+            <div
+              className="node-label-wrap"
+              ref={nodeLabelRef}
+              // style={{
+              //   backgroundColor: hasLabelOverflow
+              //   ? colors[0]
+              //   : "transparent",
+              //   // backgroundColor: colors[3],
+              //   // filter: hasLabelOverflow
+              //   // ? "drop-shadow(1px 1px 1px #111)"
+              //   // : "none",
+              //   outlineColor: hasLabelOverflow ? isSelected > 0 || nodeHovered ? colors[1] : colors[2] : "transparent",
+              //   outlineStyle: "solid",
+              //   outlineWidth: "3px",
+              //   // outlineOffset: isSelected > 0 ? "2px" : "0px",
+              //   outlineOffset: "0px"
+              // }}
+              style={{
+                backgroundColor: hasLabelOverflow
+                ? colors[0]
+                : "transparent",
+              }}
+            >
               <span // name label
                 onMouseUp={handleNameMouseUp}
                 className="node-label"
@@ -368,9 +404,9 @@ export default React.memo(function Node(props: NodeProps) {
                   marginTop: (isValueNode && nodeValue !== undefined) ? 3 : 0,
                   marginBottom: (isValueNode && nodeValue !== undefined) ? -3 : 0,
                   color:
-                    ["matter", "measurement"].includes(node.type)
-                      ? "#1a1b1e"
-                      : "#ececec",
+                  ["matter", "measurement"].includes(node.type)
+                    ? "#1a1b1e"
+                    : "#ececec",
                   zIndex: node.layer + 1,
                 }}
               >
@@ -381,28 +417,21 @@ export default React.memo(function Node(props: NodeProps) {
               </span>
               {nodeValue !== undefined &&
                 <span // value label
-                  ref={valueLabelRef}
                   onMouseUp={handleNameMouseUp}
                   className="node-label node-label-value"
                   style={{
-                    whiteSpace: "nowrap",
-                    maxWidth: "none",
+                    // whiteSpace: "nowrap",
+                    // maxWidth: "none",
                     position: nodeName ? "static" : "static",
                     top: nodeName && "calc(50% + 5px)",
                     color:
                       ["matter", "measurement"].includes(node.type)
                         ? "#1a1b1e"
                         : "#ececec",
-                    backgroundColor: (valueLabelRef.current && valueLabelRef.current.offsetWidth > node.size)
-                                      ? colors[0]
-                                      : "transparent",
                     zIndex: node.layer + 1,
                   }}
                 >
-                  {(valueLabelRef.current && valueLabelRef.current.offsetWidth > node.size)
-                    ? (nodeOperator ? mapOperatorSign() : "") + " " + node.value
-                    : (nodeOperator ? mapOperatorSign() : "") + " " + node.value
-                  }
+                  {(nodeOperator ? mapOperatorSign() : "") + " " + node.value}
                 </span>}
             </div>
           )}
@@ -410,6 +439,14 @@ export default React.memo(function Node(props: NodeProps) {
           {mouseDist < node.size / 2 + 30 &&
             mouseDist > 30 &&
             !node.isEditing && (
+              <>
+              <div
+                className="node-rail"
+                style={{
+                  width: node.size + 2,
+                  height: node.size + 2,
+                }}
+              />
               <div
                 className="node-connector"
                 style={{
@@ -421,8 +458,27 @@ export default React.memo(function Node(props: NodeProps) {
                   zIndex: node.layer + 1,
                 }}
               />
+              </>
             )}
         </div>
+        {hasLabelOverflow &&
+            <div
+              style={{
+                position: "absolute",
+                width: nodeLabelRef.current ? nodeLabelRef.current.offsetWidth -1: 'auto',
+                height: nodeLabelRef.current ? nodeLabelRef.current.offsetHeight -1: 'auto',
+                maxWidth: "none",
+                borderRadius: 3,
+                backgroundColor: "#1a1b1e",
+                outlineColor: hasLabelOverflow ? isSelected > 0 ? colors[2] : nodeHovered ? colors[4] : colors[3] : "transparent",
+                outlineStyle: "solid",
+                outlineWidth: "3px",
+                // outlineOffset: isSelected > 0 ? "2px" : "0px",
+                outlineOffset: "0px",
+                zIndex: node.layer - 1
+              }}
+            />
+          }
         {/* /visible */}
         {/* node input fields
          /  outside of visible node to not be

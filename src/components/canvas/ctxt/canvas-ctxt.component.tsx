@@ -3,7 +3,7 @@
 // import OutputIcon from "@mui/icons-material/Output"
 // import ParameterIcon from "@mui/icons-material/Tune"
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Planet } from "react-planet"
 import chroma from "chroma-js"
 
@@ -38,10 +38,15 @@ function ContextButton(props: ContextButtonProps) {
   const colors = colorPalette[colorIndex]
   const backgroundColor = colors[nodeType]
 
+  const handleMouseUpLocal = (e: React.MouseEvent) => {
+    if (e.button === 2) return
+    onSelect(nodeType)
+  }
+
   return (
     <div
       className="ctxt-button"
-      onClick={() => onSelect(nodeType)}
+      onMouseUp={handleMouseUpLocal}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -56,7 +61,7 @@ function ContextButton(props: ContextButtonProps) {
       }}
     >
       {children}
-      {hovered &&
+      {/* {hovered &&
       <div 
         style={{
           position: "absolute",
@@ -67,7 +72,7 @@ function ContextButton(props: ContextButtonProps) {
         }}
       >
       </div>
-      }
+      } */}
     </div>
   )
 }
