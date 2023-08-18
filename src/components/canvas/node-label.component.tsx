@@ -86,14 +86,9 @@ export default function NodeLabel(props: NodeLabelsProps) {
       className="node-label-wrap"
       ref={nodeLabelRef}
       style={{
-        minWidth: isSelected === 1 ? nodeSize + 30 : "none",
-        minHeight: isSelected === 1 ? 50 : 10,
-        border: isSelected === 1 ? "1px solid #333333" : "none",
-        backgroundColor: isSelected === 1
-          ? "#25262b"
-          : hasLabelOverflow && (nodeHovered || isSelected === 2)
-            ? nodeColor
-            : "transparent",
+        backgroundColor: hasLabelOverflow && (nodeHovered || isSelected > 0)
+          ? nodeColor
+          : "transparent",
       }}
     >
       <span
@@ -103,11 +98,9 @@ export default function NodeLabel(props: NodeLabelsProps) {
           marginTop: isValueNode && nodeDotValue !== undefined ? 3 : 0,
           marginBottom:
             isValueNode && nodeDotValue !== undefined ? -3 : 0,
-          color: isSelected === 1
-            ? "#c1c2c5"
-            : ["matter", "measurement"].includes(nodeType)
-              ? "#1a1b1e"
-              : "#ececec",
+          color: ["matter", "measurement"].includes(nodeType)
+            ? "#1a1b1e"
+            : "#ececec",
           zIndex: nodeLayer + 1,
         }}
       >
@@ -120,9 +113,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
           style={{
             position: "static",
             top: nodeDotName && "calc(50% + 5px)", //might be a problem
-            color: isSelected === 1
-            ? "#c1c2c5"
-            : ["matter", "measurement"].includes(nodeType)
+            color: ["matter", "measurement"].includes(nodeType)
               ? "#1a1b1e"
               : "#ececec",
             zIndex: nodeLayer + 1

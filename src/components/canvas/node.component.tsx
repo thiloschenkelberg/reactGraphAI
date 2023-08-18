@@ -492,18 +492,18 @@ export default React.memo(function Node(props: NodeProps) {
               </>
             )}
         </div>
-        {(hasLabelOverflow && nodeHovered && isSelected < 1 && !fieldsMissing) && (
+        {(hasLabelOverflow && (nodeHovered || isSelected > 0) && !fieldsMissing) && (
           <div
             style={{
               position: "absolute",
               width: nodeLabelRef.current
-                ? nodeLabelRef.current.offsetWidth - 1
+                ? nodeLabelRef.current.offsetWidth - 2
                 : "auto",
               height: nodeLabelRef.current
-                ? nodeLabelRef.current.offsetHeight - 1
+                ? nodeLabelRef.current.offsetHeight - 2
                 : "auto",
               maxWidth: "none",
-              borderRadius: 1,
+              borderRadius: 3,
               outlineColor: colors[1],
               outlineStyle: "solid",
               outlineWidth: 4,
