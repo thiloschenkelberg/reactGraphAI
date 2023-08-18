@@ -147,12 +147,13 @@ class Client {
 
   async workflowSearch(workflow: string | null) {
     try {
-      const response = await this.client.get("/search/workflow", {
+      const response = await this.client.get("/search/fabrication-workflow", {
         params: {
           workflow,
         },
+        responseType: 'blob'
       })
-      return response.data
+      return response
     } catch (err:any) {
       throw new Error('Error: ' + err.message)
     }

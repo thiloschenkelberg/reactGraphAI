@@ -155,3 +155,16 @@ export function saveToFile(data: string, type: "json" | "csv", filename: string)
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+export function saveBlobAsFile(blob: Blob, filename: string) {
+  if (!(blob instanceof Blob)) {
+        console.error("Provided data is not a Blob");
+        return;
+    }
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}

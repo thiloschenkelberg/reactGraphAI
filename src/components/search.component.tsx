@@ -6,7 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 
 import Canvas from "./canvas/canvas.component"
 import client from "../client"
-import { saveToFile } from "../common/helpers"
+import { saveToFile, saveBlobAsFile } from "../common/helpers"
 
 interface SearchProps {
   colorIndex: number
@@ -22,10 +22,10 @@ export default function Search(props: SearchProps) {
     try {
       const response = await client.workflowSearch(workflow)
       if (response) {
-        saveToFile(response.data, "csv", "workflows.csv")
+        saveBlobAsFile(response.data, "workflows.csv")
       }
     } catch (err: any) {
-      throw new Error("Search failed")
+      throw new Error("Search failed: " + err.message)
     }
   }
 
