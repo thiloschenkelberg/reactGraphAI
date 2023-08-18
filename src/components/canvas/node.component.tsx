@@ -7,6 +7,7 @@ import { Select } from "@mantine/core"
 import WarningIcon from "@mui/icons-material/Warning"
 
 import NodeContext from "./ctxt/node-ctxt.component"
+import NodeLabel from "./node-label.component"
 import { INode, Position, Vector2D } from "./types/canvas.types"
 import { colorPalette } from "./types/colorPalette"
 
@@ -54,10 +55,10 @@ export default React.memo(function Node(props: NodeProps) {
   const [colors, setColors] = useState<string[]>([])
   const [hasLabelOverflow, setHasLabelOverflow] = useState(false)
   const nodeRef = useRef<HTMLDivElement>(null)
+  const nodeLabelRef = useRef<HTMLDivElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const valueInputRef = useRef<HTMLInputElement>(null)
   const operatorInputRef = useRef<HTMLInputElement>(null)
-  const nodeLabelRef = useRef<HTMLDivElement>(null)
   const isValueNode = ["property", "parameter"].includes(node.type)
   // const shouldFocusNameInput = !nodeName || !isValueNode
 
@@ -89,10 +90,15 @@ export default React.memo(function Node(props: NodeProps) {
   }, [isValueNode, node.name, node.value, node.operator])
 
   useEffect(() => {
-    setNodeName(node.name)
-    setNodeValue(node.value)
-    setNodeOperator(node.operator)
-  }, [node.name, node.value, node.operator])
+    if (!nodeLabelRef.current) return
+    setHasLabelOverflow(nodeLabelRef.current.offsetWidth > node.size)
+  }, [nodeLabelRef.current?.offsetWidth, node.size, isSelected])
+
+  // useEffect(() => { // obsolete
+  //   setNodeName(node.name)
+  //   setNodeValue(node.value)
+  //   setNodeOperator(node.operator)
+  // }, [node.name, node.value, node.operator])
 
   // setup color array
   useEffect(() => {
@@ -100,11 +106,8 @@ export default React.memo(function Node(props: NodeProps) {
 
     setColors([
       paletteColors[node.type],
-      chroma(paletteColors[node.type]).brighten(0.75).hex(),
-      chroma(paletteColors[node.type]).brighten(1.15).hex(),
-      chroma(paletteColors[node.type]).darken(0.5).hex(), // base
-      chroma(paletteColors[node.type]).brighten(0.35).hex(),
-      chroma(paletteColors[node.type]).darken(0.3).hex(),
+      chroma(paletteColors[node.type]).brighten(1).hex(),
+      chroma(paletteColors[node.type]).darken(0.5).hex(),
     ])
   }, [node.type, colorIndex])
 
@@ -121,9 +124,7 @@ export default React.memo(function Node(props: NodeProps) {
       }
       setConnectorPos(connectorPosition)
 
-      if (
-        (mouseDist > node.size / 2 - 5 && nodeHovered)
-      ) {
+      if (mouseDist > node.size / 2 - 5 && nodeHovered) {
         setConnectorActive(true)
       } else {
         setConnectorActive(false)
@@ -178,15 +179,6 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [node, canvasRect, connecting, dragging, dragCurrentPos, dragOffset, handleNodeMove, calculateConnector])
 
-  useEffect(() => {
-    if (!nodeLabelRef.current) return
-    setHasLabelOverflow(nodeLabelRef.current.offsetWidth > node.size)
-  }, [nodeLabelRef.current?.offsetWidth, node.size])
-
-  const handleContextActionLocal = (ctxtAction: string) => {
-    handleNodeAction(node, ctxtAction)
-  }
-
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 2) return
@@ -211,7 +203,6 @@ export default React.memo(function Node(props: NodeProps) {
   const handleMouseUp = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (connecting) {
-
       // always carry out node click if a node is trying to connect (favour connection)
       handleNodeAction(node, "click")
     } else if (
@@ -236,13 +227,18 @@ export default React.memo(function Node(props: NodeProps) {
     // e.stopPropagation()
   }
 
+  const handleContextActionLocal = (ctxtAction: string) => {
+    handleNodeAction(node, ctxtAction)
+  }
+
   const handleInputBlur = () => {
     setTimeout(() => {
       if (
         document.activeElement === nameInputRef.current ||
         document.activeElement === valueInputRef.current ||
         document.activeElement === operatorInputRef.current
-      ) return
+      )
+        return
       handleNodeAction(node, "rename", nodeName, nodeValue, nodeOperator)
     }, 100)
   }
@@ -276,7 +272,14 @@ export default React.memo(function Node(props: NodeProps) {
       Math.abs(dragStartPos.y - node.position.y) < 15
     ) {
       e.stopPropagation()
-      handleNodeAction(node, "setIsEditing", undefined, undefined, undefined, true)
+      handleNodeAction(
+        node,
+        "setIsEditing",
+        undefined,
+        undefined,
+        undefined,
+        true
+      )
       cleanupDrag()
     }
   }
@@ -289,7 +292,8 @@ export default React.memo(function Node(props: NodeProps) {
   }
 
   const mapOperatorSign = () => {
-    let operatorCode: string | undefined
+    let operatorCode: string
+    if (!node.operator) return ""
     switch (node.operator) {
       case "<=":
         operatorCode = "\u2264"
@@ -304,7 +308,7 @@ export default React.memo(function Node(props: NodeProps) {
         operatorCode = node.operator
         break
     }
-    return (operatorCode)
+    return operatorCode
   }
 
   const iconAnimProps = useSpring({
@@ -364,16 +368,18 @@ export default React.memo(function Node(props: NodeProps) {
             height: node.size,
             backgroundColor: colors[0],
             opacity: !fieldsMissing ? 1 : 0.7,
-            outlineColor: isSelected > 0 ? colors[2] : nodeHovered ? colors[4] : colors[3],
+            outlineColor:
+              isSelected > 0 || nodeHovered ? colors[1] : colors[2],
             outlineStyle: "solid",
             outlineWidth: "4px",
             // outlineOffset: isSelected > 0 ? "3px" : "0px",
             outlineOffset: "-1px",
-            zIndex: node.layer
+            zIndex: node.layer,
           }}
         >
           {/* node labels */}
-          {!node.isEditing && (
+          {/* <NodeLabels ref={nodeLabelRef} /> */}
+          {/* {!node.isEditing && (
             <div
               className="node-label-wrap"
               ref={nodeLabelRef}
@@ -392,93 +398,119 @@ export default React.memo(function Node(props: NodeProps) {
               //   outlineOffset: "0px"
               // }}
               style={{
-                backgroundColor: hasLabelOverflow
-                ? colors[0]
-                : "transparent",
+                backgroundColor: hasLabelOverflow ? colors[0] : "transparent",
               }}
             >
               <span // name label
                 onMouseUp={handleNameMouseUp}
                 className="node-label"
                 style={{
-                  marginTop: (isValueNode && nodeValue !== undefined) ? 3 : 0,
-                  marginBottom: (isValueNode && nodeValue !== undefined) ? -3 : 0,
-                  color:
-                  ["matter", "measurement"].includes(node.type)
+                  marginTop: isValueNode && node.value !== undefined ? 3 : 0,
+                  marginBottom:
+                    isValueNode && node.value !== undefined ? -3 : 0,
+                  color: ["matter", "measurement"].includes(node.type)
                     ? "#1a1b1e"
                     : "#ececec",
                   zIndex: node.layer + 1,
                 }}
-              >
+              > */}
                 {/* {nodeName
                   ? node.name
                   : `id: ${node.id.substring(0, node.size / 4 - 8)}...`} */}
-                {nodeName ? node.name : ""}
+                {/* {node.name
+                  ? (nodeHovered || isSelected > 0) && !fieldsMissing
+                    ? node.name
+                    : node.name.substring(0, node.size / 7 - 8) + "..."
+                  : ""}
               </span>
-              {nodeValue !== undefined &&
+              {node.value !== undefined && (
                 <span // value label
                   onMouseUp={handleNameMouseUp}
                   className="node-label node-label-value"
                   style={{
                     // whiteSpace: "nowrap",
                     // maxWidth: "none",
-                    position: nodeName ? "static" : "static",
-                    top: nodeName && "calc(50% + 5px)",
-                    color:
-                      ["matter", "measurement"].includes(node.type)
-                        ? "#1a1b1e"
-                        : "#ececec",
+                    position: node.name ? "static" : "static",
+                    top: node.name && "calc(50% + 5px)",
+                    color: ["matter", "measurement"].includes(node.type)
+                      ? "#1a1b1e"
+                      : "#ececec",
                     zIndex: node.layer + 1,
                   }}
                 >
-                  {(nodeOperator ? mapOperatorSign() : "") + " " + node.value}
-                </span>}
+                  {(node.operator ? mapOperatorSign() + " " : "") +
+                    ((nodeHovered || isSelected > 0) && !fieldsMissing)
+                      ? node.value
+                      : node.value.toString().substring(0, node.size / 4 - 9)}
+                </span>
+              )}
             </div>
-          )}
+          )} */}
+          {!node.isEditing &&
+            <NodeLabel
+              isSelected={isSelected}
+              isValueNode={isValueNode}
+              fieldsMissing={fieldsMissing}
+              nodeLabelRef={nodeLabelRef}
+              nodeHovered={nodeHovered}
+              nodeSize={node.size}
+              nodeDotName={node.name}
+              nodeDotValue={node.value}
+              nodeDotOperator={node.operator}
+              nodeType={node.type}
+              nodeLayer={node.layer}
+              hasLabelOverflow={hasLabelOverflow}
+              nodeColor={colors[0]}
+              onMouseUp={handleNameMouseUp}
+            />
+          }
           {/* node connector */}
           {mouseDist < node.size / 2 + 30 &&
             mouseDist > 30 &&
             !node.isEditing && (
               <>
-              <div
-                className="node-rail"
-                style={{
-                  width: node.size + 2,
-                  height: node.size + 2,
-                }}
-              />
-              <div
-                className="node-connector"
-                style={{
-                  border: `1px solid ${colors[1]}`,
-                  backgroundColor: connectorActive ? colors[1] : "transparent",
-                  top: connectorPos.y,
-                  left: connectorPos.x,
-                  pointerEvents: "none",
-                  zIndex: node.layer + 1,
-                }}
-              />
+                <div
+                  className="node-rail"
+                  style={{
+                    width: node.size + 2,
+                    height: node.size + 2,
+                  }}
+                />
+                <div
+                  className="node-connector"
+                  style={{
+                    border: `1px solid ${colors[1]}`,
+                    backgroundColor: connectorActive
+                      ? colors[1]
+                      : "transparent",
+                    top: connectorPos.y,
+                    left: connectorPos.x,
+                    pointerEvents: "none",
+                    zIndex: node.layer + 1,
+                  }}
+                />
               </>
             )}
         </div>
-        {hasLabelOverflow &&
-            <div
-              style={{
-                position: "absolute",
-                width: nodeLabelRef.current ? nodeLabelRef.current.offsetWidth -1: 'auto',
-                height: nodeLabelRef.current ? nodeLabelRef.current.offsetHeight -1: 'auto',
-                maxWidth: "none",
-                borderRadius: 3,
-                backgroundColor: "#1a1b1e",
-                outlineColor: hasLabelOverflow ? isSelected > 0 ? colors[2] : nodeHovered ? colors[4] : colors[3] : "transparent",
-                outlineStyle: "solid",
-                outlineWidth: "3px",
-                // outlineOffset: isSelected > 0 ? "2px" : "0px",
-                outlineOffset: "0px",
-                zIndex: node.layer - 1
-              }}
-            />
-          }
+        {(hasLabelOverflow && nodeHovered && isSelected < 1 && !fieldsMissing) && (
+          <div
+            style={{
+              position: "absolute",
+              width: nodeLabelRef.current
+                ? nodeLabelRef.current.offsetWidth - 1
+                : "auto",
+              height: nodeLabelRef.current
+                ? nodeLabelRef.current.offsetHeight - 1
+                : "auto",
+              maxWidth: "none",
+              borderRadius: 1,
+              outlineColor: colors[1],
+              outlineStyle: "solid",
+              outlineWidth: 4,
+              zIndex: node.layer - 1,
+            }}
+          />
+        )}
         {/* /visible */}
         {/* node input fields
          /  outside of visible node to not be
@@ -498,11 +530,11 @@ export default React.memo(function Node(props: NodeProps) {
               ref={nameInputRef}
               type="text"
               placeholder="Name"
-              defaultValue={nodeName}
+              defaultValue={node.name}
               onChange={handleNameChangeLocal} // write nodeName state
               onKeyUp={handleInputKeyUp} // confirm name with enter
               onBlur={handleInputBlur}
-              autoFocus={!nodeName || !isValueNode}
+              autoFocus={!node.name || !isValueNode}
               style={{
                 // borderColor: colors[1],
                 zIndex: node.layer + 1,
@@ -527,7 +559,7 @@ export default React.memo(function Node(props: NodeProps) {
                     { value: "<", label: "<" },
                     { value: "<=", label: "\u2264" },
                     { value: "=", label: "=" },
-                    { value: "!=", label: "\u2260"},
+                    { value: "!=", label: "\u2260" },
                     { value: ">=", label: "\u2265" },
                     { value: ">", label: ">" },
                   ]}
@@ -543,11 +575,11 @@ export default React.memo(function Node(props: NodeProps) {
                   type="number"
                   inputMode="decimal"
                   placeholder="Value"
-                  defaultValue={nodeValue}
+                  defaultValue={node.value}
                   onChange={handleValueChangeLocal}
                   onKeyUp={handleInputKeyUp}
                   onBlur={handleInputBlur}
-                  autoFocus={!(!nodeName || !isValueNode)}
+                  autoFocus={!(!node.name || !isValueNode)}
                   style={{
                     width: "calc(75% - 8px)",
                     // borderLeft: "none",

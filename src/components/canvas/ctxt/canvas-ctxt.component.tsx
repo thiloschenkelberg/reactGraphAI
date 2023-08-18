@@ -54,8 +54,8 @@ function ContextButton(props: ContextButtonProps) {
         height: "80px",
         backgroundColor,
         outline: hovered
-          ? `3px solid ${chroma(backgroundColor).brighten().hex()}`
-          : `3px solid ${chroma(backgroundColor).darken(0.75).hex()}`,
+          ? `3px solid ${chroma(backgroundColor).brighten(1).hex()}`
+          : `3px solid ${chroma(backgroundColor).darken(0.5).hex()}`,
         outlineOffset: "-3px",
         zIndex: hovered ? 5 : 3
       }}
