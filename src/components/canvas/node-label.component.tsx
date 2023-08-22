@@ -6,42 +6,71 @@ interface NodeLabelsProps {
   isSelected: number
   isValueNode: boolean
   fieldsMissing: boolean
-  nodeLabelRef: React.RefObject<HTMLDivElement>
-  nodeHovered: boolean
-  nodeSize: number
-  nodeDotName: string | undefined
-  nodeDotValue: number | undefined
-  nodeDotOperator: INode["operator"] | undefined
-  nodeType: INode["type"]
-  nodeLayer: number
+  labelRef: React.RefObject<HTMLDivElement>
+  hovered: boolean
+  size: number
+  name: string | undefined
+  value: number | undefined
+  operator: INode["operator"] | undefined
+  type: INode["type"]
+  layer: number
   hasLabelOverflow: boolean
-  nodeColor: string
+  color: string
   onMouseUp: (e: React.MouseEvent) => void
 }
 
 export default function NodeLabel(props: NodeLabelsProps) {
+  const [slicedName, setSlicedName] = useState<string>("")
+  const [slicedValue, setSlicedValue] = useState<string>("")
+  const [isNameSliced, setIsNameSliced] = useState(false)
+  const [isValueSliced, setIsValueSliced] = useState(false)
   const {
     // isEditing,
     isSelected,
     isValueNode,
     fieldsMissing,
-    nodeLabelRef,
-    nodeHovered,
-    nodeSize,
-    nodeDotName,
-    nodeDotValue,
-    nodeDotOperator,
-    nodeType,
-    nodeLayer,
+    labelRef,
+    hovered,
+    size,
+    name,
+    value,
+    operator,
+    type,
+    layer,
     hasLabelOverflow,
-    nodeColor,
+    color,
     onMouseUp,
   } = props
 
+  useEffect(() => {
+    if (!name) return
+    const subName = name.substring(0, size / 10)
+    if (subName.length < name.length) {
+      setIsNameSliced(true)
+      setSlicedName(subName.slice(0, -2))
+    } else {
+      setIsNameSliced(false)
+      setSlicedName(name)
+    }
+  }, [name, size])
+
+  useEffect(() => {
+    if (!value) return
+    const valueString = value.toString()
+    const subValue = valueString.substring(0, size / 10 - 1)
+    if (subValue.length < valueString.length) {
+      setIsValueSliced(true)
+      setSlicedValue(subValue.slice(0,-2))
+    } else {
+      setIsValueSliced(false)
+      setSlicedValue(valueString)
+    }
+  }, [value, size])
+
   const mapOperatorSign = () => {
     let operatorCode: string
-    if (!nodeDotOperator) return ""
-    switch (nodeDotOperator) {
+    if (!operator) return ""
+    switch (operator) {
       case "<=":
         operatorCode = "\u2264"
         break
@@ -52,80 +81,104 @@ export default function NodeLabel(props: NodeLabelsProps) {
         operatorCode = "\u2260"
         break
       default:
-        operatorCode = nodeDotOperator
+        operatorCode = operator
         break
     }
     return operatorCode
   }
 
-  const nodeNameString = () => {
-    if (!nodeDotName) return ""
-    if ((!nodeHovered && isSelected !== 1) || fieldsMissing) {
-      const subName = nodeDotName.substring(0, nodeSize / 7 - 8)
-      if (subName.length < nodeDotName.length) {
-        return subName + "..."
-      }
-    }
-    return nodeDotName
-  }
-
-  const nodeValueString = () => {
-    if (!nodeDotValue) return ""
-    const operator = nodeDotOperator ? mapOperatorSign() + " " : ""
-    if((!nodeHovered && isSelected !== 1) || fieldsMissing) {
-      const subValue = nodeDotValue.toString().substring(0, nodeSize / 7 - 9)
-      if (subValue.length < nodeDotValue.toString().length) {
-        return operator + subValue + "..."
-      }
-    }
-    return operator + nodeDotValue
-  }
 
   return (
     <div
       className="node-label-wrap"
-      ref={nodeLabelRef}
+      ref={labelRef}
       style={{
-        backgroundColor: hasLabelOverflow && (nodeHovered || isSelected > 0)
-          ? nodeColor
-          : "transparent",
+        backgroundColor:
+          hasLabelOverflow && (hovered || isSelected > 0)
+            ? color
+            : "transparent",
       }}
     >
-      <span
+      <div // name label
         className="node-label"
         onMouseUp={onMouseUp}
         style={{
-          marginTop: isValueNode && nodeDotValue !== undefined ? 3 : 0,
-          marginBottom:
-            isValueNode && nodeDotValue !== undefined ? -3 : 0,
-          color: ["matter", "measurement"].includes(nodeType)
+          marginTop: isValueNode && value !== undefined ? 3 : 0,
+          marginBottom: isValueNode && value !== undefined ? -3 : 0,
+          color: ["matter", "measurement"].includes(type)
             ? "#1a1b1e"
             : "#ececec",
-          zIndex: nodeLayer + 1,
+          zIndex: layer + 1,
+          display: "flex",
+          flexDirection: "row"
         }}
       >
-        {nodeNameString()}
-      </span>
-      {nodeDotValue !== undefined && (
-        <span
+        <span>
+          {(hovered || isSelected === 1) && !fieldsMissing
+            ? name
+            : slicedName}
+        </span>
+        {(isNameSliced && ((!hovered && isSelected !== 1) || fieldsMissing)) &&
+          <span className="node-label-dots" children="..." />
+        }
+      </div>
+
+      {(isValueNode && value !== undefined) && (
+        <div
           className="node-label node-label-value"
           onMouseUp={onMouseUp}
           style={{
             position: "static",
-            top: nodeDotName && "calc(50% + 5px)", //might be a problem
-            color: ["matter", "measurement"].includes(nodeType)
+            top: name && "calc(50% + 5px)", //
+            color: ["matter", "measurement"].includes(type)
               ? "#1a1b1e"
               : "#ececec",
-            zIndex: nodeLayer + 1
+            zIndex: layer + 1,
           }}
         >
-          {nodeValueString()}
-        </span>
+          {/* operator */}
+          {operator && 
+            <span children={mapOperatorSign()}/>
+          }
+          {/* value */}
+          <span>
+            {(hovered || isSelected === 1) && !fieldsMissing
+              ? value
+              : slicedValue}
+          </span>
+          {/* dots */}
+          {(isValueSliced && ((!hovered && isSelected !== 1) || fieldsMissing)) &&
+            <span className="node-label-dots" children="..." />
+          }
+        </div>
       )}
     </div>
   )
 }
 
-interface NodeLabelOutlineProps {}
+interface NodeLabelOutlineProps {
+  width?: number
+  height?: number
+  color: string
+  layer: number
+}
 
-export function NodeLabelOutline(props: NodeLabelOutlineProps) {}
+export function NodeLabelOutline(props: NodeLabelOutlineProps) {
+  const { width, height, color, layer } = props
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        width: width ? width - 2 : 0,
+        height: height,
+        maxWidth: "none",
+        borderRadius: 3,
+        outlineColor: color,
+        outlineStyle: "solid",
+        outlineWidth: 4,
+        zIndex: layer - 1,
+      }}
+    />
+  )
+}

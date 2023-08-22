@@ -241,13 +241,20 @@ a:link {
   /* max-width: 90%;
   white-space: normal; */
   /* word-wrap: break-word; */
+  justify-content: center;
   text-align: center;
   user-select: none;
+  font-family: monospace;
+}
+
+.node-label-dots {
+  vertical-align: bottom;
+  text-align: left;
+  font-family: serif;
 }
 
 .node-label-value {
   font-size: 85%;
-  font-family: monospace;
   vertical-align: middle;
   /* border-radius: 3px; */
   /* padding: 0px 3px 0px 3px; */

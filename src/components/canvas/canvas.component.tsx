@@ -279,6 +279,7 @@ export default function Canvas(props: CanvasProps) {
           return {
             ...n,
             size:
+            // 100
               delta < 0 && n.size < 350
                 ? n.size - delta * 5
                 : delta > 0 && n.size > 75

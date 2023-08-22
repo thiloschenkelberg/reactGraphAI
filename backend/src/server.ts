@@ -3,7 +3,7 @@ import userRouter from "./controllers/user.controller"
 import cors from "cors"
 
 const app = express()
-const port = 8080 // Set the desired port number
+const port = 8000 // Set the desired port number
 
 // Middleware
 app.use(express.json())
