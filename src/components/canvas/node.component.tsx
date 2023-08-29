@@ -1,14 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
-import { useSpring, animated } from "react-spring"
 import chroma from "chroma-js"
-import { Select } from "@mantine/core"
-
-// import WarningAmberIcon from "@mui/icons-material/WarningAmber"
-import WarningIcon from "@mui/icons-material/Warning"
 
 import NodeContext from "./ctxt/node-ctxt.component"
 import NodeInput from "./node-input.component"
 import NodeLabel from "./node-label.component"
+import NodeWarning from "./node-warning.component"
 import { NodeLabelOutline } from "./node-label.component"
 import NodeConnector from "./node-connector.component"
 import { INode, Position, Vector2D } from "./types/canvas.types"
@@ -88,16 +84,22 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [isValueNode, node.name, node.value, node.operator])
 
-  useEffect(() => {
-    if (!nodeLabelRef.current) return
-    setHasLabelOverflow(nodeLabelRef.current.offsetWidth > node.size + 5)
-  }, [nodeLabelRef.current?.offsetWidth, node.size, isSelected])
+  /* set label overflow 
+   * based on labelwidth */
 
-  // useEffect(() => { // obsolete
-  //   setNodeName(node.name)
-  //   setNodeValue(node.value)
-  //   setNodeOperator(node.operator)
-  // }, [node.name, node.value, node.operator])
+  // useEffect(() => {
+  //   if (!nodeLabelRef.current) return
+  //   setHasLabelOverflow(nodeLabelRef.current.offsetWidth > node.size + 5)
+  // }, [nodeLabelRef.current?.offsetWidth, node.size, isSelected])
+
+  /* based on characters */
+
+  useEffect(() => {
+    if (!node.name || !node.value) return
+    const nameOverflow = node.name.length > node.size / 9.65
+    const valueOverflow = node.value.toString().length > (node.size - 20) / 8.2
+    setHasLabelOverflow(nameOverflow || valueOverflow)
+  }, [node.name, node.value, node.size])
 
   // setup color array
   useEffect(() => {
@@ -208,8 +210,8 @@ export default React.memo(function Node(props: NodeProps) {
       // carry out node click if node is not trying to connect
       // only when node has not been moved significantly (prevent click after drag)
       dragStartPos &&
-      Math.abs(dragStartPos.x - node.position.x) < 15 &&
-      Math.abs(dragStartPos.y - node.position.y) < 15
+      Math.abs(dragStartPos.x - node.position.x) < 5 &&
+      Math.abs(dragStartPos.y - node.position.y) < 5
     ) {
       handleNodeAction(node, "click")
       if (fieldsMissing) handleNodeAction(node, "setIsEditing")
@@ -262,13 +264,7 @@ export default React.memo(function Node(props: NodeProps) {
     setDragOffset(null)
   }
 
-  const iconAnimProps = useSpring({
-    color: nodeHovered ? "#E15554" : colors[0],
-    config: {
-      tension: nodeHovered ? 170 : 150,
-      friction: nodeHovered ? 26 : 170,
-    },
-  })
+
 
   return (
     <div
@@ -360,7 +356,7 @@ export default React.memo(function Node(props: NodeProps) {
         </div>
         {/* node label overflow outline */}
         {hasLabelOverflow &&
-          (nodeHovered || isSelected > 0) &&
+          (nodeHovered || isSelected === 1) &&
           !fieldsMissing && (
             <NodeLabelOutline
               width={nodeLabelRef.current?.offsetWidth}
@@ -372,8 +368,8 @@ export default React.memo(function Node(props: NodeProps) {
         {/* end of visible */}
 
         {/* node input fields
-         /  outside of visible node to not be
-         /  affected by opacity changes */}
+          * outside of visible node to not be
+          * affected by opacity changes */}
         {node.isEditing && (
           <NodeInput
             isValueNode={isValueNode}
@@ -389,34 +385,12 @@ export default React.memo(function Node(props: NodeProps) {
         {fieldsMissing &&
           !isSelected &&
           !node.isEditing && ( // warning: !nodeName
-            <div
-              className="node-warning"
-              style={{
-                width: node.size,
-                height: node.size,
-                left: node.size / 2 + 10,
-                top: node.size / 2 + 10,
-                pointerEvents: "none",
-              }}
-            >
-              <animated.div style={iconAnimProps}>
-                <WarningIcon
-                  style={{
-                    position: "relative",
-                    fontSize: "30px",
-                    transform: `translate(
-                        ${nodeHovered ? -58 : 0}px,
-                        ${nodeHovered ? -1 : -4}px
-                      )`,
-                    transition: "transform 0.1s ease-in-out",
-                    zIndex: node.layer + 1,
-                  }}
-                />
-              </animated.div>
-              {nodeHovered && (
-                <div className="node-warning-label">Fields missing!</div>
-              )}
-            </div>
+            <NodeWarning
+              size={node.size}
+              hovered={nodeHovered}
+              color={colors[0]}
+              layer={node.layer}
+            />
           )}
       </div>
       {/* end of clickable */}

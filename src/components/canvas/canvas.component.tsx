@@ -61,6 +61,7 @@ export default function Canvas(props: CanvasProps) {
   const [dragging, setDragging] = useState(false)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
+  const undoSteps = 50
 
   useEffect(() => {
     const savedNodes = localStorage.getItem("nodes")
@@ -396,11 +397,15 @@ export default function Canvas(props: CanvasProps) {
   const handleConnectionReverse = (connectionID: IConnection["id"]) => {
     setConnections((prevConnections) =>
       prevConnections.map((c) => {
-        if (c.id === connectionID && isConnectionLegitimate(c.end, c.start)) {
-          updateHistory()
-          return { ...c, start: c.end, end: c.start }
+        if (c.id === connectionID) {
+          if (isConnectionLegitimate(c.end, c.start)) {
+            updateHistory()
+            return { ...c, start: c.end, end: c.start }
+          } else {
+            toast.error("Connection cannot be reversed!")
+            return c
+          }
         } else {
-          toast.error("Connection cannot be reversed!")
           return c
         }
       })
@@ -486,10 +491,6 @@ export default function Canvas(props: CanvasProps) {
       setSelectedNodes([])
     }
     setSelectedConnectionID(null)
-  }
-
-  const handleCanvasClick = (e: React.MouseEvent) => {
-    console.log("canvasClick")
   }
 
   const handleDefaultContextMenu = (e: React.MouseEvent) => {
@@ -599,16 +600,16 @@ export default function Canvas(props: CanvasProps) {
 
   const updateHistory = () => {
     setHistory((prev) => ({
-      nodes: [...prev.nodes, nodes].slice(-20),
-      connections: [...prev.connections, connections].slice(-20),
+      nodes: [...prev.nodes, nodes].slice(-undoSteps),
+      connections: [...prev.connections, connections].slice(-undoSteps),
     }))
     setFuture({ nodes: [], connections: [] })
   }
 
   const updateHistoryWithCaution = () => {
     setHistory((prev) => ({
-      nodes: [...prev.nodes, nodes].slice(-20),
-      connections: [...prev.connections, connections].slice(-20),
+      nodes: [...prev.nodes, nodes].slice(-undoSteps),
+      connections: [...prev.connections, connections].slice(-undoSteps),
     }))
   }
 
@@ -645,8 +646,8 @@ export default function Canvas(props: CanvasProps) {
   const undo = useCallback(() => {
     if (history.nodes.length) {
       setFuture((prev) => ({
-        nodes: [nodes, ...prev.nodes].slice(-20),
-        connections: [connections, ...prev.connections].slice(-20),
+        nodes: [nodes, ...prev.nodes].slice(-undoSteps),
+        connections: [connections, ...prev.connections].slice(-undoSteps),
       }))
       setNodes(history.nodes[history.nodes.length - 1].map(node => ({ ...node, isEditing: false })))
       setConnections(history.connections[history.connections.length - 1])
@@ -660,8 +661,8 @@ export default function Canvas(props: CanvasProps) {
   const redo = useCallback(() => {
     if (future.nodes.length) {
       setHistory((prev) => ({
-        nodes: [...prev.nodes, nodes].slice(-20),
-        connections: [...prev.connections, connections].slice(-20),
+        nodes: [...prev.nodes, nodes].slice(-undoSteps),
+        connections: [...prev.connections, connections].slice(-undoSteps),
       }))
       setNodes(future.nodes[0].map(node => ({ ...node, isEditing: false })))
       setConnections(future.connections[0])
@@ -709,7 +710,6 @@ export default function Canvas(props: CanvasProps) {
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={handleCanvasMouseUp}
       // Context menu
-      // onClick={handleCanvasClick}
       onContextMenu={handleDefaultContextMenu}
       // Delete stuff
       onKeyUp={handleCanvasKeyUp}
@@ -768,10 +768,10 @@ export default function Canvas(props: CanvasProps) {
         className="canvas-btn-wrap"
         style={{ left: canvasRect ? canvasRect.width / 2 : "50%" }}
       >
-        <div className="canvas-btn" style={{ textAlign: "center" }}>
+        {/* <div className="canvas-btn" style={{ textAlign: "center" }}>
           {history.nodes.length}
         </div>
-        <div className="canvas-btn-divider" />
+        <div className="canvas-btn-divider" /> */}
         <div className="canvas-btn" onClick={undo}>
           <UndoIcon className="canvas-btn-icon" />
         </div>

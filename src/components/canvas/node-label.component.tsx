@@ -44,7 +44,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
 
   useEffect(() => {
     if (!name) return
-    const subName = name.substring(0, size / 10)
+    const subName = name.substring(0, size / 9.65) // 9.65 = width of 1 char
     if (subName.length < name.length) {
       setIsNameSliced(true)
       setSlicedName(subName.slice(0, -2))
@@ -57,7 +57,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
   useEffect(() => {
     if (!value) return
     const valueString = value.toString()
-    const subValue = valueString.substring(0, size / 10 - 1)
+    const subValue = valueString.substring(0, (size - 20) / 8.2) // 8.2 = width of 1 char
     if (subValue.length < valueString.length) {
       setIsValueSliced(true)
       setSlicedValue(subValue.slice(0,-2))
@@ -94,7 +94,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
       ref={labelRef}
       style={{
         backgroundColor:
-          hasLabelOverflow && (hovered || isSelected > 0)
+          hasLabelOverflow && (hovered || isSelected === 1)
             ? color
             : "transparent",
       }}

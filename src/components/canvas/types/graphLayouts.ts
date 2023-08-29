@@ -17,7 +17,7 @@ export const graphLayouts = [
         name: "fcose",
         animate: false,
         idealEdgeLength: 200,
-        nodeSeparation: 1000,
+        nodeSeparation: 500,
         nodeRepulsion: 500_000,
         edgeElasticity: .45,
         numIter: 0,
