@@ -366,7 +366,6 @@ export default React.memo(function Node(props: NodeProps) {
             />
           )}
         {/* end of visible */}
-
         {/* node input fields
           * outside of visible node to not be
           * affected by opacity changes */}
