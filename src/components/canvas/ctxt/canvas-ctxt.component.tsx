@@ -29,11 +29,12 @@ interface ContextButtonProps {
   nodeType: INode["type"]
   children: React.ReactNode
   colorIndex: number
+  hovered: INode["type"] | null
+  setHovered: React.Dispatch<React.SetStateAction<INode["type"] | null>>
 }
 
 function ContextButton(props: ContextButtonProps) {
-  const { onSelect, nodeType, children, colorIndex } = props
-  const [hovered, setHovered] = useState(false)
+  const { onSelect, nodeType, children, colorIndex, hovered, setHovered } = props
 
   const colors = colorPalette[colorIndex]
   const backgroundColor = colors[nodeType]
@@ -47,13 +48,13 @@ function ContextButton(props: ContextButtonProps) {
     <div
       className="ctxt-button"
       onMouseUp={handleMouseUpLocal}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => setHovered(nodeType)}
+      onMouseLeave={() => setHovered(null)}
       style={{
         width: "80px",
         height: "80px",
         backgroundColor,
-        outline: hovered
+        outline: hovered === nodeType
           ? `3px solid ${chroma(backgroundColor).brighten(1).hex()}`
           : `3px solid ${chroma(backgroundColor).darken(0.5).hex()}`,
         outlineOffset: "-3px",
@@ -61,24 +62,13 @@ function ContextButton(props: ContextButtonProps) {
       }}
     >
       {children}
-      {/* {hovered &&
-      <div 
-        style={{
-          position: "absolute",
-          pointerEvents: "none",
-          display: "flex",
-          justifyContent: "center",
-          left: -60,
-        }}
-      >
-      </div>
-      } */}
     </div>
   )
 }
 
 export default function CanvasContext(props: CanvasContextProps) {
   const { onSelect, open, colorIndex, contextRestrict } = props
+  const [hovered, setHovered] = useState<INode["type"] | null>(null)
 
   const buttonsToRender = useMemo(() => {
     const buttonList = possibleConnections(contextRestrict)
@@ -88,33 +78,41 @@ export default function CanvasContext(props: CanvasContextProps) {
   }, [contextRestrict]);
 
   return (
-    <Planet
-      centerContent={
-        <div 
-          className="ctxt-planet"
-          style={{
-            width: "10px",
-            height: "10px",
-            backgroundColor: "#808080",
-            transform: "translate(-50%, -50%)"
-          }}
-        />
-      }
-      open={open}
-      hideOrbit
-      orbitRadius={buttonsToRender.length > 1 ? 75 : 1}
-      rotation={ROTATIONS[buttonsToRender.length] || 0}
-    >
-      {buttonsToRender.map(button => (
-        <ContextButton
-          key={button.type}
-          onSelect={onSelect}
-          nodeType={button.type}
-          children={button.icon}
-          colorIndex={colorIndex}
-        />
-      ))} 
-    </Planet>
+    <>
+      <Planet
+        centerContent={
+          <div 
+            className="ctxt-planet"
+            style={{
+              width: "0px",
+              height: "0px",
+              backgroundColor: "#808080",
+              transform: "translate(-50%, -50%)"
+            }}
+          />
+        }
+        open={open}
+        hideOrbit
+        orbitRadius={buttonsToRender.length > 1 ? 75 : 1}
+        rotation={ROTATIONS[buttonsToRender.length] || 0}
+      >
+        {buttonsToRender.map(button => (
+          <ContextButton
+            key={button.type}
+            onSelect={onSelect}
+            nodeType={button.type}
+            children={button.icon}
+            colorIndex={colorIndex}
+            hovered={hovered}
+            setHovered={setHovered}
+          />
+        ))}
+      </Planet>
+      {hovered &&
+      <div className="ctxt-label">
+       {hovered}
+      </div>}
+    </>
   )
 }
 

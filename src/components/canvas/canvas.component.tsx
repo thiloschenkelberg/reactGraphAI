@@ -534,7 +534,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const handleContextSelect = (type?: INode["type"]) => {
-    console.log("i get it")
     if (type && clickPosition) {
       addNode(type, clickPosition)
     }

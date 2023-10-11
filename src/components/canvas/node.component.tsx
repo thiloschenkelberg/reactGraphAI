@@ -95,11 +95,15 @@ export default React.memo(function Node(props: NodeProps) {
   /* based on characters */
 
   useEffect(() => {
-    if (!node.name || !node.value) return
-    const nameOverflow = node.name.length > node.size / 9.65
-    const valueOverflow = node.value.toString().length > (node.size - 20) / 8.2
-    setHasLabelOverflow(nameOverflow || valueOverflow)
-  }, [node.name, node.value, node.size])
+    if (!node.name) return
+    if (node.name.length > node.size / 9.65) {
+      setHasLabelOverflow(true)
+      return
+    }
+    if (isValueNode && node.value !== undefined) {
+      setHasLabelOverflow(node.value.toString().length > (node.size - 20) / 8.2)
+    }
+  }, [node.name, node.value, node.size, isValueNode])
 
   // setup color array
   useEffect(() => {
