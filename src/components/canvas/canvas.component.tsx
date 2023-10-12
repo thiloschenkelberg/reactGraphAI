@@ -811,6 +811,7 @@ export default function Canvas(props: CanvasProps) {
             left: clickPosition.x,
             top: clickPosition.y,
             transform: "translate(-50%, -50%)",
+            zIndex: 3
           }}
         >
           <ContextCanvas

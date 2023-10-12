@@ -20,7 +20,7 @@ export default function NodeConnector(props: NodeConnectorProps) {
   return (
     <>
       <div
-        className="node-rail"
+        // className="node-rail"
         style={{
           width: nodeSize + 2,
           height: nodeSize + 2,

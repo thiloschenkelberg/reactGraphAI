@@ -3,9 +3,10 @@
 // import OutputIcon from "@mui/icons-material/Output"
 // import ParameterIcon from "@mui/icons-material/Tune"
 
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Planet } from "react-planet"
 import chroma from "chroma-js"
+import { useSpring, animated } from "react-spring"
 
 import ManufacturingIcon from "@mui/icons-material/PrecisionManufacturing"
 import PropertyIcon from "@mui/icons-material/Description"
@@ -16,6 +17,7 @@ import MatterIcon from "@mui/icons-material/Diamond"
 import { colorPalette } from "../types/colorPalette"
 import { INode } from "../types/canvas.types"
 import { possibleConnections } from "../../../common/helpers"
+import zIndex from "@mui/material/styles/zIndex"
 
 interface CanvasContextProps {
   onSelect: (nodeType: INode["type"]) => void
@@ -44,24 +46,40 @@ function ContextButton(props: ContextButtonProps) {
     onSelect(nodeType)
   }
 
+  const springProps = useSpring({
+    scale: hovered === nodeType ? 1.2 : 1,
+    config: {
+      tension: 1300,
+      friction: 26,
+    }
+  });
+
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
   return (
-    <div
+    <div style={{position: "relative", zIndex: hovered === nodeType ? 5 : 3}}>
+    <animated.div 
       className="ctxt-button"
       onMouseUp={handleMouseUpLocal}
       onMouseEnter={() => setHovered(nodeType)}
       onMouseLeave={() => setHovered(null)}
       style={{
+        position: "relative",
         width: "80px",
         height: "80px",
+        transform: springProps.scale.to(scale => `scale(${scale})`),
         backgroundColor,
         outline: hovered === nodeType
           ? `3px solid ${chroma(backgroundColor).brighten(1).hex()}`
           : `3px solid ${chroma(backgroundColor).darken(0.5).hex()}`,
         outlineOffset: "-3px",
-        zIndex: hovered ? 5 : 3
+        zIndex: hovered === nodeType ? 5 : 3
       }}
     >
       {children}
+    </animated.div>
     </div>
   )
 }
@@ -75,7 +93,8 @@ export default function CanvasContext(props: CanvasContextProps) {
     return BUTTON_TYPES.filter(button => 
       buttonList.includes(button.type) || !contextRestrict
     );
-  }, [contextRestrict]);
+  }, [contextRestrict])
+
 
   return (
     <>
@@ -93,7 +112,7 @@ export default function CanvasContext(props: CanvasContextProps) {
         }
         open={open}
         hideOrbit
-        orbitRadius={buttonsToRender.length > 1 ? 75 : 1}
+        orbitRadius={buttonsToRender.length > 1 ? 80 : 1}
         rotation={ROTATIONS[buttonsToRender.length] || 0}
       >
         {buttonsToRender.map(button => (
@@ -108,10 +127,7 @@ export default function CanvasContext(props: CanvasContextProps) {
           />
         ))}
       </Planet>
-      {hovered &&
-      <div className="ctxt-label">
-       {hovered}
-      </div>}
+
     </>
   )
 }
