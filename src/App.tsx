@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "react-query"
 import { useNavigate, useLocation } from "react-router-dom"
 import { Routes, Route} from "react-router-dom"
 import { userContext } from "./common/userContext"
-import { Toaster } from "react-hot-toast"
+import { Toaster, toast } from "react-hot-toast"
 import { HeaderTabs } from "./components/header.component"
 import IUser from "./types/user.type"
 
@@ -25,40 +25,49 @@ export default function App() {
     () => localStorage.getItem("activeTab") || null
   )
 
-  // const {
-  //   data: currentUser,
-  //   isLoading,
-  //   isError
-  // } = useQuery<IUser | null | undefined>(
-  //   "getCurrentUser",
-  //   client.getCurrentUser
-  // )
+  const location = useLocation()
 
-  // useEffect(() => {
-  //   // navigate to login after getCurrentUser is 
-  //   // resolved and currentUser is undefined
-  //   if (!isLoading && !isError && !currentUser) {
-  //     navigate("/login")
-  //   }
-  // }, [isLoading, isError, currentUser, navigate])
+  const {
+    data: currentUser,
+    isLoading,
+    isError,
+    error
+  } = useQuery<IUser | null | undefined>(
+    "getCurrentUser",
+    client.getCurrentUser
+  )
+
+  useEffect(() => {
+    // navigate to login after getCurrentUser is 
+    // resolved and currentUser is undefined
+    // errors are caught separately
+    if (!isLoading && !currentUser) {
+      navigate("/login")
+    }
+  }, [isLoading, isError, currentUser, navigate])
 
   useEffect(() => {
     localStorage.setItem("activeTab", activeTab || "")
   }, [activeTab])
 
-  const setTab = (tab: string) => {
-    setActiveTab(tab)
+  const setTab = (value: string | null) => {
+    setActiveTab(value)
   }
 
-  // if (isLoading) {
-  //   console.log("loading")
-  //   return <div></div>
-  // }
+  if (isLoading) {
+    // handle loading
+  }
 
-  // if (isError) {
-  //   console.log("error")
-  //   // handle error
-  // }
+  if (isError) {
+
+    if (location.pathname !== "/login") {
+      const err = error as Error
+      toast.error(err.message)
+    } else {
+      const err = error as Error
+      console.log(err.message)
+    }
+  }
 
   const handleHeaderLinkClick = (key: string) => {
     navigate(key)
@@ -76,15 +85,15 @@ export default function App() {
 
   return (
     <div className="wrap-app">
-      {/* <userContext.Provider value={currentUser}> */}
-        {/* {currentUser && (
+      <userContext.Provider value={currentUser}>
+        {currentUser &&(
           <div className="header">
-            <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab}/>
+            <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab} pathname={location.pathname}/>
           </div>
-        )} */}
-        <div className="header">
+        )}
+        {/* <div className="header">
           <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab}/>
-        </div>
+        </div> */}
         <div className="main-window">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -94,7 +103,7 @@ export default function App() {
             <Route path="/account" element={<Account />} />
           </Routes>
         </div>
-      {/* </userContext.Provider> */}
+      </userContext.Provider>
       <Toaster
         position="top-center"
         containerStyle={{

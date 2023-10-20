@@ -1,5 +1,5 @@
 import { Request } from "express"
 
 export interface IGetUserAuthInfoRequest extends Request {
-  email?: any
+  userId?: any
 }

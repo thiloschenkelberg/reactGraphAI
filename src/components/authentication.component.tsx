@@ -48,24 +48,24 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
   })
 
   const loginMutation = useMutation("login", login, {
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.prefetchQuery<IUser | null | undefined>('getCurrentUser', client.getCurrentUser)
-      toast.success("User logged in successfully!")
+      toast.success(data.message)
       setTab("")
       navigate("/")
     },
-    onError: () => {
-      toast.error("User could not be logged in!")
+    onError: (err: any) => {
+      toast.error(err.message)
     },
   })
 
   const registerMutation = useMutation(register, {
-    onSuccess: () => {
-      toast.success("User created successfully!")
+    onSuccess: (data) => {
+      toast.success(data.message)
       toggle()
     },
-    onError: () => {
-      toast.error("User could not be created.")
+    onError: (err: any) => {
+      toast.error(err.message)
     },
   })
 
@@ -73,7 +73,7 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
 
   const form = useForm({
     initialValues: {
-      name: "",
+      username: "",
       email: "",
       password: "",
       terms: true,
@@ -111,32 +111,19 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
       if (token) {
         document.cookie = `token=${token}`
       }
-      return
+      return response.data
     } catch (err: any) {
-      setMessage(
-        (err.response && err.response.data && err.response.data.message) ||
-          err.message ||
-          err.toString()
-      )
-      throw new Error("Login failed")
+      throw err
     }
   }
 
   async function register(credentials: FormValues) {
     try {
-      const { name, email, password } = credentials
-      const response = await client.register(name, email, password)
+      const { username, email, password } = credentials
+      const response = await client.register(username, email, password)
       return response.data
-      // setMessage(response.data.message);
     } catch (err: any) {
-      // setMessage(
-      //   (err.response &&
-      //     err.response.data &&
-      //     err.response.data.message) ||
-      //     err.message ||
-      //     err.toString()
-      // );
-      throw new Error("Registration failed")
+      throw err
     }
   }
 
@@ -152,11 +139,11 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
           <Stack>
             {type === "register" && (
               <TextInput
-                label="Name"
-                placeholder="Your name"
-                value={form.values.name}
+                label="Username"
+                placeholder="Your username"
+                value={form.values.username}
                 onChange={(event) =>
-                  form.setFieldValue("name", event.currentTarget.value)
+                  form.setFieldValue("username", event.currentTarget.value)
                 }
                 radius="md"
               />
@@ -170,7 +157,7 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
               onChange={(event) =>
                 form.setFieldValue("email", event.currentTarget.value)
               }
-              error={form.errors.email && "Invalid email"}
+              error={form.errors.email}
               radius="md"
             />
 
@@ -182,10 +169,7 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
               onChange={(event) =>
                 form.setFieldValue("password", event.currentTarget.value)
               }
-              error={
-                form.errors.password &&
-                "Password should include at least 6 characters"
-              }
+              error={form.errors.password}
               radius="md"
             />
 

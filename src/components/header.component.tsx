@@ -13,6 +13,7 @@ import {
 import { IconLogout, IconSettings, IconChevronDown } from "@tabler/icons-react";
 import logo_sm from "../img/logo_nodes.png";
 import { userContext } from "../common/userContext";
+import { useLocation } from "react-router-dom";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -92,10 +93,11 @@ interface HeaderTabsProps {
   onLogout: () => void;
   tab: string | null
   setTab: (tab: string) => void
+  pathname: string
 }
 
 export function HeaderTabs(props: HeaderTabsProps) {
-  const { onHeaderLinkClick, onLogout, tab, setTab } = props;
+  const { onHeaderLinkClick, onLogout, tab, setTab, pathname } = props;
   const { classes, cx } = useStyles();
   const [userMenuOpened, setUserMenuOpened] = useState(false);
   const user = useContext(userContext);
@@ -115,7 +117,11 @@ export function HeaderTabs(props: HeaderTabsProps) {
   ));
 
   return (
-    <div className={classes.header}>
+    <div className={classes.header}
+      style={{
+        backgroundColor: pathname === "/" ? "#1a1b1e" : "#25262b",
+      }}
+    >
       <Container size="default" className={classes.mainSection}>
         <Group position="apart">
           {/* Logo */}
@@ -171,7 +177,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
                         sx={{ lineHeight: 1 }}
                         mr={3}
                       >
-                        {user.name ? user.name : "User"}
+                        {user.username ? user.username : "User"}
                       </Text>
                       <IconChevronDown size={rem(12)} stroke={1.5} />
                     </Group>
@@ -196,6 +202,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
               </Menu>
             </div>
           )}
+
         </Group>
       </Container>
     </div>

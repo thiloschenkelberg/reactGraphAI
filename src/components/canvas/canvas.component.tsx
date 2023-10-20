@@ -819,6 +819,7 @@ export default function Canvas(props: CanvasProps) {
             open={navOpen}
             colorIndex={colorIndex}
             contextRestrict={connectingNode?.type}
+            position={clickPosition}
           />
         </div>
       )}

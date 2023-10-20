@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { INode } from "./types/canvas.types"
 
 interface NodeLabelsProps {
@@ -90,10 +90,16 @@ export default function NodeLabel(props: NodeLabelsProps) {
 
   return (
     <div
-      className="node-label-none-wrap"
+      className="node-label-wrap"
+      ref={labelRef}
+      style={{
+        backgroundColor:
+          hasLabelOverflow && (hovered || isSelected === 1)
+            ? color
+            : "transparent",
+      }}
     >
-      {/* name label */}
-      <div
+      <div // name label
         className="node-label"
         onMouseUp={onMouseUp}
         style={{
@@ -107,17 +113,16 @@ export default function NodeLabel(props: NodeLabelsProps) {
           flexDirection: "row"
         }}
       >
-        {/* name span  */}
         <span>
-          {slicedName}
+          {(hovered || isSelected === 1) && !fieldsMissing
+            ? name
+            : slicedName}
         </span>
-        {/* additional dotspan if name is sliced  */}
-        {isNameSliced &&
+        {(isNameSliced && ((!hovered && isSelected !== 1) || fieldsMissing)) &&
           <span className="node-label-dots" children="..." />
         }
       </div>
 
-        {/* value label  */}
       {(isValueNode && value !== undefined) && (
         <div
           className="node-label node-label-value"
@@ -137,14 +142,43 @@ export default function NodeLabel(props: NodeLabelsProps) {
           }
           {/* value */}
           <span>
-            {slicedValue}
+            {(hovered || isSelected === 1) && !fieldsMissing
+              ? value
+              : slicedValue}
           </span>
           {/* dots */}
-          {isValueSliced &&
+          {(isValueSliced && ((!hovered && isSelected !== 1) || fieldsMissing)) &&
             <span className="node-label-dots" children="..." />
           }
         </div>
       )}
     </div>
+  )
+}
+
+interface NodeLabelOutlineProps {
+  width?: number
+  height?: number
+  color: string
+  layer: number
+}
+
+export function NodeLabelOutline(props: NodeLabelOutlineProps) {
+  const { width, height, color, layer } = props
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        width: width ? width - 2 : 0,
+        height: height,
+        maxWidth: "none",
+        borderRadius: 3,
+        outlineColor: color,
+        outlineStyle: "solid",
+        outlineWidth: 4,
+        zIndex: layer - 1,
+      }}
+    />
   )
 }

@@ -33,7 +33,7 @@ root.render(
           theme={{ colorScheme: "dark" }}
           withGlobalStyles
           withNormalizeCSS
-        >
+        > 
           <App />
         </MantineProvider>
       </BrowserRouter>

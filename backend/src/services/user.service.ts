@@ -13,44 +13,59 @@ class UserService {
     return UserRepository.findByMail(email)
   }
 
+  static findByUsername(username: string): Promise<IUser | undefined> {
+    return UserRepository.findByUsername(username)
+  }
+
+  static findByID(id: number): Promise<IUser | undefined> {
+    return UserRepository.findByID(id)
+  }
+
   static createUser(
-    name: string,
+    username: string,
     email: string,
     password: string
   ): Promise<boolean> {
     // Additional business logic or validation can be performed here
-    return UserRepository.create(name, email, password)
+    return UserRepository.create(username, email, password)
   }
 
   static deleteUser(
-    email: string
+    id: number
   ): Promise<boolean> {
-    return UserRepository.delete(email)
+    return UserRepository.delete(id)
   }
 
   static updateName(
     name: string,
-    email: string
+    id: number
   ): Promise<boolean> {
-    return UserRepository.updateName(name, email)
+    return UserRepository.updateName(name, id)
+  }
+
+  static updateUsername(
+    username: string,
+    id: number
+  ): Promise<boolean> {
+    return UserRepository.updateUsername(username, id)
   }
 
   static updateMail(
     newMail: string,
-    oldMail: string
+    id: number
   ): Promise<boolean> {
-    return UserRepository.updateMail(newMail, oldMail)
+    return UserRepository.updateMail(newMail, id)
   }
 
   static updatePassword(
     newPass: string,
-    oldPass: string
+    id: number
   ): Promise<boolean> {
-    return UserRepository.updateMail(newPass, oldPass)
+    return UserRepository.updatePassword(newPass, id)
   }
 
-  static generateAccessToken(email: string) {
-    return jwt.sign(email, process.env.TOKEN_SECRET as string)
+  static generateAccessToken(id: number) {
+    return jwt.sign({ userId: id }, process.env.TOKEN_SECRET as string)
     // return jwt.sign(email, process.env.TOKEN_SECRET as string, { expiresIn: '1800s'})
   }
 
@@ -69,10 +84,10 @@ class UserService {
     jwt.verify(
       token,
       process.env.TOKEN_SECRET as string,
-      (err: Error | null, email: any) => {
+      (err: Error | null, payload: any) => {
         if (err) return res.sendStatus(403)
 
-        req.email = email
+        req.userId = payload.userId
 
         next()
       }

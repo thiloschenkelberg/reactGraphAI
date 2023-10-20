@@ -1,4 +1,5 @@
 import { Select } from "@mantine/core"
+import { toast } from "react-hot-toast"
 
 import { INode } from "./types/canvas.types"
 import { useRef, useState } from "react"
@@ -58,7 +59,8 @@ export default function NodeInput(props: NodeInputProps) {
   }
 
   const handleValueChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNodeValue(e.target.value !== "" ? Number(e.target.value) : undefined)
+    const value = e.target.value
+    setNodeValue(value !== "" ? Number(value) : undefined)
   }
 
   const handleOperatorChangeLocal = (value: string | null) => {

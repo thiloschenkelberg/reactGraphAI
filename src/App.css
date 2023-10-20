@@ -110,24 +110,8 @@ a:link {
 }
 
 .ctxt-label {
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: auto;
-  height: 40px;
-  user-select: none;
-  border-radius: 3px;
-  border: 1px solid #333333;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-bottom: 10px;
-  padding-top: 12px;
-  background-color: #25262b;
-  color: #c1c2c5;
-  filter: drop-shadow(1px 1px 1px #111);
-  transform: translate(-50%, -10px); 
-  font-size: 18px;
+  font-family: monospace;
+  font-size: 13px;
 }
 
 .ctxt-planet {
@@ -351,6 +335,18 @@ a:link {
   }
 }
 
+.password-overlay {
+  width: 520px;
+  height: 100px;
+  position: absolute;
+  top: 0px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
 .profile-img-card {
   width: 96px;
   height: 96px;
@@ -398,7 +394,8 @@ a:link {
 }
 
 .wrap-account {
-  width: 600px;
+  width: 520px;
+  height: 800px;
   position: absolute;
   top: 150px;
   left: 50%;

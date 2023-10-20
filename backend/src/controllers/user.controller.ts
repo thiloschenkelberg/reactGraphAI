@@ -18,18 +18,18 @@ router.post("/api/users/login", async (req, res) => {
     const user = await UserService.findByMail(email)
     if (!user) {
       return res.status(401).json({
-        message: "Invalid credentials",
+        message: "Invalid credentials.",
       })
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
       return res.status(401).json({
-        message: "Invalid credentials",
+        message: "Invalid credentials.",
       })
     }
 
-    const token = UserService.generateAccessToken(email)
+    const token = UserService.generateAccessToken(user.id)
     return res.status(200).json({
       message: "Login successful.",
       token: token,
@@ -41,23 +41,32 @@ router.post("/api/users/login", async (req, res) => {
 
 router.post("/api/users/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body
+    const { username, email, password } = req.body
     if (!email || !password) {
       return res.status(400).json({
         message: "Fields required!",
       })
     }
 
-    const existingUser = await UserService.findByMail(email)
-    if (existingUser) {
+    const existingMail = await UserService.findByMail(email)
+    if (existingMail) {
       return res.status(409).json({
-        message: "Username already exists!",
+        message: "Email already in use!",
       })
+    }
+
+    if (username) {
+      const existingUser = await UserService.findByUsername(username)
+      if (existingUser) {
+        return res.status(409).json({
+          message: "Username already exists!",
+        })
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
     const createSuccess = await UserService.createUser(
-      name,
+      username,
       email,
       hashedPassword
     )
@@ -76,14 +85,14 @@ router.delete(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const email = req.email
-      if (!email) {
+      const id = req.userId
+      if (!id) {
         return res.status(401).json({
           message: "Unauthorized access.",
         })
       }
 
-      const deleteSuccess = await UserService.deleteUser(email)
+      const deleteSuccess = await UserService.deleteUser(id)
       if (deleteSuccess) {
         return res.status(200).json({
           message: "User deleted successfully.",
@@ -100,14 +109,14 @@ router.get(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const email = req.email // req.mail should be decoded user mail
-      if (!email) {
+      const id = req.userId // req.mail should be decoded user mail
+      if (!id) {
         return res.status(401).json({
           message: "Unauthorized access.",
         })
       }
 
-      const currentUser = await UserService.findByMail(email)
+      const currentUser = await UserService.findByID(id)
       if (!currentUser) {
         return res.status(404).json({
           message: "User not found.",
@@ -126,16 +135,65 @@ router.patch(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const email = req.email
-      if (!email) {
+      const id = req.userId
+      if (!id) {
         return res.status(401).json({
           message: "Unauthorized access.",
         })
       }
 
-      const name = req.body
+      const { name } = req.body
 
-      const updateSuccess = await UserService.updateName(name, email)
+      if (typeof name !== 'string') {
+        return res.status(400).json({
+          message: "Invalid name format.",
+        });
+      }
+
+      const updateSuccess = await UserService.updateName(name, id)
+      if (!updateSuccess) {
+        return res.status(400).json({
+          message: "Update not successful.",
+        })
+      }
+
+      return res.status(200).json({
+        message: "Name successfully updated.",
+      })
+    } catch (err) {
+      res.status(500).send("Internal Server Error.")
+    }
+  }
+)
+
+router.patch(
+  "/api/users/update/username",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const id = req.userId
+      if (!id) {
+        return res.status(401).json({
+          message: "Unauthorized access.",
+        })
+      }
+
+      const { username } = req.body
+
+      if (typeof username !== 'string') {
+        return res.status(400).json({
+          message: "Invalid name format.",
+        });
+      }
+
+      const existingUser = await UserService.findByUsername(username)
+      if (existingUser) {
+        return res.status(409).json({
+          message: "Username already exists!",
+        })
+      }
+
+      const updateSuccess = await UserService.updateUsername(username, id)
       if (!updateSuccess) {
         return res.status(400).json({
           message: "Update not successful.",
@@ -156,27 +214,31 @@ router.patch(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const oldMail = req.email
-      if (!oldMail) {
+      const id = req.userId
+      if (!id) {
         return res.status(401).json({
           message: "Unauthorized access.",
         })
       }
 
-      const newMail = req.body
+      const { newMail } = req.body
 
-      const updateSuccess = await UserService.updateMail(newMail, oldMail)
+      const existingMail = await UserService.findByMail(newMail)
+      if (existingMail) {
+        return res.status(409).json({
+          message: "Username already exists!"
+        })
+      }
+
+      const updateSuccess = await UserService.updateMail(newMail, id)
       if (!updateSuccess) {
         return res.status(400).json({
           message: "Update not successful.",
         })
       }
 
-      const token = UserService.generateAccessToken(newMail)
-
       return res.status(200).json({
-        message: "E-Mail successfully updated.",
-        token: token,
+        message: "E-Mail successfully updated."
       })
     } catch (err) {
       res.status(500).send("Internal Server Error.")
@@ -189,14 +251,14 @@ router.patch(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const email = req.email
-      if (!email) {
+      const id = req.userId
+      if (!id) {
         return res.status(401).json({
           message: "Unauthorized access.",
         })
       }
 
-      const user = await UserService.findByMail(email)
+      const user = await UserService.findByID(id)
       if (!user) {
         return res.status(401).json({
           message: "Unauthorized access.",
@@ -215,7 +277,7 @@ router.patch(
       const newHashedPass = await bcrypt.hash(newPass, 10)
       const updateSuccess = await UserService.updatePassword(
         newHashedPass,
-        oldPass
+        id
       )
       if (!updateSuccess) {
         return res.status(400).json({
@@ -228,6 +290,45 @@ router.patch(
       })
     } catch (err) {
       res.status(500).send("Internal Server Error.")
+    }
+  }
+)
+
+router.post(
+  "/api/users/authpass",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try{
+      const id = req.userId
+      if (!id) {
+        return res.status(401).json({
+          message: "Unauthorized access.",
+        })
+      }
+
+
+
+      const user = await UserService.findByID(id)
+      if (!user) {
+        return res.status(401).json({
+          message: "Unauthorized access.",
+        })
+      }
+
+      const { password } = req.body
+
+      const isPasswordValid = await bcrypt.compare(password, user.password)
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          message: "Invalid password.",
+        })
+      } else {
+        return res.status(200).json({
+          message: "Password authenticated."
+        })
+      }
+    } catch (err) {
+
     }
   }
 )

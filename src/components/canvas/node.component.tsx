@@ -1,12 +1,14 @@
+// TODO: favorite nodes
+
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import chroma from "chroma-js"
 import { useSpring, animated } from "react-spring"
 
 import NodeContext from "./ctxt/node-ctxt.component"
 import NodeInput from "./node-input.component"
-import NodeLabel from "./node-label-none.component"
+import NodeLabel from "./node-label.component"
 import NodeWarning from "./node-warning.component"
-import { NodeLabelOutline } from "./node-label.component"
+// import { NodeLabelOutline } from "./node-label.component"
 import NodeConnector from "./node-connector.component"
 import { INode, Position, Vector2D } from "./types/canvas.types"
 import { colorPalette } from "./types/colorPalette"
@@ -329,15 +331,20 @@ export default React.memo(function Node(props: NodeProps) {
     }
   })
 
+const { x } = useSpring({
+  from: { x: 0 },
+  to: isSelected === 1 ? { x: 1 } : { x: 0 }
+});
+
   return (
-    <div
+    <animated.div
       style={{
         position: "absolute",
         width: nodeActualSize + 20,
         height: nodeActualSize + 20,
         top: node.position.y,
         left: node.position.x,
-        transform: "translate(-50%, -50%)",
+        transform: "translate(-50%,-50%)",
         zIndex: isSelected === 1 ? 1000 : node.layer,
       }}
     >
@@ -460,6 +467,6 @@ export default React.memo(function Node(props: NodeProps) {
           )}
       </animated.div>
       {/* end of clickable */}
-    </div> // top
+    </animated.div> // top
   )
 })

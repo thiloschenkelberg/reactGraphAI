@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios"
 
-const API_URL = "http://localhost:8000"
+const API_URL = "http://localhost:8000/api"
 
 function getCookie(name: string) {
   const cookieValue = document.cookie
@@ -22,42 +22,37 @@ class Client {
     this.getCurrentUser = this.getCurrentUser.bind(this)
   }
 
-  async test() {
-    try {
-      const response = await this.client.get("/test")
-      return response.data
-    } catch (err: any) {
-      throw new Error('Error: ' + err.message)
-    }
-  }
-
   async login(email: string, password: string) {
     try {
       const response = await this.client.post("/users/login", {
         email,
         password,
-      }) // token json
-      // const token = response.data.token; // Cookie saved in login component
+      })
 
-      // if (token) {
-      //   document.cookie = `token=${token}`
-      // }
       return response
     } catch (err: any) {
-      throw new Error('Error: ' + err.message)
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error.") 
     }
   }
 
-  async register(name: string, email: string, password: string) {
+  async register(username: string, email: string, password: string) {
     try {
       const response = await this.client.post("/users/register", {
-        name,
+        username,
         email,
         password,
-      }) // message json
-      return response.data
+      })
+      return response
     } catch (err: any) {
-      throw new Error('Error: ' + err.message)
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error.") 
     }
   }
 
@@ -65,7 +60,7 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        return null
+        throw new Error("Token could not be retrieved.")
       }
 
       const response = await this.client.get("/users/current", {
@@ -76,10 +71,13 @@ class Client {
 
       return response.data
     } catch (err: any) {
-      if (err.response && err.response.status === 404) {
-        return null
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      } else if (err.message) {
+        throw err
       } else {
-        throw new Error('Error: ' + err.message)
+        throw new Error("Unexpected error while retrieving user.")
       }
     }
   }
@@ -88,19 +86,54 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        return
+        throw new Error("Token could not be retrieved.")
       }
 
       const response = await this.client.patch("/users/update/name", {
-        name,
+        name
+      }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
 
-      return response.data
+      return response
     } catch (err: any) {
-      throw new Error('Error: ' + err.message)
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error.")
+    }
+  }
+
+  async updateUsername(username: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved.")
+      }
+
+      const response = await this.client.patch("/users/update/username", {
+        username
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response) {
+        if (err.response.status === 409) {
+          throw new Error("Username already in use!")
+        }
+        if (err.response.data?.message) {
+          err.message = err.response.data.message
+          throw err
+        }
+      }
+      throw new Error("Unexpected error.")
     }
   }
 
@@ -108,19 +141,29 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        return
+        throw new Error("Token could not be retrieved.")
       }
 
       const response = await this.client.patch("/users/update/email", {
-        newMail,
+        newMail
+      }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
 
-      return response.data
+      return response
     } catch (err: any) {
-      throw new Error('Error: ' + err.message)
+      if (err.response) {
+        if (err.response.status === 409) {
+          throw new Error('Email is already in use!')
+        }
+        if (err.response.data?.message) {
+          err.message = err.response.data.message
+          throw err
+        }
+      }
+      throw new Error("Unexpected error.")
     }
   }
 
@@ -128,22 +171,53 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        return
+        throw new Error("Token could not be retrieved.")
       }
 
       const response = await this.client.patch("/users/update/password", {
         newPass,
-        oldPass,
+        oldPass
+      }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
 
-      return response.data
+      return response
     } catch (err: any) {
-      throw new Error('Error: ' + err.message)
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error.")
     }
   }
+
+  async authenticatePassword(password: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved.")
+      }
+
+      const response = await this.client.post("/users/authpass", {
+        password
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error.")
+    }
+  }
+
 
   async workflowSearch(workflow: string | null) {
     try {
@@ -154,8 +228,12 @@ class Client {
         responseType: 'blob'
       })
       return response
-    } catch (err:any) {
-      throw new Error('Error: ' + err.message)
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error.")
     }
   }
 }
