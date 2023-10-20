@@ -12,6 +12,27 @@ a:link {
   text-decoration: none;
 }
 
+.account-edit {
+  width: 520px;
+  height: auto;
+  position: absolute;
+  top: 175px;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.account-pw-overlay {
+  width: 520px;
+  height: 100px;
+  /* position: absolute; */
+  top: 0px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
 .app-base {
   background-color: #1a1b1e;
 }
@@ -335,18 +356,6 @@ a:link {
   }
 }
 
-.password-overlay {
-  width: 520px;
-  height: 100px;
-  position: absolute;
-  top: 0px;
-  left: 50%;
-  transform: translate(-50%, 0);
-  align-items: center;
-  justify-content: center;
-  display: flex;
-}
-
 .profile-img-card {
   width: 96px;
   height: 96px;
@@ -391,15 +400,6 @@ a:link {
   outline: none;
   border: none;
   border-left: 1px solid #333;
-}
-
-.wrap-account {
-  width: 520px;
-  height: 800px;
-  position: absolute;
-  top: 150px;
-  left: 50%;
-  transform: translate(-50%, 0);
 }
 
 .wrap-app {

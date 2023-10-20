@@ -16,7 +16,7 @@ import {
 } from "@mantine/core"
 
 import { PiEye, PiEyeSlash, PiLock, PiLockOpen } from "react-icons/pi"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { useSpring, animated } from "react-spring"
 
 export default function Account(props: PaperProps) {
@@ -27,19 +27,8 @@ export default function Account(props: PaperProps) {
   )
   const [passwordLocked, setPasswordLocked] = useState(true)
   const [showUnlockPasswordForm, setShowUnlockPasswordForm] = useState(false)
-  const [unlockFormUpperBound, setUnlockFormUpperBound] = useState(0)
+  const [lockHovered, setLockHovered] = useState(false)
   const emailRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    setUnlockFormUpperBoundFn()
-  }, [])
-
-  const setUnlockFormUpperBoundFn = () => {
-    if (emailRef.current) {
-      console.log(emailRef.current.getBoundingClientRect().bottom)
-      setUnlockFormUpperBound(emailRef.current.getBoundingClientRect().bottom)
-    }
-  }
 
   // shows new password form when current password could be authenticated
   const togglePasswordLock = () => {
@@ -50,89 +39,35 @@ export default function Account(props: PaperProps) {
   // shows current password form when clicking the lock
   const toggleUnlockPasswordForm = () => {
     if (passwordLocked) {
-      setShowUnlockPasswordForm(true)
+      setShowUnlockPasswordForm((prev) => !prev)
     } else {
+      updateForm.setFieldValue("oldPassword", "")
       setShowUnlockPasswordForm(false)
       setPasswordLocked(true)
     }
   }
 
-  const nameMutation = useMutation("updateName", updateName, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("getCurrentUser")
-      toast.success("Update name successful!")
-    },
-    onError: (err: any) => {
-      toast.error(err.message)
-    },
-  })
+  // Form Setup #####################################
 
-  const usernameMutation = useMutation("updateUsername", updateUsername, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("getCurrentUser")
-      toast.success("Update username successful!")
-    },
-    onError: (err: any) => {
-      toast.error(err.message)
-    },
-  })
-
-  const mailMutation = useMutation("updateMail", updateMail, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("getCurrentUser")
-      toast.success("Update email successful!")
-    },
-    onError: (err: any) => {
-      toast.error(err.message)
-    },
-  })
-
-  const passwordMutation = useMutation("updatePassword", updatePassword, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("getCurrentUser")
-      toast.success("Update password succesful!")
-    },
-    onError: (err: any) => {
-      toast.error(err.message)
-    },
-  })
-
-  const unlockPasswordMutation = useMutation("unlockPassword", unlockPassword, {
-    onSuccess: () => {
-      console.log("unlock success")
-      togglePasswordLock()
-      updateForm.setFieldValue("oldPassword", unlockForm.values.password)
-    },
-    onError: (err: any) => {
-      console.log("unlock error")
-      toast.error(err.message)
-    },
-  })
-
-  // const institutionMutation = useMutation("updateInstitution", updateInstitution, {
-  //   onSuccess: () => {
-  //     toast.success("Update institution succesful.")
-  //   },
-  //   onError: () => {
-  //     toast.error("Institution could not be updated.")
-  //   }
-  // })
+  type FormValues = typeof updateForm.values
 
   const updateForm = useForm({
     initialValues: {
       name: currentUser?.name || "",
       username: currentUser?.username || "",
+      institution: currentUser?.institution || "",
       email: currentUser?.email || "",
       confirmEmail: "",
       password: "",
       confirmPassword: "",
       oldPassword: "",
-      institution: currentUser?.institution || "",
     },
 
     validate: {
       email: (val, values) =>
-        val === currentUser?.email
+        showUnlockPasswordForm
+          ? null
+          : val === currentUser?.email
           ? val === values.confirmEmail
             ? "Email is unchanged."
             : null
@@ -140,7 +75,9 @@ export default function Account(props: PaperProps) {
           ? null
           : "Invalid email.",
       confirmEmail: (value, values) =>
-        value.length > 0
+        showUnlockPasswordForm
+          ? null
+          : value.length > 0
           ? value === values.email // check if confirmEmail == email
             ? null
             : "Emails do not match."
@@ -148,68 +85,130 @@ export default function Account(props: PaperProps) {
           ? "Emails do not match."
           : null,
       password: (val) =>
-        val.length > 1 && val.length < 6
+        showUnlockPasswordForm
+          ? null
+          : val.length > 1 && val.length < 6
           ? "Password should include at least 6 characters"
           : null,
       confirmPassword: (value, values) =>
-        value === values.password ? null : "Passwords do not match.",
+        showUnlockPasswordForm
+          ? null
+          : value === values.password
+          ? null
+          : "Passwords do not match.",
+      oldPassword: (val) =>
+        showUnlockPasswordForm && val.length < 1 ? "Password invalid." : null,
     },
   })
 
-  const unlockForm = useForm({
-    initialValues: {
-      password: "",
-    },
+  // Submit Handler #############################################
 
-    validate: {
-      password: (val) => (val.length < 1 ? "Password invalid." : null),
-    },
-  })
+  const handleSubmit = (formValues: FormValues) => {
+    if (showUnlockPasswordForm) {
+      unlockPasswordMutation.mutate(formValues)
+      return
+    } else {
+      // call mutations if needed
 
-  type UpdateFormValues = typeof updateForm.values
-  type UnlockFormValues = typeof unlockForm.values
+      if (formValues.name !== "") {
+        if (formValues.name !== currentUser?.name) {
+          nameMutation.mutate(formValues)
+        }
+      }
 
-  const handleSubmit = (formValues: UpdateFormValues) => {
-    // If name has been filled or changed
-    if (formValues.name !== "") {
-      if (formValues.name !== currentUser?.name) {
-        console.log("name mutation")
-        nameMutation.mutate(formValues)
+      if (formValues.username !== "") {
+        if (formValues.username !== currentUser?.username) {
+          console.log(formValues.username, currentUser?.username)
+          usernameMutation.mutate(formValues)
+        }
+      }
+
+      if (formValues.institution !== currentUser?.institution) {
+        institutionMutation.mutate(formValues)
+      }
+
+      if (
+        formValues.email !== currentUser?.email &&
+        formValues.confirmEmail.length > 0
+      ) {
+        mailMutation.mutate(formValues)
+      }
+
+      if (formValues.password.length > 5) {
+        passwordMutation.mutate(formValues)
       }
     }
-
-    if (formValues.username !== "") {
-      if (formValues.username !== currentUser?.username)
-        console.log("uname mutation")
-      usernameMutation.mutate(formValues)
-    }
-
-    // If email has been filled or changed
-    if (
-      formValues.email !== currentUser?.email &&
-      formValues.confirmEmail.length > 0
-    ) {
-      console.log("mail mutation")
-      mailMutation.mutate(formValues)
-    }
-
-    if (formValues.password.length > 5) {
-      console.log("pw mutation")
-      passwordMutation.mutate(formValues)
-    }
-
-    // if (formValues.institution !== currentUser?.institution) {
-    //   institutionMutation.mutate(formValues)
-    // }
-
-
   }
 
-  const handleUnlockSubmit = (formValues: UnlockFormValues) => {
-    unlockPasswordMutation.mutate(formValues)
-  }
+  // Mutations ###############################################
 
-  async function updateName(credentials: UpdateFormValues) {
+  const nameMutation = useMutation("updateName", updateName, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("getCurrentUser")
+      toast.success(data.message)
+    },
+    onError: (err: any) => {
+      toast.error(err.message)
+    },
+  })
+
+  const usernameMutation = useMutation("updateUsername", updateUsername, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("getCurrentUser")
+      toast.success(data.message)
+    },
+    onError: (err: any) => {
+      toast.error(err.message)
+    },
+  })
+
+  const institutionMutation = useMutation(
+    "updateInstitution",
+    updateInstitution,
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries("getCurrentUser")
+        toast.success(data.message)
+      },
+      onError: (err: any) => {
+        toast.error(err.message)
+      },
+    }
+  )
+
+  const mailMutation = useMutation("updateMail", updateMail, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("getCurrentUser")
+      toast.success(data.message)
+    },
+    onError: (err: any) => {
+      toast.error(err.message)
+    },
+  })
+
+  const passwordMutation = useMutation("updatePassword", updatePassword, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("getCurrentUser")
+      toast.success(data.message)
+    },
+    onError: (err: any) => {
+      toast.error(err.message)
+    },
+  })
+
+  const unlockPasswordMutation = useMutation("unlockPassword", unlockPassword, {
+    onSuccess: (data) => {
+      togglePasswordLock()
+      toast.success(data.message)
+    },
+    onError: (err: any) => {
+      toast.error(err.message)
+    },
+  })
+
+  // Async function calls ########################################
+
+  async function updateName(credentials: FormValues) {
     try {
       const { name } = credentials
 
@@ -221,7 +220,7 @@ export default function Account(props: PaperProps) {
     }
   }
 
-  async function updateUsername(credentials: UpdateFormValues) {
+  async function updateUsername(credentials: FormValues) {
     try {
       const { username } = credentials
 
@@ -233,7 +232,19 @@ export default function Account(props: PaperProps) {
     }
   }
 
-  async function updateMail(credentials: UpdateFormValues) {
+  async function updateInstitution(credentials: FormValues) {
+    try {
+      const { institution } = credentials
+
+      const response = await client.updateInstitution(institution)
+
+      return response.data
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  async function updateMail(credentials: FormValues) {
     try {
       const { email } = credentials
 
@@ -246,19 +257,7 @@ export default function Account(props: PaperProps) {
     }
   }
 
-  async function unlockPassword(credentials: UnlockFormValues) {
-    try {
-      const { password } = credentials
-
-      const response = await client.authenticatePassword(password)
-
-      return response.data
-    } catch (err: any) {
-      throw err
-    }
-  }
-
-  async function updatePassword(credentials: UpdateFormValues) {
+  async function updatePassword(credentials: FormValues) {
     try {
       const { oldPassword, password } = credentials
 
@@ -270,19 +269,24 @@ export default function Account(props: PaperProps) {
     }
   }
 
-  // async function updateInstitution(credentials: UpdateFormValues) {
-  //   try {
-  //     const { institution } = credentials
-  //     const response = await client.updateInstitution(institution)
-  //   } catch (err: any) {
+  async function unlockPassword(credentials: FormValues) {
+    try {
+      const { oldPassword } = credentials
 
-  //   }
-  // }
+      const response = await client.authenticatePassword(oldPassword)
+
+      return response.data
+    } catch (err: any) {
+      throw err
+    }
+  }
+
+  // Animations #############################################
 
   const lockAnim = useSpring({
-    left: showUnlockPasswordForm ? 22 : 260,
-    opacity: showUnlockPasswordForm ? 1 : 1,
-    scale: showUnlockPasswordForm ? 1.1 : 1.5,
+    left: passwordLocked ? (showUnlockPasswordForm ? 22 : 260) : 22,
+    // opacity: showUnlockPasswordForm ? 1 : 1,
+    scale: passwordLocked ? (showUnlockPasswordForm ? 1.1 : 1.5) : 1.1,
   })
 
   const unlockPassInputAnim = useSpring({
@@ -290,166 +294,82 @@ export default function Account(props: PaperProps) {
   })
 
   return (
-    <>
-      <div className="wrap-account">
-        {currentUser && (
-          <Paper
-            radius="md"
-            p="xl"
-            withBorder
-            {...props}
-            style={{
-              padding: "0 0 0 0px",
-            }}
-          >
-            <h3
+    <div>
+      {currentUser && (
+        <div className="account-wrap">
+          <div className="account-img">
+            <Paper
+              radius="md"
+              p="xl"
+              withBorder
+              {...props}
               style={{
-                marginBottom: 40,
-                marginTop: 60,
-                marginLeft: 40,
-                width: 440,
+                padding: "0 0 0 0px",
               }}
             >
-              Edit Account
-            </h3>
 
-            <form
-              onSubmit={updateForm.onSubmit(handleSubmit)}
+            </Paper>
+          </div>
+          <div className="account-edit">
+            <Paper
+              radius="md"
+              p="xl"
+              withBorder
+              {...props}
               style={{
-                paddingBottom: 20,
+                padding: "0 0 0 0px",
               }}
             >
-              {/* Full Name and Username */}
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "center",
                   flexDirection: "row",
+                  justifyContent: "left",
                 }}
               >
-                <TextInput
-                  label="Full Name"
-                  placeholder={
-                    currentUser.name ? currentUser.name : "Your name"
-                  }
-                  value={updateForm.values.name}
-                  onChange={(event) =>
-                    updateForm.setFieldValue("name", event.currentTarget.value)
-                  }
-                  radius="md"
+                <h3
                   style={{
+                    marginBottom: 40,
+                    marginTop: 60,
+                    marginLeft: 40,
                     width: 200,
-                    marginBottom: 20,
-                    marginRight: 40,
+                    flexShrink: 0,
                   }}
-                />
-                <TextInput
-                  label="Username"
-                  placeholder={currentUser.username}
-                  value={updateForm.values.username}
-                  onChange={(event) =>
-                    updateForm.setFieldValue(
-                      "username",
-                      event.currentTarget.value
-                    )
-                  }
-                  radius="md"
+                >
+                  Edit Account
+                </h3>
+                <h3
                   style={{
+                    marginTop: 60,
+                    marginLeft: 40,
                     width: 200,
+                    flexShrink: 0,
                   }}
-                />
+                >
+                  Settings
+                </h3>
               </div>
-              {/* Institution */}
-              <div
+
+              <form
+                onSubmit={updateForm.onSubmit(handleSubmit)}
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  flexDirection: "row",
+                  paddingBottom: 20,
                 }}
               >
-                <TextInput
-                  label="Institution"
-                  placeholder={
-                    currentUser.institution
-                      ? currentUser.institution
-                      : "Your institution"
-                  }
-                  value={updateForm.values.institution}
-                  onChange={(event) =>
-                    updateForm.setFieldValue(
-                      "institution",
-                      event.currentTarget.value
-                    )
-                  }
-                  radius="md"
-                  style={{
-                    width: 440,
-                    marginBottom: 20,
-                    marginLeft: 0,
-                  }}
-                />
-              </div>
-              {/* Email and Email Confirmation */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  flexDirection: "row",
-                }}
-                ref={emailRef}
-              >
-                <TextInput
-                  label="Email Address"
-                  // placeholder={currentUser.email}
-                  value={updateForm.values.email}
-                  onChange={(event) =>
-                    updateForm.setFieldValue("email", event.currentTarget.value)
-                  }
-                  error={updateForm.errors.email}
-                  radius="md"
-                  style={{
-                    width: 200,
-                    marginBottom: 20,
-                    marginRight: 40,
-                  }}
-                />
-                <TextInput
-                  label="Confirm Email Address"
-                  placeholder={currentUser.email}
-                  value={updateForm.values.confirmEmail}
-                  onChange={(event) =>
-                    updateForm.setFieldValue(
-                      "confirmEmail",
-                      event.currentTarget.value
-                    )
-                  }
-                  error={updateForm.errors.confirmEmail}
-                  radius="md"
-                  style={{
-                    width: 200,
-                  }}
-                />
-              </div>
-              {/* Password and Password Confirmation*/}
+                {/* Full Name and Username */}
                 <div
                   style={{
-                    // position: "absolute",
                     display: "flex",
                     justifyContent: "center",
                     flexDirection: "row",
-                    filter: passwordLocked ? "blur(3px)" : "none",
                   }}
                 >
-                  <PasswordInput
-                    disabled={passwordLocked}
-                    label="New Password"
-                    placeholder={"Your new password"}
-                    value={updateForm.values.password}
+                  <TextInput
+                    label="Full Name"
+                    placeholder={currentUser.name ? currentUser.name : "Your name"}
+                    value={updateForm.values.name}
                     onChange={(event) =>
-                      updateForm.setFieldValue(
-                        "password",
-                        event.currentTarget.value
-                      )
+                      updateForm.setFieldValue("name", event.currentTarget.value)
                     }
                     radius="md"
                     style={{
@@ -457,84 +377,166 @@ export default function Account(props: PaperProps) {
                       marginBottom: 20,
                       marginRight: 40,
                     }}
-                    error={updateForm.errors.password}
                   />
-                  <PasswordInput
-                    disabled={passwordLocked}
-                    label="Confirm New Password"
-                    placeholder={"Password confirmation"}
-                    value={updateForm.values.confirmPassword}
+                  <TextInput
+                    label="Username"
+                    placeholder={currentUser.username}
+                    value={updateForm.values.username}
                     onChange={(event) =>
                       updateForm.setFieldValue(
-                        "confirmPassword",
+                        "username",
                         event.currentTarget.value
                       )
                     }
-                    error={updateForm.errors.confirmPassword}
                     radius="md"
                     style={{
                       width: 200,
                     }}
-                  />                
-              </div>
-              {/* Confirmation button */}
-              <div
-                style={{
-                  marginTop: 20,
-                  marginLeft: 40,
-                  marginBottom: 20,
-                }}
-              >
-                <Button type="submit" radius="xl" onClick={setUnlockFormUpperBoundFn}>
-                  Confirm changes
-                </Button>
-              </div>
-            </form>
-            {passwordLocked && (
-                  <div className="password-overlay"
+                  />
+                </div>
+                {/* Institution */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                  }}
+                >
+                  <TextInput
+                    label="Institution"
+                    placeholder={
+                      currentUser.institution
+                        ? currentUser.institution
+                        : "Your institution"
+                    }
+                    value={updateForm.values.institution}
+                    onChange={(event) =>
+                      updateForm.setFieldValue(
+                        "institution",
+                        event.currentTarget.value
+                      )
+                    }
+                    radius="md"
                     style={{
-                      top: 0,
-                      position: "absolute",
+                      width: 440,
+                      marginBottom: 20,
+                      marginLeft: 0,
+                    }}
+                  />
+                </div>
+                {/* Email and Email Confirmation */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                  }}
+                  ref={emailRef}
+                >
+                  <TextInput
+                    label="Email Address"
+                    // placeholder={currentUser.email}
+                    value={updateForm.values.email}
+                    onChange={(event) =>
+                      updateForm.setFieldValue("email", event.currentTarget.value)
+                    }
+                    error={updateForm.errors.email}
+                    radius="md"
+                    style={{
+                      width: 200,
+                      marginBottom: 20,
+                      marginRight: 40,
+                    }}
+                  />
+                  <TextInput
+                    label="Confirm Email Address"
+                    placeholder={currentUser.email}
+                    value={updateForm.values.confirmEmail}
+                    onChange={(event) =>
+                      updateForm.setFieldValue(
+                        "confirmEmail",
+                        event.currentTarget.value
+                      )
+                    }
+                    error={updateForm.errors.confirmEmail}
+                    radius="md"
+                    style={{
+                      width: 200,
+                    }}
+                  />
+                </div>
+                <div style={{ position: "relative", height: 100 }}>
+                  {/* Password and Password Confirmation*/}
+                  <div
+                    style={{
+                      position: "relative",
+                      display: "flex",
+                      justifyContent: "center",
+                      flexDirection: "row",
+                      filter: passwordLocked ? "blur(1.5px)" : "none",
                     }}
                   >
-
-                    {/* Overlay Background */}
-                    <div
-                      className="password-overlay-background"
+                    <PasswordInput
+                      disabled={passwordLocked}
+                      label="New Password"
+                      placeholder={"Your new password"}
+                      value={updateForm.values.password}
+                      onChange={(event) =>
+                        updateForm.setFieldValue(
+                          "password",
+                          event.currentTarget.value
+                        )
+                      }
+                      radius="md"
                       style={{
-                        width: 500,
-                        height: 100,
-                        left: 10,
-                        position: "absolute",
-                        backgroundColor: "#1a1b1e",
-                        opacity: showUnlockPasswordForm ? 1 : 0.5,
+                        width: 200,
+                        marginBottom: 20,
+                        marginRight: 40,
+                      }}
+                      error={updateForm.errors.password}
+                    />
+                    <PasswordInput
+                      disabled={passwordLocked}
+                      label="Confirm New Password"
+                      placeholder={"Password confirmation"}
+                      value={updateForm.values.confirmPassword}
+                      onChange={(event) =>
+                        updateForm.setFieldValue(
+                          "confirmPassword",
+                          event.currentTarget.value
+                        )
+                      }
+                      error={updateForm.errors.confirmPassword}
+                      radius="md"
+                      style={{
+                        width: 200,
                       }}
                     />
-
-                    {/* Lock button   */}
-                    <animated.div
+                  </div>
+                  {/* Overlay begin */}
+                  {passwordLocked && (
+                    <div
+                      className="account-pw-overlay"
                       style={{
+                        // transform: "translate(-50%,-100px)",
                         position: "absolute",
-                        transform: "translate(-50%,0px)",
-                        ...lockAnim,
                       }}
                     >
-                      <button
-                        onClick={toggleUnlockPasswordForm}
-                        type="button"
-                        style={{ background: "none", border: "none" }}
-                      >
-                        {passwordLocked ? (
-                          <PiLock color="#c1c2c5" />
-                        ) : (
-                          <PiEye color="#c1c2c5" />
-                        )}
-                      </button>
-                    </animated.div>
+                      {/* Overlay Background */}
+                      <div
+                        className="account-pw-background"
+                        style={{
+                          width: 500,
+                          height: 100,
+                          left: 10,
+                          position: "absolute",
+                          backgroundColor: "#1a1b1e",
+                          opacity: showUnlockPasswordForm ? 1 : 0.5,
+                        }}
+                      />
 
-                    {/* Unlock password form */}
-                    {showUnlockPasswordForm && (
-                      <form onSubmit={(event) => {event.preventDefault(); unlockForm.onSubmit(handleUnlockSubmit)}}>
+                      {/* Unlock password form */}
+                      {showUnlockPasswordForm && (
                         <animated.div
                           style={{
                             position: "relative",
@@ -550,10 +552,10 @@ export default function Account(props: PaperProps) {
                             label="Current Password"
                             placeholder="Your password"
                             disabled={!showUnlockPasswordForm}
-                            value={unlockForm.values.password}
+                            value={updateForm.values.oldPassword}
                             onChange={(event) =>
-                              unlockForm.setFieldValue(
-                                "password",
+                              updateForm.setFieldValue(
+                                "oldPassword",
                                 event.currentTarget.value
                               )
                             }
@@ -564,48 +566,62 @@ export default function Account(props: PaperProps) {
                               width: 440,
                             }}
                           />
+                          <button type="submit" style={{ display: "none" }} />
                         </animated.div>
-                        <button
-                          type="submit"
-                          style={{ display: "none" }}
-                        ></button>
-                      </form>
-                    )}
-                  </div>
-                )}
-          </Paper>
-        )}
-      </div>
-
-      {/* {showUnlockPasswordForm && (
-        <div className="account-overlay">
-          <div className="account-modal">
-            <h4>Enter Password</h4>
-            <form
-              onSubmit={unlockForm.onSubmit(handleUnlockSubmit)}
-            >
-              <TextInput
-                autoFocus
-                type="password"
-                value={unlockForm.values.password}
-                onChange={(event) =>
-                  unlockForm.setFieldValue("password", event.currentTarget.value)
-                }
-                radius="md"
-                style={{
-                  width:250,
-                }}
-              />
-              <div style={{position:"absolute", right: 10,transform:"translate(0,40px)"}}>       
-                <button onClick={togglePasswordVisibility} type="button" style={{background: 'none', border: 'none'}}>
-                  {visiblePasswords ? <PiEyeSlash color="#c1c2c5"/> : <PiEye color="#c1c2c5"/>}
-                </button>
-              </div>
-              <button type="submit" style={{ display: 'none' }}></button>
-            </form>
+                      )}
+                    </div>
+                  )}{" "}
+                  {/* Overlay end */}
+                  {/* Lock button   */}
+                  <animated.div
+                    style={{
+                      position: "absolute",
+                      transform: "translate(-50%,-50px)",
+                      ...lockAnim,
+                    }}
+                  >
+                    <button
+                      onMouseEnter={() => setLockHovered(true)}
+                      onMouseLeave={() => setLockHovered(false)}
+                      onClick={toggleUnlockPasswordForm}
+                      type="button"
+                      style={{ background: "none", border: "none" }}
+                    >
+                      {passwordLocked ? (
+                        lockHovered ? (
+                          <PiLockOpen color="#c1c2c5" />
+                        ) : (
+                          <PiLock color="#c1c2c5" />
+                        )
+                      ) : lockHovered ? (
+                        <PiLock color="#c1c2c5" />
+                      ) : (
+                        <PiLockOpen color="#c1c2c5" />
+                      )}
+                    </button>
+                  </animated.div>
+                </div>{" "}
+                {/* Password end */}
+                {/* Confirmation button */}
+                <div
+                  style={{
+                    marginTop: 20,
+                    marginRight: 40,
+                    marginBottom: 20,
+                    position: "relative",
+                    display: "flex",
+                    justifyContent: "right",
+                  }}
+                >
+                  <Button type="submit" radius="xl">
+                    Confirm changes
+                  </Button>
+                </div>
+              </form>
+            </Paper>
           </div>
         </div>
-      )} */}
-    </>
+      )}
+    </div>
   )
 }

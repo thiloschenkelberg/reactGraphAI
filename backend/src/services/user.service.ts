@@ -50,6 +50,13 @@ class UserService {
     return UserRepository.updateUsername(username, id)
   }
 
+  static updateInstitution(
+    institution: string,
+    id: number
+  ): Promise<boolean> {
+    return UserRepository.updateInstitution(institution, id)
+  }
+
   static updateMail(
     newMail: string,
     id: number

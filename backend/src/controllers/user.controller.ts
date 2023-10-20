@@ -18,24 +18,24 @@ router.post("/api/users/login", async (req, res) => {
     const user = await UserService.findByMail(email)
     if (!user) {
       return res.status(401).json({
-        message: "Invalid credentials.",
+        message: "Invalid credentials!",
       })
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
       return res.status(401).json({
-        message: "Invalid credentials.",
+        message: "Invalid credentials!",
       })
     }
 
     const token = UserService.generateAccessToken(user.id)
     return res.status(200).json({
-      message: "Login successful.",
+      message: "Login successful!",
       token: token,
     })
   } catch (err) {
-    res.status(500).send("Internal Server Error.")
+    res.status(500).send("Internal Server Error!")
   }
 })
 
@@ -59,7 +59,7 @@ router.post("/api/users/register", async (req, res) => {
       const existingUser = await UserService.findByUsername(username)
       if (existingUser) {
         return res.status(409).json({
-          message: "Username already exists!",
+          message: "Username already in use!",
         })
       }
     }
@@ -72,11 +72,11 @@ router.post("/api/users/register", async (req, res) => {
     )
     if (createSuccess) {
       return res.status(201).json({
-        message: "User created successfully.",
+        message: "User created successfully!",
       })
     }
   } catch (err) {
-    res.status(500).send("Internal Server Error.")
+    res.status(500).send("Internal Server Error!")
   }
 })
 
@@ -88,18 +88,18 @@ router.delete(
       const id = req.userId
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
       const deleteSuccess = await UserService.deleteUser(id)
       if (deleteSuccess) {
         return res.status(200).json({
-          message: "User deleted successfully.",
+          message: "User deleted successfully!",
         })
       }
     } catch (err) {
-      res.status(500).send("Internal Server Error.")
+      res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -112,20 +112,23 @@ router.get(
       const id = req.userId // req.mail should be decoded user mail
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
       const currentUser = await UserService.findByID(id)
       if (!currentUser) {
         return res.status(404).json({
-          message: "User not found.",
+          message: "User not found!",
         })
       }
 
-      return res.status(200).json(currentUser)
+      return res.status(200).json({
+        user: currentUser,
+        message: "User found!"
+      })
     } catch (err) {
-      res.status(500).send("Internal Server Error.")
+      res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -138,7 +141,7 @@ router.patch(
       const id = req.userId
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
@@ -146,22 +149,22 @@ router.patch(
 
       if (typeof name !== 'string') {
         return res.status(400).json({
-          message: "Invalid name format.",
+          message: "Invalid name format!",
         });
       }
 
       const updateSuccess = await UserService.updateName(name, id)
       if (!updateSuccess) {
         return res.status(400).json({
-          message: "Update not successful.",
+          message: "Name could not be updated!",
         })
       }
 
       return res.status(200).json({
-        message: "Name successfully updated.",
+        message: "Name successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error.")
+      res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -174,7 +177,7 @@ router.patch(
       const id = req.userId
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
@@ -182,29 +185,65 @@ router.patch(
 
       if (typeof username !== 'string') {
         return res.status(400).json({
-          message: "Invalid name format.",
+          message: "Invalid username format!",
         });
       }
 
       const existingUser = await UserService.findByUsername(username)
       if (existingUser) {
         return res.status(409).json({
-          message: "Username already exists!",
+          message: "Username already in use!",
         })
       }
 
       const updateSuccess = await UserService.updateUsername(username, id)
       if (!updateSuccess) {
         return res.status(400).json({
-          message: "Update not successful.",
+          message: "Username could not be updated!",
         })
       }
 
       return res.status(200).json({
-        message: "Name successfully updated.",
+        message: "Username successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error.")
+      res.status(500).send("Internal Server Error!")
+    }
+  }
+)
+
+router.patch(
+  "/api/users/update/institution",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const id = req.userId
+      if (!id) {
+        return res.status(401).json({
+          message: "Unauthorized access!",
+        })
+      }
+
+      const { institution } = req.body
+
+      if (typeof institution !== 'string') {
+        return res.status(400).json({
+          message: "Invalid institution format!",
+        });
+      }
+
+      const updateSuccess = await UserService.updateInstitution(institution, id)
+      if (!updateSuccess) {
+        return res.status(400).json({
+          message: "Institution could not be updated!",
+        })
+      }
+
+      return res.status(200).json({
+        message: "Institution successfully updated!",
+      })
+    } catch (err) {
+      res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -217,7 +256,7 @@ router.patch(
       const id = req.userId
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
@@ -226,19 +265,19 @@ router.patch(
       const existingMail = await UserService.findByMail(newMail)
       if (existingMail) {
         return res.status(409).json({
-          message: "Username already exists!"
+          message: "Email already in use!"
         })
       }
 
       const updateSuccess = await UserService.updateMail(newMail, id)
       if (!updateSuccess) {
         return res.status(400).json({
-          message: "Update not successful.",
+          message: "Email could not be updated!",
         })
       }
 
       return res.status(200).json({
-        message: "E-Mail successfully updated."
+        message: "Email successfully updated!"
       })
     } catch (err) {
       res.status(500).send("Internal Server Error.")
@@ -254,14 +293,14 @@ router.patch(
       const id = req.userId
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
       const user = await UserService.findByID(id)
       if (!user) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
@@ -270,7 +309,7 @@ router.patch(
       const isPasswordValid = await bcrypt.compare(oldPass, user.password)
       if (!isPasswordValid) {
         return res.status(401).json({
-          message: "Invalid password.",
+          message: "Invalid password!",
         })
       }
 
@@ -281,15 +320,15 @@ router.patch(
       )
       if (!updateSuccess) {
         return res.status(400).json({
-          message: "Update not successful.",
+          message: "Password could not be updated!",
         })
       }
 
       return res.status(200).json({
-        message: "Password successfully updated.",
+        message: "Password successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error.")
+      res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -302,7 +341,7 @@ router.post(
       const id = req.userId
       if (!id) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
@@ -311,7 +350,7 @@ router.post(
       const user = await UserService.findByID(id)
       if (!user) {
         return res.status(401).json({
-          message: "Unauthorized access.",
+          message: "Unauthorized access!",
         })
       }
 
@@ -320,11 +359,11 @@ router.post(
       const isPasswordValid = await bcrypt.compare(password, user.password)
       if (!isPasswordValid) {
         return res.status(401).json({
-          message: "Invalid password.",
+          message: "Invalid password!",
         })
       } else {
         return res.status(200).json({
-          message: "Password authenticated."
+          message: "Password authenticated!"
         })
       }
     } catch (err) {

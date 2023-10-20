@@ -35,7 +35,7 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error.") 
+      throw new Error("Unexpected error while logging in!") 
     }
   }
 
@@ -52,7 +52,7 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error.") 
+      throw new Error("Unexpected error while registering!") 
     }
   }
 
@@ -60,7 +60,7 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        throw new Error("Token could not be retrieved.")
+        throw new Error("Token could not be retrieved!")
       }
 
       const response = await this.client.get("/users/current", {
@@ -69,7 +69,7 @@ class Client {
         },
       }) // user json
 
-      return response.data
+      return response.data.user
     } catch (err: any) {
       if (err.response?.data?.message) {
         err.message = err.response.data.message
@@ -77,7 +77,7 @@ class Client {
       } else if (err.message) {
         throw err
       } else {
-        throw new Error("Unexpected error while retrieving user.")
+        throw new Error("Unexpected error while retrieving user!")
       }
     }
   }
@@ -86,7 +86,7 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        throw new Error("Token could not be retrieved.")
+        throw new Error("Token could not be retrieved!")
       }
 
       const response = await this.client.patch("/users/update/name", {
@@ -103,15 +103,16 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error.")
+      throw new Error("Unexpected error while updating name!")
     }
   }
 
   async updateUsername(username: string) {
     try {
+      console.log("it really is the username")
       const token = getCookie("token")
       if (!token) {
-        throw new Error("Token could not be retrieved.")
+        throw new Error("Token could not be retrieved!")
       }
 
       const response = await this.client.patch("/users/update/username", {
@@ -133,7 +134,34 @@ class Client {
           throw err
         }
       }
-      throw new Error("Unexpected error.")
+      throw new Error("Unexpected error while updating username!")
+    }
+  }
+
+  async updateInstitution(institution: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.client.patch("/users/update/institution", {
+        institution
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response) {
+        if (err.response.data?.message) {
+          err.message = err.response.data.message
+          throw err
+        }
+      }
+      throw new Error("Unexpected error while updating institution!")
     }
   }
 
@@ -141,7 +169,7 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        throw new Error("Token could not be retrieved.")
+        throw new Error("Token could not be retrieved!")
       }
 
       const response = await this.client.patch("/users/update/email", {
@@ -163,7 +191,7 @@ class Client {
           throw err
         }
       }
-      throw new Error("Unexpected error.")
+      throw new Error("Unexpected error while updating mail!")
     }
   }
 
@@ -171,7 +199,7 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        throw new Error("Token could not be retrieved.")
+        throw new Error("Token could not be retrieved!")
       }
 
       const response = await this.client.patch("/users/update/password", {
@@ -189,7 +217,7 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error.")
+      throw new Error("Unexpected error while updating password!")
     }
   }
 
@@ -197,7 +225,7 @@ class Client {
     try {
       const token = getCookie("token")
       if (!token) {
-        throw new Error("Token could not be retrieved.")
+        throw new Error("Token could not be retrieved!")
       }
 
       const response = await this.client.post("/users/authpass", {
@@ -214,7 +242,7 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error.")
+      throw new Error("Unexpected error while authenticating!")
     }
   }
 
@@ -233,7 +261,7 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error.")
+      throw new Error("Unexpected error in workflow query.")
     }
   }
 }

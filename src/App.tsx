@@ -44,7 +44,20 @@ export default function App() {
     if (!isLoading && !currentUser) {
       navigate("/login")
     }
-  }, [isLoading, isError, currentUser, navigate])
+  }, [isLoading, currentUser, navigate])
+
+  useEffect(() => {
+    if (isError) {
+      const err = error as Error
+      console.log(err.message)
+    }
+  }, [isError, error])
+
+  // useEffect(() => {
+  //   if (isLoading) {
+  //     //something
+  //   }
+  // }, [isLoading])
 
   useEffect(() => {
     localStorage.setItem("activeTab", activeTab || "")
@@ -53,22 +66,7 @@ export default function App() {
   const setTab = (value: string | null) => {
     setActiveTab(value)
   }
-
-  if (isLoading) {
-    // handle loading
-  }
-
-  if (isError) {
-
-    if (location.pathname !== "/login") {
-      const err = error as Error
-      toast.error(err.message)
-    } else {
-      const err = error as Error
-      console.log(err.message)
-    }
-  }
-
+  
   const handleHeaderLinkClick = (key: string) => {
     navigate(key)
   }

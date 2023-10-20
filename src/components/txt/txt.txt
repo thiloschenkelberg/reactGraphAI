@@ -1,0 +1,20 @@
+~300h
+- interactive canvas (ca. 200h)
+- user management / user authentication (ca. 75h)
+- workflow query functionality (ca. 25h)
+
+tech:
+- frontend development with react/typescript
+- extensible and maintainable code
+- ux design
+- clean web design (dark mode lol)
+- logo design
+
+libs:
+- react-query (data fetching)
+- react-spring (animations)
+- react-planet (custom context menus)
+- cytoscape (graph visualization)
+- mantine (ui elements)
+- auth standards: bcrypt, uuid, jsonwebtoken
+

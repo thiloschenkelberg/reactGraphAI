@@ -40,7 +40,7 @@ const useStyles = createStyles((theme) => ({
 
     "&:hover": {
       backgroundColor:
-        theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
+        theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.white,
     },
 
     [theme.fn.smallerThan("xs")]: {
@@ -50,7 +50,12 @@ const useStyles = createStyles((theme) => ({
 
   userActive: {
     backgroundColor:
-      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
+      theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+
+    "&:hover": {
+      backgroundColor:
+        theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white
+    }
   },
 
   tabs: {
@@ -111,6 +116,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
       value={tab}
       key={tab}
       onClick={() => onHeaderLinkClick(tab.toLowerCase())}
+      style={{height:40}}
     >
       {tab}
     </Tabs.Tab>
@@ -168,6 +174,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
                     className={cx(classes.user, {
                       [classes.userActive]: userMenuOpened,
                     })}
+                    style={{height:40}}
                   >
                     <Group spacing={7}>
                       {user && (user.image ? <div></div> : <div></div>)}

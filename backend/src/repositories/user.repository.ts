@@ -90,7 +90,7 @@ class UserRepository {
   static updateName(name: string, id: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       db.run(
-        "UPDATE users SET name = ? WHERE email = ?",
+        "UPDATE users SET name = ? WHERE id = ?",
         [name, id],
         function (err) {
           if (err) {
@@ -108,6 +108,22 @@ class UserRepository {
       db.run(
         "UPDATE users SET username = ? WHERE id = ?",
         [username, id],
+        function (err) {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(true)
+          }
+        }
+      )
+    })
+  }
+
+  static updateInstitution(institution: string, id: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE users SET institution = ? WHERE id = ?",
+        [institution, id],
         function (err) {
           if (err) {
             reject(err)
