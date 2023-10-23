@@ -159,3 +159,54 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+import { Cloudinary } from "@cloudinary/url-gen";
+
+async updateUserImg(img: File) {
+  try {
+    const token = getCookie("token");
+    if (!token) {
+      throw new Error("Token could not be retrieved!");
+    }
+
+    // Step 1: Retrieve signature and timestamp from backend
+    const signResponse = await this.client.get("/api/users/gen_cld_sign", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const { signature, timestamp } = signResponse.data;
+
+    // Step 2: Use the signature and timestamp to upload the image to Cloudinary
+    const cld = new Cloudinary({ cloud: { cloudName: 'YOUR_CLOUD_NAME' } });
+    const uploadResponse = await cloudinary.uploader.upload(img.path, {
+      signature: signature,
+      timestamp: timestamp,
+      eager: "w_400,h_300,c_pad|w_260,h_200,c_crop",
+      public_id: `users/avatars/${token}`  // This can be customized based on your needs
+    });
+
+    const imgUrl = uploadResponse.secure_url;
+    if (!imgUrl) {
+      throw new Error("Failed to get image URL from Cloudinary");
+    }
+
+    // Step 3: Send the retrieved URL to your backend
+    const response = await this.client.post("/users/update/imgurl", {
+      imgUrl: imgUrl
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response;
+  } catch (err: any) {
+    if (err.response?.data?.message) {
+      err.message = err.response.data.message;
+      throw err;
+    }
+    throw new Error("Unexpected error while updating user image!");
+  }
+}

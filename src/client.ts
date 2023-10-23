@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios"
+import {v2 as cloudinary} from "cloudinary"
 
 const API_URL = "http://localhost:8000/api"
 
@@ -10,6 +11,13 @@ function getCookie(name: string) {
 
   return cookieValue
 }
+
+cloudinary.config({
+  cloud_name: '<your_cloud_name>',
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+})
 
 class Client {
   private client: AxiosInstance
@@ -247,12 +255,20 @@ class Client {
 
   async updateUserImg(img: File) {
     try {
-
-
       const token = getCookie("token")
       if (!token) {
         throw new Error("Token could not be retrieved!")
       }
+
+      const signResponse = await this.client.get("/api/users/gen_cld_sign", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const { signature, timestamp, eager, public_id } = signResponse.data
+
+      const uploadResponse = await cloudinary.uploader.upload(img)
 
       const response = await this.client.post("/users/update/imgurl", {
         

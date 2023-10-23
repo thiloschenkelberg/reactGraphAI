@@ -3,8 +3,12 @@ import bcrypt from "bcrypt"
 import UserService from "../services/user.service"
 import { IGetUserAuthInfoRequest } from "../types/req"
 import { Response } from "express"
+// import { v2 as cloudinary } from "cloudinary"
+
+// import { CLOUDINARY_CONFIG } from "../../config"
 
 const router = express.Router()
+// cloudinary.config(CLOUDINARY_CONFIG)
 
 router.post("/api/users/login", async (req, res) => {
   try {
@@ -125,7 +129,7 @@ router.get(
 
       return res.status(200).json({
         user: currentUser,
-        message: "User found!"
+        message: "User found!",
       })
     } catch (err) {
       res.status(500).send("Internal Server Error!")
@@ -147,10 +151,10 @@ router.patch(
 
       const { name } = req.body
 
-      if (typeof name !== 'string') {
+      if (typeof name !== "string") {
         return res.status(400).json({
           message: "Invalid name format!",
-        });
+        })
       }
 
       const updateSuccess = await UserService.updateName(name, id)
@@ -183,10 +187,10 @@ router.patch(
 
       const { username } = req.body
 
-      if (typeof username !== 'string') {
+      if (typeof username !== "string") {
         return res.status(400).json({
           message: "Invalid username format!",
-        });
+        })
       }
 
       const existingUser = await UserService.findByUsername(username)
@@ -226,10 +230,10 @@ router.patch(
 
       const { institution } = req.body
 
-      if (typeof institution !== 'string') {
+      if (typeof institution !== "string") {
         return res.status(400).json({
           message: "Invalid institution format!",
-        });
+        })
       }
 
       const updateSuccess = await UserService.updateInstitution(institution, id)
@@ -265,7 +269,7 @@ router.patch(
       const existingMail = await UserService.findByMail(newMail)
       if (existingMail) {
         return res.status(409).json({
-          message: "Email already in use!"
+          message: "Email already in use!",
         })
       }
 
@@ -277,7 +281,7 @@ router.patch(
       }
 
       return res.status(200).json({
-        message: "Email successfully updated!"
+        message: "Email successfully updated!",
       })
     } catch (err) {
       res.status(500).send("Internal Server Error.")
@@ -314,10 +318,7 @@ router.patch(
       }
 
       const newHashedPass = await bcrypt.hash(newPass, 10)
-      const updateSuccess = await UserService.updatePassword(
-        newHashedPass,
-        id
-      )
+      const updateSuccess = await UserService.updatePassword(newHashedPass, id)
       if (!updateSuccess) {
         return res.status(400).json({
           message: "Password could not be updated!",
@@ -337,15 +338,13 @@ router.post(
   "/api/users/authpass",
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
-    try{
+    try {
       const id = req.userId
       if (!id) {
         return res.status(401).json({
           message: "Unauthorized access!",
         })
       }
-
-
 
       const user = await UserService.findByID(id)
       if (!user) {
@@ -363,14 +362,53 @@ router.post(
         })
       } else {
         return res.status(200).json({
-          message: "Password authenticated!"
+          message: "Password authenticated!",
         })
       }
     } catch (err) {
-
+      res.status(500).send("Internal Server Error!")
     }
   }
 )
+
+// router.get(
+//   "/api/users/gen_cld_sign",
+//   UserService.authenticateToken,
+//   async (req: IGetUserAuthInfoRequest, res: Response) => {
+//     try {
+//       if (!req.userId) {
+//         return res.status(401).json({
+//           message: "Unauthorized access!",
+//         })
+//       }
+
+//       const timestamp = Math.round(new Date().getTime() / 1000)
+//       const eager = "w_400,h_300,c_pad|w_260,h_200,c_crop"
+//       const public_id = `users/avatars/${req.userId}`
+
+
+//       const params = {
+//         timestamp: timestamp,
+//         eager: eager,
+//         public_id: public_id,
+//       }
+
+//       const signature = cloudinary.utils.api_sign_request(
+//         params,
+//         CLOUDINARY_CONFIG.api_secret
+//       )
+
+//       res.status(200).json({
+//         signature: signature,
+//         timestamp: timestamp,
+//         eager: eager,
+//         public_id: public_id
+//       })
+//     } catch (err) {
+//       res.status(500).send("Failed to generate signature!")
+//     }
+//   }
+// )
 
 // Additional API endpoints for updating, deleting users, etc.
 
