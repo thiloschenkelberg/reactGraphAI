@@ -10,7 +10,7 @@ import {
   Tabs,
   rem,
 } from "@mantine/core";
-import { IconLogout, IconSettings, IconChevronDown } from "@tabler/icons-react";
+import { IconLogout, IconSettings, IconChevronDown, IconUser } from "@tabler/icons-react";
 import logo_sm from "../img/logo_nodes.png";
 import { userContext } from "../common/userContext";
 import { useLocation } from "react-router-dom";
@@ -191,11 +191,11 @@ export function HeaderTabs(props: HeaderTabsProps) {
                   </UnstyledButton>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Link to="/account" onClick={() => setTab("")}>
+                  <Link to="/profile" onClick={() => setTab("")}>
                     <Menu.Item
-                      icon={<IconSettings size="0.9rem" stroke={1.5} />}
+                      icon={<IconUser size="0.9rem" stroke={1.5} />}
                     >
-                      Account settings
+                      User Profile
                     </Menu.Item>
                   </Link>
                   <Menu.Divider />

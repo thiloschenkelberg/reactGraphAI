@@ -1,3 +1,11 @@
+// TODO:
+// - profile pic
+// - decide on menu structure (inner tabs, animation?)
+
+// Settings:
+// - dont scale nodes on hover
+// - show /hide name/institution etc. on uploads ..
+
 // import { useEffect, useContext, useState } from "react"
 // import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery } from "react-query"
@@ -15,11 +23,12 @@ import {
   PasswordInput,
 } from "@mantine/core"
 
-import { PiEye, PiEyeSlash, PiLock, PiLockOpen } from "react-icons/pi"
+import { PiLock, PiLockOpen } from "react-icons/pi"
 import { useRef, useState } from "react"
 import { useSpring, animated } from "react-spring"
+import user_img from "../img/user.png"
 
-export default function Account(props: PaperProps) {
+export default function Profile(props: PaperProps) {
   const queryClient = useQueryClient()
   const { data: currentUser } = useQuery<IUser | null | undefined>(
     "getCurrentUser",
@@ -28,7 +37,9 @@ export default function Account(props: PaperProps) {
   const [passwordLocked, setPasswordLocked] = useState(true)
   const [showUnlockPasswordForm, setShowUnlockPasswordForm] = useState(false)
   const [lockHovered, setLockHovered] = useState(false)
+  const [imgHovered, setImgHovered] = useState(false)
   const emailRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   // shows new password form when current password could be authenticated
   const togglePasswordLock = () => {
@@ -44,6 +55,18 @@ export default function Account(props: PaperProps) {
       updateForm.setFieldValue("oldPassword", "")
       setShowUnlockPasswordForm(false)
       setPasswordLocked(true)
+    }
+  }
+
+  const handleImgClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      const img = files[0]
+      updateImgMutation.mutate(img)
     }
   }
 
@@ -206,6 +229,28 @@ export default function Account(props: PaperProps) {
     },
   })
 
+  const updateImgMutation = useMutation("updateImg", updateImg, {
+    onSuccess: (data) => {
+
+      toast.success(data.message)
+    },
+    onError: (err: any) => {
+      toast.error(err.message)
+    }
+  })
+
+  async function updateImg(img: File) {
+    try {
+      const { img } = img
+
+      const response = await client.updateUserImg(img)
+
+      return response.data
+    } catch (err: any) {
+      throw new Error(err.message)
+    }
+  }
+
   // Async function calls ########################################
 
   async function updateName(credentials: FormValues) {
@@ -296,21 +341,42 @@ export default function Account(props: PaperProps) {
   return (
     <div>
       {currentUser && (
-        <div className="account-wrap">
-          <div className="account-img">
+        <div className="profile-wrap">
+          <div className="profile-paper-img">
             <Paper
               radius="md"
               p="xl"
               withBorder
               {...props}
               style={{
-                padding: "0 0 0 0px",
+                // padding: "0 20px 0 20px",
+                width: "340px",
+                height: "340px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-
+              <img src={user_img} alt="User" className="profile-img-user"
+                onMouseEnter={() => setImgHovered(true)}
+                onMouseLeave={() => setImgHovered(false)}
+                onClick={(e) => handleImgClick()}
+                style={{
+                  width:"260px",
+                  height:"260px",
+                  borderRadius: "50%",
+                }}
+              />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}  // hide the input element
+              />
             </Paper>
           </div>
-          <div className="account-edit">
+          {/* Main Profile Page  ########################## */}
+          <div className="profile-paper-main">
             <Paper
               radius="md"
               p="xl"
@@ -320,43 +386,18 @@ export default function Account(props: PaperProps) {
                 padding: "0 0 0 0px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "left",
-                }}
-              >
-                <h3
-                  style={{
-                    marginBottom: 40,
-                    marginTop: 60,
-                    marginLeft: 40,
-                    width: 200,
-                    flexShrink: 0,
-                  }}
-                >
-                  Edit Account
-                </h3>
-                <h3
-                  style={{
-                    marginTop: 60,
-                    marginLeft: 40,
-                    width: 200,
-                    flexShrink: 0,
-                  }}
-                >
-                  Settings
+              <div className="profile-header-wrap">
+                <h3 className="profile-header-h3">
+                  User Profile
                 </h3>
               </div>
-
               <form
                 onSubmit={updateForm.onSubmit(handleSubmit)}
                 style={{
                   paddingBottom: 20,
                 }}
               >
-                {/* Full Name and Username */}
+                {/* Full Name and Username ##########################*/}
                 <div
                   style={{
                     display: "flex",
@@ -394,7 +435,7 @@ export default function Account(props: PaperProps) {
                     }}
                   />
                 </div>
-                {/* Institution */}
+                {/* Institution ########################## */}
                 <div
                   style={{
                     display: "flex",
@@ -424,7 +465,7 @@ export default function Account(props: PaperProps) {
                     }}
                   />
                 </div>
-                {/* Email and Email Confirmation */}
+                {/* Email and Email Confirmation ########################## */}
                 <div
                   style={{
                     display: "flex",
@@ -466,7 +507,7 @@ export default function Account(props: PaperProps) {
                   />
                 </div>
                 <div style={{ position: "relative", height: 100 }}>
-                  {/* Password and Password Confirmation*/}
+                  {/* Password and Password Confirmation ########################## */}
                   <div
                     style={{
                       position: "relative",
@@ -513,18 +554,18 @@ export default function Account(props: PaperProps) {
                       }}
                     />
                   </div>
-                  {/* Overlay begin */}
+                  {/* PW Overlay begin ########################## */}
                   {passwordLocked && (
                     <div
-                      className="account-pw-overlay"
+                      className="profile-pw-overlay"
                       style={{
                         // transform: "translate(-50%,-100px)",
                         position: "absolute",
                       }}
                     >
-                      {/* Overlay Background */}
+                      {/* PW Overlay Background ########################## */}
                       <div
-                        className="account-pw-background"
+                        className="profile-pw-background"
                         style={{
                           width: 500,
                           height: 100,
@@ -535,7 +576,7 @@ export default function Account(props: PaperProps) {
                         }}
                       />
 
-                      {/* Unlock password form */}
+                      {/* PW Unlock form ########################## */}
                       {showUnlockPasswordForm && (
                         <animated.div
                           style={{
@@ -571,8 +612,8 @@ export default function Account(props: PaperProps) {
                       )}
                     </div>
                   )}{" "}
-                  {/* Overlay end */}
-                  {/* Lock button   */}
+                  {/* PW Overlay end */}
+                  {/* PW Lock button   */}
                   <animated.div
                     style={{
                       position: "absolute",
@@ -602,12 +643,12 @@ export default function Account(props: PaperProps) {
                   </animated.div>
                 </div>{" "}
                 {/* Password end */}
-                {/* Confirmation button */}
+                {/* Confirmation button ########################## */}
                 <div
                   style={{
                     marginTop: 20,
                     marginRight: 40,
-                    marginBottom: 20,
+                    marginBottom: 15,
                     position: "relative",
                     display: "flex",
                     justifyContent: "right",

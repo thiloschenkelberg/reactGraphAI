@@ -109,7 +109,6 @@ class Client {
 
   async updateUsername(username: string) {
     try {
-      console.log("it really is the username")
       const token = getCookie("token")
       if (!token) {
         throw new Error("Token could not be retrieved!")
@@ -246,6 +245,32 @@ class Client {
     }
   }
 
+  async updateUserImg(img: File) {
+    try {
+
+
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.client.post("/users/update/imgurl", {
+        
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while updating user image!")
+    }
+  }
 
   async workflowSearch(workflow: string | null) {
     try {

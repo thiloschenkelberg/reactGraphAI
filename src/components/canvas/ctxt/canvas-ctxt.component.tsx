@@ -143,7 +143,7 @@ function ContextButton(props: ContextButtonProps) {
   });
 
   const spanAnim = useSpring({
-    scale: inverseScale,
+    scale: extendedHover === nodeType ? inverseScale : 0,
     opacity: extendedHover === nodeType ? 1 : 0
   })
 

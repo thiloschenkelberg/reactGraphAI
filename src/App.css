@@ -12,16 +12,54 @@ a:link {
   text-decoration: none;
 }
 
-.account-edit {
-  width: 520px;
-  height: auto;
-  position: absolute;
-  top: 175px;
-  left: 50%;
-  transform: translate(-50%, 0);
+.profile-header-h3 {
+  margin-bottom: 40px;
+  margin-top: 50px;
+  margin-left: 40px;
+  width: 260px;
+  flex-shrink: 0;
+  z-index: 2;
+  /* pointer-events: none; */
+  text-align: left;
 }
 
-.account-pw-overlay {
+.profile-header-wrap {
+  width: 520px;
+  display: flex;
+  flex-direction: row;
+}
+
+.profile-btn-bg {
+  position: absolute;
+  width: 259px;
+  height: 100px;
+  background-color: #1a1b1e;
+  z-index: 1;
+}
+
+.profile-btn-bg2 {
+  position: absolute;
+  width: 518px;
+  height: 100px;
+  background-color: #25262b;
+  z-index: 1;
+}
+
+.profile-paper-img {
+  margin-right: 10px;
+  position: relative;
+  top: 72px;
+}
+
+.profile-paper-main {
+  width: 520px;
+  height: auto;
+  position: relative;
+  top: 72px;
+  /* transform: translate(-50%, 0); */
+}
+
+.profile-pw-overlay {
   width: 520px;
   height: 100px;
   /* position: absolute; */
@@ -31,6 +69,14 @@ a:link {
   align-items: center;
   justify-content: center;
   display: flex;
+}
+
+.profile-wrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  height:800px;
+  width: auto;
 }
 
 .app-base {

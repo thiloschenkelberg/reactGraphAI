@@ -12,7 +12,7 @@ import client from "./client"
 import Home from "./components/home.component"
 import Search from "./components/search.component"
 import History from "./components/history.component"
-import Account from "./components/account.component"
+import Profile from "./components/profile.component"
 import AuthenticationForm from "./components/authentication.component"
 
 import "bootstrap/dist/css/bootstrap.min.css"
@@ -98,14 +98,14 @@ export default function App() {
             <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
             <Route path="/history" element={<History />} />
             <Route path="/login" element={<AuthenticationForm setTab={setTab}/>} />
-            <Route path="/account" element={<Account />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </div>
       </userContext.Provider>
       <Toaster
         position="top-center"
         containerStyle={{
-          top: "105px"
+          top: "75px" // Toast position
         }}
         toastOptions={{
           style: {
