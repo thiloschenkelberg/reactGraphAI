@@ -22,7 +22,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# config
+/src/config.ts
+
 # backend
 /backend/node_modules
 /backend/config.ts
-/config.ts
