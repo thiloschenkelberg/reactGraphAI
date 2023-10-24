@@ -25,6 +25,7 @@
   ],
   "exclude": [
     "**/backend",
-    "**/src/alt"
+    "**/src/alt",
+    
   ]
 }

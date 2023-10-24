@@ -1,7 +1,6 @@
 import axios, { AxiosInstance } from "axios"
-import {v2 as cloudinary} from "cloudinary"
 
-const API_URL = "http://localhost:8000/api"
+const API_URL = "http://localhost:8000"
 
 function getCookie(name: string) {
   const cookieValue = document.cookie
@@ -11,13 +10,6 @@ function getCookie(name: string) {
 
   return cookieValue
 }
-
-cloudinary.config({
-  cloud_name: '<your_cloud_name>',
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-})
 
 class Client {
   private client: AxiosInstance
@@ -32,7 +24,7 @@ class Client {
 
   async login(email: string, password: string) {
     try {
-      const response = await this.client.post("/users/login", {
+      const response = await this.client.post("/api/users/login", {
         email,
         password,
       })
@@ -49,7 +41,7 @@ class Client {
 
   async register(username: string, email: string, password: string) {
     try {
-      const response = await this.client.post("/users/register", {
+      const response = await this.client.post("/api/users/register", {
         username,
         email,
         password,
@@ -71,7 +63,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.get("/users/current", {
+      const response = await this.client.get("/api/users/current", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -97,7 +89,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/users/update/name", {
+      const response = await this.client.patch("/api/users/update/name", {
         name
       }, {
         headers: {
@@ -122,7 +114,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/users/update/username", {
+      const response = await this.client.patch("/api/users/update/username", {
         username
       }, {
         headers: {
@@ -152,7 +144,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/users/update/institution", {
+      const response = await this.client.patch("/api/users/update/institution", {
         institution
       }, {
         headers: {
@@ -179,7 +171,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/users/update/email", {
+      const response = await this.client.patch("/api/users/update/email", {
         newMail
       }, {
         headers: {
@@ -209,7 +201,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/users/update/password", {
+      const response = await this.client.patch("/api/users/update/password", {
         newPass,
         oldPass
       }, {
@@ -235,7 +227,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.post("/users/authpass", {
+      const response = await this.client.post("/api/users/authpass", {
         password
       }, {
         headers: {
@@ -260,19 +252,10 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const signResponse = await this.client.get("/api/users/gen_cld_sign", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      const formData = new FormData()
+      formData.append('image', img)
 
-      const { signature, timestamp, eager, public_id } = signResponse.data
-
-      const uploadResponse = await cloudinary.uploader.upload(img)
-
-      const response = await this.client.post("/users/update/imgurl", {
-        
-      }, {
+      const response = await this.client.post("/api/users/update/img", formData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -283,6 +266,8 @@ class Client {
       if (err.response?.data?.message) {
         err.message = err.response.data.message
         throw err
+      } else if (err.message) {
+        throw err
       }
       throw new Error("Unexpected error while updating user image!")
     }
@@ -290,7 +275,7 @@ class Client {
 
   async workflowSearch(workflow: string | null) {
     try {
-      const response = await this.client.get("/search/fabrication-workflow", {
+      const response = await this.client.get("/api/search/fabrication-workflow", {
         params: {
           workflow,
         },

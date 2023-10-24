@@ -71,6 +71,13 @@ class UserService {
     return UserRepository.updatePassword(newPass, id)
   }
 
+  static updateImgUrl(
+    url: string,
+    id: number
+  ): Promise<boolean> {
+    return UserRepository.updateImgUrl(url, id)
+  }
+
   static generateAccessToken(id: number) {
     return jwt.sign({ userId: id }, process.env.TOKEN_SECRET as string)
     // return jwt.sign(email, process.env.TOKEN_SECRET as string, { expiresIn: '1800s'})

@@ -7,4 +7,5 @@ export default interface IUser {
   roles?: Array<string> | undefined
   image?: string | undefined
   institution?: string | undefined
+  imgurl?: string | undefined
 }

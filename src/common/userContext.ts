@@ -10,6 +10,7 @@ const initialUser: IUser = {
   roles: [""],
   image: "",
   institution: "",
+  imgurl: "",
 }
 
 const userContext = createContext<IUser | null | undefined>(initialUser)

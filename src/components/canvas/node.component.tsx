@@ -192,8 +192,8 @@ export default React.memo(function Node(props: NodeProps) {
       if (!canvasRect) return
       if (dragging && dragCurrentPos && dragOffset) {
         const displacement = {
-          x: e.clientX - dragCurrentPos.x - dragOffset.x - canvasRect.x,
-          y: e.clientY - dragCurrentPos.y - dragOffset.y - canvasRect.y,
+          x: e.clientX - dragCurrentPos.x - dragOffset.x - canvasRect.left,
+          y: e.clientY - dragCurrentPos.y - dragOffset.y - canvasRect.top,
         }
         handleNodeMove(node.id, displacement)
         setDragCurrentPos({
@@ -369,6 +369,7 @@ const { x } = useSpring({
         style={{
           width: springProps.size.to((size) => size + 20),
           height: springProps.size.to((size) => size + 20),
+          cursor: nodeHovered ? !dragging ? fieldsMissing ? "default" : "grab" : "grabbing" : "default",
         }}
         className="node-clickable"
         onClick={handleClickLocal} // prevent propagation to canvas onClick\

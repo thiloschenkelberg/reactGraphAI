@@ -59,6 +59,7 @@ export default function Canvas(props: CanvasProps) {
   const [clickPosition, setClickPosition] = useState<Position | null>(null)
   const [selectionRect, setSelectionRect] = useState<Rect | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [dragCurrentPos, setDragCurrentPos] = useState<Position | null>(null)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const undoSteps = 50
@@ -169,6 +170,10 @@ export default function Canvas(props: CanvasProps) {
     updateHistoryComplete()
   }
 
+  const clamp = (value: number, min: number, max: number) => {
+    return Math.min(Math.max(value, min), max)
+  }
+
   const handleNodeMove = _.throttle(
     (nodeID: INode["id"], displacement: Vector2D) => {
       if (selectedNodes.length > 1) {
@@ -179,8 +184,8 @@ export default function Canvas(props: CanvasProps) {
               ? {
                   ...n,
                   position: {
-                    x: n.position.x + displacement.x,
-                    y: n.position.y + displacement.y,
+                    x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2)),
+                    y: clamp(n.position.y + displacement.y, n.size/2, window.innerHeight - (n.size/2)),
                   },
                 }
               : n
@@ -193,8 +198,8 @@ export default function Canvas(props: CanvasProps) {
               ? {
                   ...n,
                   position: {
-                    x: n.position.x + displacement.x,
-                    y: n.position.y + displacement.y,
+                    x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2 + 10)),
+                    y: clamp(n.position.y + displacement.y, n.size/2 + 20, window.innerHeight - (n.size)),
                   },
                 }
               : n
@@ -204,6 +209,19 @@ export default function Canvas(props: CanvasProps) {
     },
     10
   )
+
+  const handleCanvasGrab = _.throttle((displacement: Vector2D) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((n) => ({
+        ...n,
+        position: {
+          x: clamp(n.position.x + displacement.x, n.size / 2 + 10, window.innerWidth - (n.size / 2)),
+          y: clamp(n.position.y + displacement.y, n.size / 2, window.innerHeight - (n.size / 2)),
+        },
+      }))
+    );
+  });
+  
 
   const handleNodeConnect = (node: INode) => {
     setNavOpen(false)
@@ -433,20 +451,43 @@ export default function Canvas(props: CanvasProps) {
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (!canvasRect || navOpen || e.button === 2) return
+
     setDragging(true)
-    setClickPosition({
+    const mousePos = {
       x: e.clientX - canvasRect.left,
       y: e.clientY - canvasRect.top,
-    })
+    }
+
+    if (e.button === 1) {
+      setSelectedNodeIDs(new Set(nodes.map((n) => n.id)))
+      setDragCurrentPos(mousePos)
+      return
+    }
+
+    setClickPosition(mousePos)
   }
 
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (!dragging || !clickPosition || !canvasRect) return
+    if (!dragging || !canvasRect) return
 
     const mousePos = {
       x: e.clientX - canvasRect.left,
       y: e.clientY - canvasRect.top,
     }
+
+    if (selectedNodeIDs && dragCurrentPos) {
+      const displacement: Vector2D = {
+        x: mousePos.x - dragCurrentPos.x,
+        y: mousePos.y - dragCurrentPos.y,
+      }
+      handleCanvasGrab(displacement)
+      setDragCurrentPos({
+        x: mousePos.x + displacement.x,
+        y: mousePos.y + displacement.y
+      })
+    }
+
+    if (!clickPosition) return
 
     setSelectionRect({
       left: Math.min(clickPosition.x, mousePos.x),
@@ -458,7 +499,10 @@ export default function Canvas(props: CanvasProps) {
 
   const handleCanvasMouseUp = (e: React.MouseEvent) => {
     if (e.button === 2) return
+
     setDragging(false)
+    setSelectedNodes([])
+
     if (selectionRect) {
       const rectSelectedNodes = nodes.filter((node) => {
         return (

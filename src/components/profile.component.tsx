@@ -24,7 +24,8 @@ import {
 } from "@mantine/core"
 
 import { PiLock, PiLockOpen } from "react-icons/pi"
-import { useRef, useState } from "react"
+import { RiImageEditLine } from "react-icons/ri"
+import { useEffect, useRef, useState } from "react"
 import { useSpring, animated } from "react-spring"
 import user_img from "../img/user.png"
 
@@ -123,6 +124,21 @@ export default function Profile(props: PaperProps) {
         showUnlockPasswordForm && val.length < 1 ? "Password invalid." : null,
     },
   })
+
+  useEffect(() => {
+    if (currentUser) {
+      updateForm.setValues({
+        name: currentUser.name || "",
+        username: currentUser.username || "",
+        institution: currentUser.institution || "",
+        email: currentUser.email || "",
+        confirmEmail: "",
+        password: "",
+        confirmPassword: "",
+        oldPassword: "",
+      });
+    }
+  }, [currentUser]);
 
   // Submit Handler #############################################
 
@@ -231,7 +247,7 @@ export default function Profile(props: PaperProps) {
 
   const updateImgMutation = useMutation("updateImg", updateImg, {
     onSuccess: (data) => {
-
+      queryClient.invalidateQueries("getCurrentUser")
       toast.success(data.message)
     },
     onError: (err: any) => {
@@ -241,8 +257,6 @@ export default function Profile(props: PaperProps) {
 
   async function updateImg(img: File) {
     try {
-      const { img } = img
-
       const response = await client.updateUserImg(img)
 
       return response.data
@@ -270,6 +284,8 @@ export default function Profile(props: PaperProps) {
       const { username } = credentials
 
       const response = await client.updateUsername(username)
+
+      console.log(currentUser?.imgurl)
 
       return response.data
     } catch (err: any) {
@@ -338,6 +354,14 @@ export default function Profile(props: PaperProps) {
     opacity: showUnlockPasswordForm ? 1 : 0,
   })
 
+  const imgIconAnim = useSpring({
+    opacity: imgHovered ? 1 : 0,
+    config: {
+      tension: 1000,
+      friction: 80,
+    }
+  })
+
   return (
     <div>
       {currentUser && (
@@ -357,14 +381,43 @@ export default function Profile(props: PaperProps) {
                 alignItems: "center",
               }}
             >
-              <img src={user_img} alt="User" className="profile-img-user"
-                onMouseEnter={() => setImgHovered(true)}
-                onMouseLeave={() => setImgHovered(false)}
-                onClick={(e) => handleImgClick()}
+              <img src={currentUser.imgurl ? currentUser.imgurl : user_img} alt="User" className="profile-img-user"
+
                 style={{
                   width:"260px",
                   height:"260px",
                   borderRadius: "50%",
+                  position: "absolute",
+                }}
+              />
+              <animated.div
+                onMouseEnter={() => setImgHovered(true)}
+                onMouseLeave={() => setImgHovered(false)}
+                onClick={(e) => handleImgClick()}
+                style={{
+                  position: "absolute",
+                  backgroundColor: "#A6A7AB",
+                  width: 260,
+                  height: 260,
+                  borderRadius: "50%",
+                  opacity: imgHovered ? .55 : 0,
+                  cursor: imgHovered ? "pointer" : "default",
+                }}
+              />
+              <animated.div
+                children={
+                  <RiImageEditLine
+                    style={{
+                      position:"absolute",
+                      width:80,
+                      height:80,
+                      transform: "translate(-50%,-50%)",
+                      pointerEvents: "none"
+                    }}
+                  />
+                }
+                style={{
+                  ...imgIconAnim
                 }}
               />
               <input

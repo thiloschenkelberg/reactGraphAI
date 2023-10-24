@@ -15,7 +15,8 @@ db.run(`
     password TEXT NOT NULL,
     roles TEXT,
     image TEXT,
-    institution TEXT
+    institution TEXT,
+    imgurl TEXT
   )
 `)
 
@@ -156,6 +157,22 @@ class UserRepository {
       db.run(
         "UPDATE users SET password = ? WHERE id = ?",
         [newPass, id],
+        function (err) {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(true)
+          }
+        }
+      )
+    })
+  }
+
+  static updateImgUrl(url: string, id: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      db.run(
+        "UPDATE users SET imgurl = ? WHERE id = ?",
+        [url, id],
         function (err) {
           if (err) {
             reject(err)

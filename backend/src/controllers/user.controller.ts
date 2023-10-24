@@ -3,12 +3,16 @@ import bcrypt from "bcrypt"
 import UserService from "../services/user.service"
 import { IGetUserAuthInfoRequest } from "../types/req"
 import { Response } from "express"
-// import { v2 as cloudinary } from "cloudinary"
+import { v2 as cloudinary } from "cloudinary"
+import axios from "axios"
+import fileUpload from "express-fileupload"
+import FormData from "form-data"
 
-// import { CLOUDINARY_CONFIG } from "../../config"
+import { CLOUDINARY_CONFIG } from "../../config"
 
 const router = express.Router()
-// cloudinary.config(CLOUDINARY_CONFIG)
+router.use(fileUpload())
+cloudinary.config(CLOUDINARY_CONFIG)
 
 router.post("/api/users/login", async (req, res) => {
   try {
@@ -39,7 +43,7 @@ router.post("/api/users/login", async (req, res) => {
       token: token,
     })
   } catch (err) {
-    res.status(500).send("Internal Server Error!")
+    return res.status(500).send("Internal Server Error!")
   }
 })
 
@@ -80,7 +84,7 @@ router.post("/api/users/register", async (req, res) => {
       })
     }
   } catch (err) {
-    res.status(500).send("Internal Server Error!")
+    return res.status(500).send("Internal Server Error!")
   }
 })
 
@@ -103,7 +107,7 @@ router.delete(
         })
       }
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -132,7 +136,7 @@ router.get(
         message: "User found!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -168,7 +172,7 @@ router.patch(
         message: "Name successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -211,7 +215,7 @@ router.patch(
         message: "Username successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -247,7 +251,7 @@ router.patch(
         message: "Institution successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -284,7 +288,7 @@ router.patch(
         message: "Email successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error.")
+      return res.status(500).send("Internal Server Error.")
     }
   }
 )
@@ -329,7 +333,7 @@ router.patch(
         message: "Password successfully updated!",
       })
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
@@ -366,49 +370,108 @@ router.post(
         })
       }
     } catch (err) {
-      res.status(500).send("Internal Server Error!")
+      return res.status(500).send("Internal Server Error!")
     }
   }
 )
 
-// router.get(
-//   "/api/users/gen_cld_sign",
-//   UserService.authenticateToken,
-//   async (req: IGetUserAuthInfoRequest, res: Response) => {
-//     try {
-//       if (!req.userId) {
-//         return res.status(401).json({
-//           message: "Unauthorized access!",
-//         })
-//       }
+router.post(
+  "/api/users/authtoken",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const id = req.userId
+      if (!id) {
+        return res.status(401).json({
+          message: "Unauthorized access!",
+        })
+      }
 
-//       const timestamp = Math.round(new Date().getTime() / 1000)
-//       const eager = "w_400,h_300,c_pad|w_260,h_200,c_crop"
-//       const public_id = `users/avatars/${req.userId}`
+      return res.status(200).json({
+        message: "Token authenticated!",
+      })
+    } catch (err: any) {
+      return res.status(500).send("Internal Server Error!")
+    }
+  }
+)
 
+router.post(
+  "/api/users/update/img",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const id = req.userId
+      if (!id) {
+        return res.status(401).json({
+          message: "Unauthorized access!",
+        })
+      }
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({
+          message: "Img file could not be found!",
+        })
+      }
 
-//       const params = {
-//         timestamp: timestamp,
-//         eager: eager,
-//         public_id: public_id,
-//       }
+      
+      const signParams = {
+        timestamp: Math.round(new Date().getTime() / 1000),
+        eager: "g_face,c_crop,ar_1:1,z_0.9/w_400,h_400",
+        public_id: `users/avatars/${req.userId}`,
+      }
+      const signature = cloudinary.utils.api_sign_request(
+        signParams,
+        CLOUDINARY_CONFIG.api_secret
+      )
+      if (typeof signature !== "string") {
+        throw new Error("Error generating Cloudinary signature!")
+      }
 
-//       const signature = cloudinary.utils.api_sign_request(
-//         params,
-//         CLOUDINARY_CONFIG.api_secret
-//       )
+      const imgFile: any = req.files.image
 
-//       res.status(200).json({
-//         signature: signature,
-//         timestamp: timestamp,
-//         eager: eager,
-//         public_id: public_id
-//       })
-//     } catch (err) {
-//       res.status(500).send("Failed to generate signature!")
-//     }
-//   }
-// )
+      const formData = new FormData()
+      formData.append("file", imgFile.data, {
+        filename: imgFile.name,
+        contentType: imgFile.mimetype,
+      })
+      formData.append("timestamp", signParams.timestamp.toString())
+      formData.append("eager", signParams.eager)
+      formData.append("public_id", signParams.public_id)
+      formData.append("signature", signature)
+      formData.append("api_key", CLOUDINARY_CONFIG.api_key)
+
+      const cloudinaryRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloud_name}/image/upload`,
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+          },
+        }
+      )
+
+      const imgurl: string = cloudinaryRes.data.eager[0].secure_url
+
+      const updateSuccess = UserService.updateImgUrl(imgurl, id)
+      if (!updateSuccess) {
+        return res.status(400).json({
+          message: "User image could not be updated!"
+        })
+      }
+      return res.status(200).json({
+        message: "User image successfully updated!"
+      })
+    } catch (err: any) {
+      if (err.response) {
+        console.error("error:", err.response.data)
+        return res.status(err.response.status).json({
+          message: err.message
+        })
+      }
+      return res.status(500).json("Internal server error!")
+    }
+  }
+)
 
 // Additional API endpoints for updating, deleting users, etc.
 
