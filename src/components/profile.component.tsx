@@ -125,8 +125,9 @@ export default function Profile(props: PaperProps) {
     },
   })
 
+
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser)
       updateForm.setValues({
         name: currentUser.name || "",
         username: currentUser.username || "",
@@ -136,9 +137,9 @@ export default function Profile(props: PaperProps) {
         password: "",
         confirmPassword: "",
         oldPassword: "",
-      });
-    }
-  }, [currentUser]);
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser])
 
   // Submit Handler #############################################
 
@@ -252,18 +253,8 @@ export default function Profile(props: PaperProps) {
     },
     onError: (err: any) => {
       toast.error(err.message)
-    }
+    },
   })
-
-  async function updateImg(img: File) {
-    try {
-      const response = await client.updateUserImg(img)
-
-      return response.data
-    } catch (err: any) {
-      throw new Error(err.message)
-    }
-  }
 
   // Async function calls ########################################
 
@@ -342,6 +333,16 @@ export default function Profile(props: PaperProps) {
     }
   }
 
+  async function updateImg(img: File) {
+    try {
+      const response = await client.updateUserImg(img)
+
+      return response.data
+    } catch (err: any) {
+      throw new Error(err.message)
+    }
+  }
+
   // Animations #############################################
 
   const lockAnim = useSpring({
@@ -359,7 +360,7 @@ export default function Profile(props: PaperProps) {
     config: {
       tension: 1000,
       friction: 80,
-    }
+    },
   })
 
   return (
@@ -381,11 +382,13 @@ export default function Profile(props: PaperProps) {
                 alignItems: "center",
               }}
             >
-              <img src={currentUser.imgurl ? currentUser.imgurl : user_img} alt="User" className="profile-img-user"
-
+              <img
+                src={currentUser.imgurl ? currentUser.imgurl : user_img}
+                alt="User"
+                className="profile-img-user"
                 style={{
-                  width:"260px",
-                  height:"260px",
+                  width: "260px",
+                  height: "260px",
                   borderRadius: "50%",
                   position: "absolute",
                 }}
@@ -400,7 +403,7 @@ export default function Profile(props: PaperProps) {
                   width: 260,
                   height: 260,
                   borderRadius: "50%",
-                  opacity: imgHovered ? .55 : 0,
+                  opacity: imgHovered ? 0.55 : 0,
                   cursor: imgHovered ? "pointer" : "default",
                 }}
               />
@@ -408,23 +411,23 @@ export default function Profile(props: PaperProps) {
                 children={
                   <RiImageEditLine
                     style={{
-                      position:"absolute",
-                      width:80,
-                      height:80,
+                      position: "absolute",
+                      width: 80,
+                      height: 80,
                       transform: "translate(-50%,-50%)",
-                      pointerEvents: "none"
+                      pointerEvents: "none",
                     }}
                   />
                 }
                 style={{
-                  ...imgIconAnim
+                  ...imgIconAnim,
                 }}
               />
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                style={{ display: 'none' }}  // hide the input element
+                style={{ display: "none" }} // hide the input element
               />
             </Paper>
           </div>
@@ -440,9 +443,7 @@ export default function Profile(props: PaperProps) {
               }}
             >
               <div className="profile-header-wrap">
-                <h3 className="profile-header-h3">
-                  User Profile
-                </h3>
+                <h3 className="profile-header-h3">User Profile</h3>
               </div>
               <form
                 onSubmit={updateForm.onSubmit(handleSubmit)}
@@ -460,10 +461,15 @@ export default function Profile(props: PaperProps) {
                 >
                   <TextInput
                     label="Full Name"
-                    placeholder={currentUser.name ? currentUser.name : "Your name"}
+                    placeholder={
+                      currentUser.name ? currentUser.name : "Your name"
+                    }
                     value={updateForm.values.name}
                     onChange={(event) =>
-                      updateForm.setFieldValue("name", event.currentTarget.value)
+                      updateForm.setFieldValue(
+                        "name",
+                        event.currentTarget.value
+                      )
                     }
                     radius="md"
                     style={{
@@ -532,7 +538,10 @@ export default function Profile(props: PaperProps) {
                     // placeholder={currentUser.email}
                     value={updateForm.values.email}
                     onChange={(event) =>
-                      updateForm.setFieldValue("email", event.currentTarget.value)
+                      updateForm.setFieldValue(
+                        "email",
+                        event.currentTarget.value
+                      )
                     }
                     error={updateForm.errors.email}
                     radius="md"
