@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { INode } from "./types/canvas.types"
+import { INode } from "../types/canvas.types"
 
 interface NodeLabelsProps {
   // isEditing: boolean

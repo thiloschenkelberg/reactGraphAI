@@ -1,8 +1,7 @@
 import { Select } from "@mantine/core"
-import { toast } from "react-hot-toast"
-
-import { INode } from "./types/canvas.types"
 import { useRef, useState } from "react"
+
+import { INode } from "../types/canvas.types"
 
 interface NodeInputProps {
   isValueNode: boolean

@@ -4,14 +4,14 @@ import React, { useState, useRef, useEffect, useCallback } from "react"
 import chroma from "chroma-js"
 import { useSpring, animated } from "react-spring"
 
-import NodeContext from "./ctxt/node-ctxt.component"
-import NodeInput from "./node-input.component"
-import NodeLabel from "./node-label.component"
-import NodeWarning from "./node-warning.component"
+import NodeContext from "./NodeContext"
+import NodeInput from "./NodeInput"
+import NodeLabel from "./NodeLabel"
+import NodeWarning from "./NodeWarning"
 // import { NodeLabelOutline } from "./node-label.component"
-import NodeConnector from "./node-connector.component"
-import { INode, Position, Vector2D } from "./types/canvas.types"
-import { colorPalette } from "./types/colorPalette"
+import NodeConnector from "./NodeConnector"
+import { INode, Position, Vector2D } from "../types/canvas.types"
+import { colorPalette } from "../types/colors"
 
 interface NodeProps {
   node: INode
@@ -330,11 +330,6 @@ export default React.memo(function Node(props: NodeProps) {
       friction: 26,
     }
   })
-
-const { x } = useSpring({
-  from: { x: 0 },
-  to: isSelected === 1 ? { x: 1 } : { x: 0 }
-});
 
   return (
     <animated.div

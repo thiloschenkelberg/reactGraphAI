@@ -4,9 +4,9 @@ import DoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import DoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
 import SearchIcon from '@mui/icons-material/Search';
 
-import Canvas from "./canvas/canvas.component"
+import Canvas from "./canvas/Canvas"
 import client from "../client"
-import { saveToFile, saveBlobAsFile } from "../common/helpers"
+import { saveBlobAsFile } from "../common/helpers"
 
 interface SearchProps {
   colorIndex: number

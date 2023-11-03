@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 
-import { IConnection } from "./types/canvas.types"
-import ConnectionContext from "./ctxt/connection-ctxt.component"
+import { IConnection } from "../types/canvas.types"
+import ConnectionContext from "./ConnectionContext"
 
 interface ConnectionProps {
   connection: IConnection

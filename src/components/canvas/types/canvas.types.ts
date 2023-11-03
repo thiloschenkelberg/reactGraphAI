@@ -56,3 +56,7 @@ export interface NodeJSON {
   name: string;
   relationships: RelationshipJSON[];
 }
+
+export interface ICanvasButton {
+  type: "undo" | "redo" | "reset" | "layout" | "saveToFile"
+}

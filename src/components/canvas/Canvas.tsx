@@ -11,23 +11,26 @@ import UndoIcon from "@mui/icons-material/Undo"
 import RedoIcon from "@mui/icons-material/Redo"
 import { LuFileJson } from "react-icons/lu"
 
-import ContextCanvas from "./ctxt/canvas-ctxt.component"
-import Node from "./node.component"
-import Connection, { TempConnection } from "./connection.component"
+import ContextCanvas from "./CanvasContext"
+import Node from "./node/Node"
+import Connection, { TempConnection } from "./connection/Connection"
 import {
   Rect,
   INode,
   IConnection,
   Position,
   Vector2D,
+  ICanvasButton,
 } from "./types/canvas.types"
-import { graphLayouts } from "./types/graphLayouts"
+import { graphLayouts } from "./types/canvas.graphLayouts"
 import {
   isConnectableNode,
   isConnectionLegitimate,
   convertToJSONFormat,
-  saveToFile,
+  saveWorkflow,
+  clamp,
 } from "../../common/helpers"
+import CanvasButtonGroup from "./CanvasButtons"
 
 interface CanvasProps {
   colorIndex: number
@@ -60,10 +63,12 @@ export default function Canvas(props: CanvasProps) {
   const [selectionRect, setSelectionRect] = useState<Rect | null>(null)
   const [dragging, setDragging] = useState(false)
   const [dragCurrentPos, setDragCurrentPos] = useState<Position | null>(null)
+  const [altPressed, setAltPressed] = useState(false)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const undoSteps = 50
 
+  // Get nodes and connections from local storage
   useEffect(() => {
     const savedNodes = localStorage.getItem("nodes")
     const savedConnections = localStorage.getItem("connections")
@@ -74,11 +79,14 @@ export default function Canvas(props: CanvasProps) {
     }
   }, [])
 
+  // Save nodes and connections to local storage
   useEffect(() => {
     localStorage.setItem("nodes", JSON.stringify(nodes))
     localStorage.setItem("connections", JSON.stringify(connections))
   }, [nodes, connections])
 
+  // Resize Observer to get correct canvas bounds and
+  // successively correct mouse positions
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
       if (canvasRef.current) {
@@ -98,15 +106,14 @@ export default function Canvas(props: CanvasProps) {
     }
   }, [canvasRef])
 
+  // pass workflow to parent (search component)
   useEffect(() => {
     setWorkflow(convertToJSONFormat(nodes, connections))
   }, [nodes, connections, setWorkflow])
 
-  const saveWorkflow = () => {
-    const workflow = convertToJSONFormat(nodes, connections) //stringified
-    saveToFile(workflow, "json", "workflow.json")
-  }
-
+  // addNode from canvas context menu
+  // if created from connector, automatically
+  // add connection between nodes
   const addNode = (type: INode["type"], position: Position) => {
     const id = uuidv4().replaceAll("-", "")
     const layer = 0
@@ -128,6 +135,9 @@ export default function Canvas(props: CanvasProps) {
     setNodes((prevNodes) => [...prevNodes, newNode])
   }
 
+  // handle click (release) on node
+  // adds connection if connecting from other node
+  // selects node (will also open node context)
   const handleNodeClick = (node: INode) => {
     setSelectionRect(null)
     if (connectingNode) {
@@ -146,6 +156,9 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  // initialize node movement
+  // mainly prevents unwanted actions
+  // like moving nodes that are not involved
   const initNodeMove = (nodeID: INode["id"]) => {
     updateHistoryWithCaution()
     setConnectingNode(null)
@@ -166,14 +179,19 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  // finalize node movement
+  // saves movement to history
+  // -> action can be undone and redone properly
   const completeNodeMove = () => {
     updateHistoryComplete()
   }
 
-  const clamp = (value: number, min: number, max: number) => {
-    return Math.min(Math.max(value, min), max)
-  }
-
+  // actual node movement
+  // TODO: change method of moving nodes
+  // from mapping whole node array for
+  // each movement step, to splitting array
+  // into static and dynamic nodes and
+  // moving whole array more efficiently
   const handleNodeMove = _.throttle(
     (nodeID: INode["id"], displacement: Vector2D) => {
       if (selectedNodes.length > 1) {
@@ -210,6 +228,7 @@ export default function Canvas(props: CanvasProps) {
     10
   )
 
+  // move all nodes
   const handleCanvasGrab = _.throttle((displacement: Vector2D) => {
     setNodes((prevNodes) =>
       prevNodes.map((n) => ({
@@ -222,7 +241,9 @@ export default function Canvas(props: CanvasProps) {
     );
   });
   
-
+  // initialize node connection
+  // -> mouse needs to be released on another node
+  //    to create a connection
   const handleNodeConnect = (node: INode) => {
     setNavOpen(false)
     setClickPosition(null)
@@ -231,6 +252,8 @@ export default function Canvas(props: CanvasProps) {
     setConnectingNode(node)
   }
 
+  // sets node isEditing field
+  // so input field will show
   const initNodeNameChange = (nodeID: INode["id"], undoHistory?: boolean) => {
     if (undoHistory) updateHistoryRevert()
     setNodes((prevNodes) =>
@@ -240,6 +263,7 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
+  // rename node -> resetting isEditing to false
   const handleNodeNameChange = (
     nodeID: INode["id"],
     name?: string,
@@ -273,6 +297,7 @@ export default function Canvas(props: CanvasProps) {
     setSelectedNodes([])
   }
 
+  // deprecated
   const handleNodeLayerChange = (node: INode, up?: boolean) => {
     updateHistory()
     setNodes((prevNodes) =>
@@ -289,6 +314,9 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
+  // scale node
+  // TODO: enable scaling of nodes when
+  //       when autoscaling is disabled
   const handleNodeScale = (nodeID: INode["id"], delta?: number) => {
     if (!delta) return
     updateHistory()
@@ -312,6 +340,7 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
+  // delete node
   const handleNodeDelete = (nodeID: INode["id"]) => {
     updateHistory()
     setNodes((prevNodes) => prevNodes.filter((n) => n.id !== nodeID))
@@ -324,6 +353,9 @@ export default function Canvas(props: CanvasProps) {
     setSelectedNodes([])
   }
 
+  // switch node action
+  // prevents the need for passing
+  // too many functions as props
   const handleNodeAction = (
     node: INode,
     action: string,
@@ -366,6 +398,10 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  // set node selection status
+  // 0 = node is not selected
+  // 1 = node is selected
+  // 2 = node is selected among others
   const nodeSelectionStatus = (nodeID: string) => {
     const isSelected = selectedNodes.some(
       (selectedNode) => selectedNode.id === nodeID
@@ -377,6 +413,9 @@ export default function Canvas(props: CanvasProps) {
     return 0
   }
 
+  // add connection between two nodes
+  // checks for already existing connections
+  // checks for legitimate connections
   const addConnection = (start: INode, end: INode) => {
     if (start.id === end.id) return
     const connectionExists = connections.some(
@@ -396,6 +435,8 @@ export default function Canvas(props: CanvasProps) {
     ])
   }
 
+  // selects a connection
+  // (will also open connection context menu)
   const handleConnectionClick = (connectionID: IConnection["id"]) => {
     setSelectedConnectionID(connectionID)
     setSelectedNodes([])
@@ -405,6 +446,7 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  // deletes connection
   const handleConnectionDelete = (connectionID: IConnection["id"]) => {
     updateHistory()
     setConnections((prevConnections) =>
@@ -412,6 +454,7 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
+  // reverses connection direction if possible
   const handleConnectionReverse = (connectionID: IConnection["id"]) => {
     setConnections((prevConnections) =>
       prevConnections.map((c) => {
@@ -430,6 +473,7 @@ export default function Canvas(props: CanvasProps) {
     )
   }
 
+  // connection action switch
   const handleConnectionAction = (
     connectionID: IConnection["id"],
     action: string
@@ -449,145 +493,8 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
-  const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (!canvasRect || navOpen || e.button === 2) return
-
-    setDragging(true)
-    const mousePos = {
-      x: e.clientX - canvasRect.left,
-      y: e.clientY - canvasRect.top,
-    }
-
-    if (e.button === 1) {
-      setSelectedNodeIDs(new Set(nodes.map((n) => n.id)))
-      setDragCurrentPos(mousePos)
-      return
-    }
-
-    setClickPosition(mousePos)
-  }
-
-  const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (!dragging || !canvasRect) return
-
-    const mousePos = {
-      x: e.clientX - canvasRect.left,
-      y: e.clientY - canvasRect.top,
-    }
-
-    if (selectedNodeIDs && dragCurrentPos) {
-      const displacement: Vector2D = {
-        x: mousePos.x - dragCurrentPos.x,
-        y: mousePos.y - dragCurrentPos.y,
-      }
-      handleCanvasGrab(displacement)
-      setDragCurrentPos({
-        x: mousePos.x + displacement.x,
-        y: mousePos.y + displacement.y
-      })
-    }
-
-    if (!clickPosition) return
-
-    setSelectionRect({
-      left: Math.min(clickPosition.x, mousePos.x),
-      top: Math.min(clickPosition.y, mousePos.y),
-      width: Math.abs(mousePos.x - clickPosition.x),
-      height: Math.abs(mousePos.y - clickPosition.y),
-    })
-  }
-
-  const handleCanvasMouseUp = (e: React.MouseEvent) => {
-    if (e.button === 2) return
-
-    setDragging(false)
-    setSelectedNodes([])
-
-    if (selectionRect) {
-      const rectSelectedNodes = nodes.filter((node) => {
-        return (
-          node.position.x >= selectionRect.left &&
-          node.position.x <= selectionRect.left + selectionRect.width &&
-          node.position.y >= selectionRect.top &&
-          node.position.y <= selectionRect.top + selectionRect.height
-        )
-      })
-      setSelectedNodes(rectSelectedNodes)
-      setSelectionRect(null)
-      setClickPosition(null)
-    } else if (navOpen) {
-      setNavOpen(false)
-      setConnectingNode(null)
-    } else if (connectingNode) {
-      if (isConnectableNode(connectingNode.type) && canvasRect) {
-        const canvasClickPosition = {
-          x: e.clientX - canvasRect.left,
-          y: e.clientY - canvasRect.top,
-        }
-        setClickPosition(canvasClickPosition)
-        setNavOpen(true)
-      } else {
-        setConnectingNode(null)
-        toast.error("No possible connection!")
-      }
-    } else {
-      setConnectingNode(null)
-      setSelectedNodes([])
-    }
-    setSelectedConnectionID(null)
-  }
-
-  const handleDefaultContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setSelectionRect(null)
-    if (canvasRect) {
-      const canvasClickPosition = {
-        x: e.clientX - canvasRect.left,
-        y: e.clientY - canvasRect.top,
-      }
-      setClickPosition(canvasClickPosition)
-      setNavOpen(true)
-    }
-    setSelectedNodes([])
-    setSelectedConnectionID(null)
-    setConnectingNode(null)
-  }
-
-  const handleCanvasKeyUp = (e: React.KeyboardEvent) => {
-    if (e.key !== "Delete" || (!selectedNodes && !selectedConnectionID)) return
+  const handleLayoutNodes = () => {
     updateHistory()
-    if (selectedNodes.length > 0) {
-      const nodeIDs = new Set(selectedNodes.map((n) => n.id))
-      if (!nodeIDs) return
-      setNodes((prevNodes) => prevNodes.filter((n) => !nodeIDs.has(n.id)))
-      setConnections((prevConnections) =>
-        prevConnections.filter(
-          (connection) =>
-            !nodeIDs.has(connection.start.id) && !nodeIDs.has(connection.end.id)
-        )
-      )
-    } else if (selectedConnectionID) {
-      setConnections((prevConnections) =>
-        prevConnections.filter(
-          (connection) => connection.id !== selectedConnectionID 
-        ))
-      // setConnections((prevConnections) =>
-      //   prevConnections.filter((connection) => connection.id !== connectionID)
-      // )
-    }
-  }
-
-  const handleContextSelect = (type?: INode["type"]) => {
-    if (type && clickPosition) {
-      addNode(type, clickPosition)
-    }
-    setNavOpen(false)
-    setClickPosition(null)
-  }
-
-  const handleLayoutNodes = (e: React.MouseEvent) => {
-    updateHistory()
-    e.stopPropagation()
 
     cytoscape.use(fcose)
     const cy = cytoscape({
@@ -667,17 +574,17 @@ export default function Canvas(props: CanvasProps) {
     setFuture({ nodes: [], connections: [] })
   }
 
-  const logHistory = () => {
-    history.nodes.forEach((nodesArray, index) => {
-      console.log(`History entry ${index}:`)
+  // const logHistory = () => {
+  //   history.nodes.forEach((nodesArray, index) => {
+  //     console.log(`History entry ${index}:`)
 
-      nodesArray.forEach((node, index) => {
-        console.log(
-          `Node ${index}: x = ${node.position.x}, y = ${node.position.y}`
-        )
-      })
-    })
-  }
+  //     nodesArray.forEach((node, index) => {
+  //       console.log(
+  //         `Node ${index}: x = ${node.position.x}, y = ${node.position.y}`
+  //       )
+  //     })
+  //   })
+  // }
 
   const handleReset = () => {
     if (!nodes.length) return
@@ -734,6 +641,8 @@ export default function Canvas(props: CanvasProps) {
           default:
             break
         }
+      } else if (e.altKey) {
+        setAltPressed(true)
       }
     }
 
@@ -743,6 +652,162 @@ export default function Canvas(props: CanvasProps) {
       window.removeEventListener("keydown", handleCanvasKeyDown)
     }
   }, [undo, redo])
+
+  const handleCanvasKeyUp = (e: React.KeyboardEvent) => {
+    if (e.key === "Alt") setAltPressed(false)
+    if (e.key !== "Delete" || (!selectedNodes && !selectedConnectionID)) return
+    updateHistory()
+    if (selectedNodes.length > 0) {
+      const nodeIDs = new Set(selectedNodes.map((n) => n.id))
+      if (!nodeIDs) return
+      setNodes((prevNodes) => prevNodes.filter((n) => !nodeIDs.has(n.id)))
+      setConnections((prevConnections) =>
+        prevConnections.filter(
+          (connection) =>
+            !nodeIDs.has(connection.start.id) && !nodeIDs.has(connection.end.id)
+        )
+      )
+    } else if (selectedConnectionID) {
+      setConnections((prevConnections) =>
+        prevConnections.filter(
+          (connection) => connection.id !== selectedConnectionID 
+        ))
+      // setConnections((prevConnections) =>
+      //   prevConnections.filter((connection) => connection.id !== connectionID)
+      // )
+    }
+  }
+
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (!canvasRect || navOpen || e.button === 2) return
+
+    setDragging(true)
+    const mousePos = {
+      x: e.clientX - canvasRect.left,
+      y: e.clientY - canvasRect.top,
+    }
+
+    if (e.button === 1 || altPressed) {
+      setSelectedNodeIDs(new Set(nodes.map((n) => n.id)))
+      setDragCurrentPos(mousePos)
+      return
+    }
+
+    setClickPosition(mousePos)
+  }
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    if (!dragging || !canvasRect) return
+
+    const mousePos = {
+      x: e.clientX - canvasRect.left,
+      y: e.clientY - canvasRect.top,
+    }
+
+    if (selectedNodeIDs && dragCurrentPos) {
+      const displacement: Vector2D = {
+        x: mousePos.x - dragCurrentPos.x,
+        y: mousePos.y - dragCurrentPos.y,
+      }
+      handleCanvasGrab(displacement)
+      setDragCurrentPos({
+        x: mousePos.x,
+        y: mousePos.y
+      })
+    }
+
+    if (!clickPosition) return
+
+    setSelectionRect({
+      left: Math.min(clickPosition.x, mousePos.x),
+      top: Math.min(clickPosition.y, mousePos.y),
+      width: Math.abs(mousePos.x - clickPosition.x),
+      height: Math.abs(mousePos.y - clickPosition.y),
+    })
+  }
+
+  const handleCanvasMouseUp = (e: React.MouseEvent) => {
+    if (e.button === 2) return
+
+    setClickPosition(null)
+    setDragging(false)
+    setDragCurrentPos(null)
+    setSelectedNodes([])
+    setSelectedNodeIDs(null)
+    setSelectedConnectionID(null)
+
+    if (selectionRect) {
+      const rectSelectedNodes = nodes.filter((node) => {
+        return (
+          node.position.x >= selectionRect.left &&
+          node.position.x <= selectionRect.left + selectionRect.width &&
+          node.position.y >= selectionRect.top &&
+          node.position.y <= selectionRect.top + selectionRect.height
+        )
+      })
+      setSelectedNodes(rectSelectedNodes)
+      setSelectionRect(null)
+    } else if (navOpen) {
+      setNavOpen(false)
+      setConnectingNode(null)
+    } else if (connectingNode) {
+      if (isConnectableNode(connectingNode.type) && canvasRect) {
+        const canvasClickPosition = {
+          x: e.clientX - canvasRect.left,
+          y: e.clientY - canvasRect.top,
+        }
+        setClickPosition(canvasClickPosition)
+        setNavOpen(true)
+      } else {
+        setConnectingNode(null)
+        toast.error("No possible connection!")
+      }
+    }
+  }
+
+  const handleDefaultContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setSelectionRect(null)
+    if (canvasRect) {
+      const canvasClickPosition = {
+        x: e.clientX - canvasRect.left,
+        y: e.clientY - canvasRect.top,
+      }
+      setClickPosition(canvasClickPosition)
+      setNavOpen(true)
+    }
+    setSelectedNodes([])
+    setSelectedConnectionID(null)
+    setConnectingNode(null)
+  }
+
+  const handleContextSelect = (type?: INode["type"]) => {
+    if (type && clickPosition) {
+      addNode(type, clickPosition)
+    }
+    setNavOpen(false)
+    setClickPosition(null)
+  }
+
+  const handleButtonSelect = (buttonType: ICanvasButton["type"]) => {
+    switch (buttonType) {
+      case "undo":
+        undo()
+        break
+      case "redo":
+        redo()
+        break
+      case "reset":
+        handleReset()
+        break
+      case "layout":
+        handleLayoutNodes()
+        break
+      case "saveToFile":
+        saveWorkflow(nodes, connections)
+        break
+    }
+  }
 
   return (
     <div
@@ -807,46 +872,10 @@ export default function Canvas(props: CanvasProps) {
         />
       )}
       {/* Canvas Buttons */}
-      <div
-        className="canvas-btn-wrap"
-        style={{ left: canvasRect ? canvasRect.width / 2 : "50%" }}
-      >
-        {/* <div className="canvas-btn" style={{ textAlign: "center" }}>
-          {history.nodes.length}
-        </div>
-        <div className="canvas-btn-divider" /> */}
-        <div className="canvas-btn" onClick={undo}>
-          <UndoIcon className="canvas-btn-icon" />
-        </div>
-        <div className="canvas-btn-divider" />
-        <div className="canvas-btn" onClick={handleReset}>
-          <RestartAltIcon className="canvas-btn-icon" />
-        </div>
-        <div className="canvas-btn-divider" />
-        <div className="canvas-btn" onClick={redo}>
-          <RedoIcon className="canvas-btn-icon" />
-        </div>
-        <div className="canvas-btn-divider" />
-        <div className="canvas-btn" onClick={handleLayoutNodes}>
-          <TbBinaryTree
-            className="canvas-btn-icon"
-            style={{ width: "80%", height: "80%", marginLeft: "3px" }}
-          />
-        </div>
-        <div className="canvas-btn-divider" />
-        <div className="canvas-btn" onClick={saveWorkflow}>
-          <LuFileJson
-            className="canvas-btn-icon"
-            style={{ width: "80%", height: "80%", marginLeft: "3px" }}
-          />
-        </div>
-
-        {/* Log History button for debugging */}
-        {/* <div className="canvas-btn-divider" /> 
-        <div className="canvas-btn" onClick={logHistory}>
-          Log 
-        </div>  */}
-      </div>
+        <CanvasButtonGroup
+          canvasRect={canvasRect}
+          onSelect={handleButtonSelect}
+        />
       {/* Canvas Context Menu */}
       {navOpen && clickPosition && (
         <div

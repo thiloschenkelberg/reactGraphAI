@@ -1,4 +1,4 @@
-import { Position } from "./types/canvas.types"
+import { Position } from "../types/canvas.types"
 
 interface NodeConnectorProps {
   nodeSize: number

@@ -4,16 +4,16 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { Routes, Route} from "react-router-dom"
 import { userContext } from "./common/userContext"
 import { Toaster, toast } from "react-hot-toast"
-import { HeaderTabs } from "./components/header.component"
+import Header2 from "./components/Header2"
 import IUser from "./types/user.type"
 
 import client from "./client"
 
-import Home from "./components/home.component"
-import Search from "./components/search.component"
-import History from "./components/history.component"
-import Profile from "./components/profile.component"
-import AuthenticationForm from "./components/authentication.component"
+import Home from "./components/Home"
+import Search from "./components/Search"
+import History from "./components/History"
+import Profile from "./components/Profile"
+import AuthenticationForm from "./components/Authentication"
 
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./App.css"
@@ -86,7 +86,7 @@ export default function App() {
       <userContext.Provider value={currentUser}>
         {currentUser &&(
           <div className="header">
-            <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab} pathname={location.pathname}/>
+            <Header2 handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout} activeTab={activeTab} setActiveTab={setActiveTab} pathname={location.pathname}/>
           </div>
         )}
         {/* <div className="header">

@@ -5,7 +5,7 @@ import CloseIcon from "@mui/icons-material/Close"
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 
 
-import { hoverColors } from "../types/colorPalette"
+import { hoverColors } from "../types/colors"
 
 interface ConnectionContextProps {
   onSelect: (action: string) => void

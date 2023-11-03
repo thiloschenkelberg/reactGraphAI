@@ -148,6 +148,11 @@ export function isConnectionLegitimate(start: INode, end: INode): boolean {
   )
 }
 
+export function saveWorkflow(nodes: INode[], connections: IConnection[]) {
+  const workflow = convertToJSONFormat(nodes, connections)
+  saveToFile(workflow, "json", "workflow.json")
+}
+
 export function saveToFile(
   data: string,
   type: "json" | "csv",
@@ -200,4 +205,8 @@ export function fileToDataUri(file: File): Promise<string> {
     }
     reader.readAsDataURL(file)
   })
+}
+
+export function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
 }
