@@ -93,29 +93,29 @@ const useStyles = createStyles((theme) => ({
 
 const tabs = ["Search", "History"];
 
-interface HeaderTabsProps {
-  onHeaderLinkClick: (key: string) => void
-  onLogout: () => void;
-  tab: string | null
-  setTab: (tab: string) => void
+interface HeaderProps {
+  handleHeaderLinkClick: (key: string) => void
+  handleLogout: () => void;
+  activeTab: string | null
+  setActiveTab: (tab: string) => void
   pathname: string
 }
 
-export function HeaderTabs(props: HeaderTabsProps) {
-  const { onHeaderLinkClick, onLogout, tab, setTab, pathname } = props;
+export default function Header(props: HeaderProps) {
+  const { handleHeaderLinkClick, handleLogout, activeTab, setActiveTab, pathname } = props;
   const { classes, cx } = useStyles();
   const [userMenuOpened, setUserMenuOpened] = useState(false);
   const user = useContext(userContext);
 
-  const onLogoutLocal = () => {
-    onLogout();
+  const handleLogoutLocal = () => {
+    handleLogout();
   };
 
   const items = tabs.map((tab) => (
     <Tabs.Tab
       value={tab}
       key={tab}
-      onClick={() => onHeaderLinkClick(tab.toLowerCase())}
+      onClick={() => handleHeaderLinkClick(tab.toLowerCase())}
       style={{height:40}}
     >
       {tab}
@@ -132,7 +132,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
         <Group position="apart">
           {/* Logo */}
           <div className="logo-sm-container">
-            <Link to="/" onClick={() => setTab("")}>
+            <Link to="/" onClick={() => setActiveTab("")}>
               <img
                 src={logo_sm}
                 alt="mgai"
@@ -143,8 +143,8 @@ export function HeaderTabs(props: HeaderTabsProps) {
 
           {/* Tabs */}
           <Tabs
-            value={tab}
-            onTabChange={setTab}
+            value={activeTab}
+            onTabChange={setActiveTab}
             variant="outline"
             style={{
               transform: "translate(0px,0)",
@@ -191,7 +191,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
                   </UnstyledButton>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Link to="/profile" onClick={() => setTab("")}>
+                  <Link to="/profile" onClick={() => setActiveTab("")}>
                     <Menu.Item
                       icon={<IconUser size="0.9rem" stroke={1.5} />}
                     >
@@ -201,7 +201,7 @@ export function HeaderTabs(props: HeaderTabsProps) {
                   <Menu.Divider />
                   <Menu.Item
                     icon={<IconLogout size="0.9rem" stroke={1.5} />}
-                    onClick={onLogoutLocal}
+                    onClick={handleLogoutLocal}
                   >
                     Logout
                   </Menu.Item>

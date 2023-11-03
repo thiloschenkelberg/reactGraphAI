@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { Routes, Route} from "react-router-dom"
 import { userContext } from "./common/userContext"
 import { Toaster, toast } from "react-hot-toast"
-import Header2 from "./components/Header2"
+import Header from "./components/Header"
 import IUser from "./types/user.type"
 
 import client from "./client"
@@ -86,7 +86,7 @@ export default function App() {
       <userContext.Provider value={currentUser}>
         {currentUser &&(
           <div className="header">
-            <Header2 handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout} activeTab={activeTab} setActiveTab={setActiveTab} pathname={location.pathname}/>
+            <Header handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout} activeTab={activeTab} setActiveTab={setActiveTab} pathname={location.pathname}/>
           </div>
         )}
         {/* <div className="header">
