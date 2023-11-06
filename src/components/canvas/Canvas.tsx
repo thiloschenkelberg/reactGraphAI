@@ -5,12 +5,6 @@ import fcose from "cytoscape-fcose"
 import _ from "lodash"
 import { toast } from "react-hot-toast"
 
-import { TbBinaryTree } from "react-icons/tb"
-import RestartAltIcon from "@mui/icons-material/RestartAlt"
-import UndoIcon from "@mui/icons-material/Undo"
-import RedoIcon from "@mui/icons-material/Redo"
-import { LuFileJson } from "react-icons/lu"
-
 import ContextCanvas from "./CanvasContext"
 import Node from "./node/Node"
 import Connection, { TempConnection } from "./connection/Connection"
@@ -30,7 +24,7 @@ import {
   saveWorkflow,
   clamp,
 } from "../../common/helpers"
-import CanvasButtonGroup from "./CanvasButtons"
+import CanvasButtonGroup from "./CanvasButtons2"
 
 interface CanvasProps {
   colorIndex: number

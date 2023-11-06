@@ -47,6 +47,19 @@ a:link {
   /* color: #222327 */
 }
 
+.canvas-btn2 {
+  position: relative;
+  border-radius: 0.25rem;
+  background-color: #25262b;
+  align-self: center;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  width: 60px;
+  height: 40px;
+  /* color: #222327 */
+}
+
 .canvas-btn-divider {
   width: 1px;
   height: 20px;
