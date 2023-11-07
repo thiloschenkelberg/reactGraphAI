@@ -1,3 +1,6 @@
+// TODO: multiselect with strg
+// TODO: copy - paste
+
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { v4 as uuidv4 } from "uuid"
 import cytoscape from "cytoscape"
@@ -36,7 +39,7 @@ export default function Canvas(props: CanvasProps) {
   const { colorIndex, setWorkflow, style } = props
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
-  const [selectedNodeIDs, setSelectedNodeIDs] = useState<Set<string> | null>(
+  const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(
     null
   )
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
@@ -52,6 +55,7 @@ export default function Canvas(props: CanvasProps) {
     nodes: INode[][]
     connections: IConnection[][]
   }>({ nodes: [], connections: [] })
+  const [mousePosition, setMousePosition] = useState<Position>({x:0,y:0})
   const [navOpen, setNavOpen] = useState(false)
   const [clickPosition, setClickPosition] = useState<Position | null>(null)
   const [selectionRect, setSelectionRect] = useState<Rect | null>(null)
@@ -60,7 +64,7 @@ export default function Canvas(props: CanvasProps) {
   const [altPressed, setAltPressed] = useState(false)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
-  const undoSteps = 50
+  const undoSteps = 200
 
   // Get nodes and connections from local storage
   useEffect(() => {
@@ -100,6 +104,21 @@ export default function Canvas(props: CanvasProps) {
     }
   }, [canvasRef])
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!canvasRect) return
+      setMousePosition({
+        x: e.clientX - canvasRect.left,
+        y: e.clientY - canvasRect.top
+      })
+    }
+
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+    }
+  })
+
   // pass workflow to parent (search component)
   useEffect(() => {
     setWorkflow(convertToJSONFormat(nodes, connections))
@@ -133,11 +152,14 @@ export default function Canvas(props: CanvasProps) {
   // adds connection if connecting from other node
   // selects node (will also open node context)
   const handleNodeClick = (node: INode) => {
-    setSelectionRect(null)
-    if (connectingNode) {
+    cleanupDrag()
+    if (selectionRect) {
+      selectNodesBySelectionRect(node)
+    } else if (connectingNode) {
       addConnection(connectingNode, node)
       setConnectingNode(null)
     } else {
+
       updateHistoryRevert()
       if (nodeSelectionStatus(node.id) > 0) {
         setSelectedNodes([])
@@ -157,16 +179,18 @@ export default function Canvas(props: CanvasProps) {
     updateHistoryWithCaution()
     setConnectingNode(null)
     setNavOpen(false)
+    setDragging(true)
+    setDragCurrentPos(mousePosition)
     switch (nodeSelectionStatus(nodeID)) {
       case 0:
         setSelectedNodes([])
-        setSelectedNodeIDs(null)
+        setMovingNodeIDs(new Set([nodeID]))
         break
       case 1:
-        setSelectedNodeIDs(null)
+        setMovingNodeIDs(new Set([nodeID]))
         break
       case 2:
-        setSelectedNodeIDs(new Set(selectedNodes.map((n) => n.id)))
+        setMovingNodeIDs(new Set(selectedNodes.map((n) => n.id)))
         break
       default:
         return
@@ -177,7 +201,14 @@ export default function Canvas(props: CanvasProps) {
   // saves movement to history
   // -> action can be undone and redone properly
   const completeNodeMove = () => {
+    cleanupDrag()
     updateHistoryComplete()
+  }
+
+  const cleanupDrag = () => {
+    setClickPosition(null)
+    setDragging(false)
+    setDragCurrentPos(null)
   }
 
   // actual node movement
@@ -187,53 +218,40 @@ export default function Canvas(props: CanvasProps) {
   // into static and dynamic nodes and
   // moving whole array more efficiently
   const handleNodeMove = _.throttle(
-    (nodeID: INode["id"], displacement: Vector2D) => {
-      if (selectedNodes.length > 1) {
-        if (!selectedNodeIDs) return
-        setNodes((prevNodes) =>
-          prevNodes.map((n) =>
-            selectedNodeIDs.has(n.id)
-              ? {
-                  ...n,
-                  position: {
-                    x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2)),
-                    y: clamp(n.position.y + displacement.y, n.size/2, window.innerHeight - (n.size/2)),
-                  },
-                }
-              : n
-          )
+    (displacement: Vector2D) => {
+      if (!movingNodeIDs) return
+      setNodes((prevNodes) =>
+        prevNodes.map((n) =>
+          movingNodeIDs.has(n.id)
+            ? {
+                ...n,
+                position: {
+                  // x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2)),
+                  // y: clamp(n.position.y + displacement.y, n.size/2, window.innerHeight - (n.size/2)),
+                  x: n.position.x + displacement.x,
+                  y: n.position.y + displacement.y
+                },
+              }
+            : n
         )
-      } else {
-        setNodes((prevNodes) =>
-          prevNodes.map((n) =>
-            n.id === nodeID
-              ? {
-                  ...n,
-                  position: {
-                    x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2 + 10)),
-                    y: clamp(n.position.y + displacement.y, n.size/2 + 20, window.innerHeight - (n.size)),
-                  },
-                }
-              : n
-          )
-        )
-      }
-    },
-    10
+      )
+    }
   )
 
   // move all nodes
-  const handleCanvasGrab = _.throttle((displacement: Vector2D) => {
+  const handleCanvasGrab = (displacement: Vector2D) => {
     setNodes((prevNodes) =>
       prevNodes.map((n) => ({
         ...n,
         position: {
-          x: clamp(n.position.x + displacement.x, n.size / 2 + 10, window.innerWidth - (n.size / 2)),
-          y: clamp(n.position.y + displacement.y, n.size / 2, window.innerHeight - (n.size / 2)),
+          // x: clamp(n.position.x + displacement.x, n.size / 2 + 10, window.innerWidth - (n.size / 2)),
+          // y: clamp(n.position.y + displacement.y, n.size / 2, window.innerHeight - (n.size / 2)),
+          x: n.position.x + displacement.x,
+          y: n.position.y + displacement.y
         },
       }))
     );
-  });
+  };
   
   // initialize node connection
   // -> mouse needs to be released on another node
@@ -249,6 +267,7 @@ export default function Canvas(props: CanvasProps) {
   // sets node isEditing field
   // so input field will show
   const initNodeNameChange = (nodeID: INode["id"], undoHistory?: boolean) => {
+    cleanupDrag()
     if (undoHistory) updateHistoryRevert()
     setNodes((prevNodes) =>
       prevNodes.map((node) =>
@@ -345,6 +364,41 @@ export default function Canvas(props: CanvasProps) {
       )
     )
     setSelectedNodes([])
+  }
+
+  const selectNodesBySelectionRect = (node?: INode) => {
+    if (!selectionRect) return
+
+    let rectSelectedNodes = nodes.filter((node) => {
+      return (
+        node.position.x >= selectionRect.left &&
+        node.position.x <= selectionRect.left + selectionRect.width &&
+        node.position.y >= selectionRect.top &&
+        node.position.y <= selectionRect.top + selectionRect.height
+      )
+    })
+
+    if (node) {
+      const alreadySelected = rectSelectedNodes.some(
+        selectedNode => selectedNode.id === node.id
+      )
+      if (!alreadySelected) {
+        rectSelectedNodes.push(node)
+      }
+    }
+
+    setSelectedNodes(rectSelectedNodes)
+    setSelectionRect(null)
+  }
+
+  const copyNodes = () => {
+    if (selectedNodes.length > 0) {
+
+    }
+  }
+
+  const pasteNodes = () => {
+
   }
 
   // switch node action
@@ -487,8 +541,11 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
-  const handleLayoutNodes = () => {
-    updateHistory()
+  const handleLayoutNodes = (iteration = 0, maxIterations = 10) => {
+    if (iteration >= maxIterations) {
+      // do some warning and stop layout
+      return
+    }
 
     cytoscape.use(fcose)
     const cy = cytoscape({
@@ -513,36 +570,64 @@ export default function Canvas(props: CanvasProps) {
       position: node.position(),
     }))
 
+    let bounds = {
+      minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity
+    }
+
+    nodePositions.forEach((node) => {
+      if (node.position.x < bounds.minX) bounds.minX = node.position.x
+      if (node.position.x > bounds.maxX) bounds.maxX = node.position.x
+      if (node.position.y < bounds.minY) bounds.minY = node.position.y
+      if (node.position.y > bounds.maxY) bounds.maxY = node.position.y
+    })
+
+    const width = bounds.maxX - bounds.minX
+    const height = bounds.maxY - bounds.minY
+
+    let rotate = false
+    if (height > width) rotate = true
+
     if (canvasRect) {
+      // ############# handle nodes out of bounds
+      // let nodeOutOfBounds = false
       const updatedNodes = nodes.map((node) => {
         const newNode = { ...node } // Copy node to not mutate the original object
         const foundPosition = nodePositions.find((np) => np.id === node.id)
         if (foundPosition) {
-          // const xPrime =
-          //   foundPosition.position.x * Math.cos(-Math.PI / 2) -
-          //   foundPosition.position.y * Math.sin(-Math.PI / 2)
-          // const yPrime =
-          //   foundPosition.position.x * Math.sin(-Math.PI / 2) +
-          //   foundPosition.position.y * Math.cos(-Math.PI / 2)
+          let xPrime, yPrime
+
+          if (rotate) {
+            xPrime = -foundPosition.position.y
+            yPrime = foundPosition.position.x
+          } else {
+            xPrime = foundPosition.position.x
+            yPrime = foundPosition.position.y
+          }
 
           newNode.position = {
-            x:
-              foundPosition.position.x + canvasRect.width / 2 - canvasRect.left,
-            y:
-              foundPosition.position.y +
-              canvasRect.height / 2 -
-              canvasRect.top +
-              20,
+            x: xPrime - (rotate ? bounds.minY : bounds.minX) + canvasRect.width / 2 - (rotate ? height / 2 : width / 2),
+            y: yPrime - (rotate ? bounds.minX : bounds.minY) + canvasRect.height / 2 - (rotate ? width / 2 : height / 2) - 40
           }
+
+          // ############# handle nodes out of bounds
+          // if (
+          //   newNode.position.x < newNode.size / 2 + 10 || newNode.position.x > window.innerWidth - (newNode.size / 2) ||
+          //   newNode.position.y < newNode.size / 2 || newNode.position.y > window.innerHeight - (newNode.size / 2)
+          // ) {
+          //   nodeOutOfBounds = true
+          // }
         }
         return newNode
       })
-
       setNodes(updatedNodes)
     }
   }
 
   const updateHistory = () => {
+    console.log("updateHistory")
     setHistory((prev) => ({
       nodes: [...prev.nodes, nodes].slice(-undoSteps),
       connections: [...prev.connections, connections].slice(-undoSteps),
@@ -551,6 +636,7 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistoryWithCaution = () => {
+    console.log("updateHistorycaution")
     setHistory((prev) => ({
       nodes: [...prev.nodes, nodes].slice(-undoSteps),
       connections: [...prev.connections, connections].slice(-undoSteps),
@@ -558,6 +644,7 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistoryRevert = () => {
+    console.log("updateHistoryrevert")
     setHistory((prev) => ({
       nodes: prev.nodes.slice(0, -1),
       connections: prev.connections.slice(0, -1),
@@ -565,6 +652,7 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistoryComplete = () => {
+    console.log("updateHistorycomplete")
     setFuture({ nodes: [], connections: [] })
   }
 
@@ -624,13 +712,20 @@ export default function Canvas(props: CanvasProps) {
         redo()
       } else if (e.ctrlKey) {
         switch (e.key) {
-          case "z":
+          case "c":
             e.preventDefault()
-            undo()
+
+            break
+          case "v":
+            e.preventDefault()
             break
           case "y":
             e.preventDefault()
             redo()
+            break
+          case "z":
+            e.preventDefault()
+            undo()
             break
           default:
             break
@@ -676,47 +771,45 @@ export default function Canvas(props: CanvasProps) {
     if (!canvasRect || navOpen || e.button === 2) return
 
     setDragging(true)
-    const mousePos = {
-      x: e.clientX - canvasRect.left,
-      y: e.clientY - canvasRect.top,
-    }
 
     if (e.button === 1 || altPressed) {
-      setSelectedNodeIDs(new Set(nodes.map((n) => n.id)))
-      setDragCurrentPos(mousePos)
+      setMovingNodeIDs(new Set(nodes.map((n) => n.id)))
+      setDragCurrentPos(mousePosition)
+      // initNodeMove()
       return
     }
 
-    setClickPosition(mousePos)
+    setClickPosition(mousePosition)
   }
 
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
     if (!dragging || !canvasRect) return
 
-    const mousePos = {
-      x: e.clientX - canvasRect.left,
-      y: e.clientY - canvasRect.top,
-    }
-
-    if (selectedNodeIDs && dragCurrentPos) {
+    if (dragCurrentPos) {
       const displacement: Vector2D = {
-        x: mousePos.x - dragCurrentPos.x,
-        y: mousePos.y - dragCurrentPos.y,
+        x: mousePosition.x - dragCurrentPos.x,
+        y: mousePosition.y - dragCurrentPos.y,
       }
-      handleCanvasGrab(displacement)
+      if (selectedNodes.length === nodes.length) {
+        handleCanvasGrab(displacement)
+      } else {
+        handleNodeMove(displacement)
+      }
+      
       setDragCurrentPos({
-        x: mousePos.x,
-        y: mousePos.y
+        x: mousePosition.x,
+        y: mousePosition.y
       })
     }
 
+    console.log(clickPosition)
     if (!clickPosition) return
 
     setSelectionRect({
-      left: Math.min(clickPosition.x, mousePos.x),
-      top: Math.min(clickPosition.y, mousePos.y),
-      width: Math.abs(mousePos.x - clickPosition.x),
-      height: Math.abs(mousePos.y - clickPosition.y),
+      left: Math.min(clickPosition.x, mousePosition.x),
+      top: Math.min(clickPosition.y, mousePosition.y),
+      width: Math.abs(mousePosition.x - clickPosition.x),
+      height: Math.abs(mousePosition.y - clickPosition.y),
     })
   }
 
@@ -724,32 +817,19 @@ export default function Canvas(props: CanvasProps) {
     if (e.button === 2) return
 
     setClickPosition(null)
-    setDragging(false)
-    setDragCurrentPos(null)
     setSelectedNodes([])
-    setSelectedNodeIDs(null)
+    setMovingNodeIDs(null)
     setSelectedConnectionID(null)
+    cleanupDrag()
 
     if (selectionRect) {
-      const rectSelectedNodes = nodes.filter((node) => {
-        return (
-          node.position.x >= selectionRect.left &&
-          node.position.x <= selectionRect.left + selectionRect.width &&
-          node.position.y >= selectionRect.top &&
-          node.position.y <= selectionRect.top + selectionRect.height
-        )
-      })
-      setSelectedNodes(rectSelectedNodes)
-      setSelectionRect(null)
+      selectNodesBySelectionRect()
     } else if (navOpen) {
       setNavOpen(false)
       setConnectingNode(null)
     } else if (connectingNode) {
       if (isConnectableNode(connectingNode.type) && canvasRect) {
-        const canvasClickPosition = {
-          x: e.clientX - canvasRect.left,
-          y: e.clientY - canvasRect.top,
-        }
+        const canvasClickPosition = mousePosition
         setClickPosition(canvasClickPosition)
         setNavOpen(true)
       } else {
@@ -759,14 +839,47 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  const canvasZoom = useCallback((delta: number, mousePos: Position) => {
+    const updatedNodes = nodes.map((node) => {
+      const zoomFactor = 1 - (0.1 * delta)
+
+      const dx = node.position.x - mousePos.x
+      const dy = node.position.y - mousePos.y
+
+      const newNodePosition: Position = {
+        x: mousePos.x + dx * zoomFactor,
+        y: mousePos.y + dy * zoomFactor
+      }
+      return {
+        ...node,
+        position: newNodePosition
+      }
+    })
+
+    setNodes(updatedNodes)
+  }, [nodes])
+
+  useEffect(() => {
+    const handleCanvasWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      if (!canvasRect) return
+
+      const delta = Math.sign(e.deltaY)
+
+      canvasZoom(delta, mousePosition)
+    }
+
+    window.addEventListener("wheel", handleCanvasWheel, { passive: false })
+    return () => {
+      window.removeEventListener("wheel", handleCanvasWheel)
+    }
+  }, [canvasRect, canvasZoom, mousePosition])
+
   const handleDefaultContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     setSelectionRect(null)
     if (canvasRect) {
-      const canvasClickPosition = {
-        x: e.clientX - canvasRect.left,
-        y: e.clientY - canvasRect.top,
-      }
+      const canvasClickPosition = mousePosition
       setClickPosition(canvasClickPosition)
       setNavOpen(true)
     }
@@ -795,6 +908,7 @@ export default function Canvas(props: CanvasProps) {
         handleReset()
         break
       case "layout":
+        updateHistory()
         handleLayoutNodes()
         break
       case "saveToFile":
@@ -849,7 +963,8 @@ export default function Canvas(props: CanvasProps) {
           connecting={Boolean(connectingNode)}
           colorIndex={colorIndex}
           canvasRect={canvasRect}
-          handleNodeMove={handleNodeMove}
+          mousePosition={mousePosition}
+          // handleNodeMove={handleNodeMove}
           handleNodeAction={handleNodeAction}
         />
       ))}

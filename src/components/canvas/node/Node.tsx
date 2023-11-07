@@ -19,7 +19,8 @@ interface NodeProps {
   connecting: boolean
   colorIndex: number
   canvasRect: DOMRect | null
-  handleNodeMove: (nodeID: INode["id"], displacement: Vector2D) => void
+  mousePosition: Position
+  // handleNodeMove: (nodeID: INode["id"], displacement: Vector2D) => void
   handleNodeAction: (
     node: INode,
     action: string,
@@ -37,7 +38,8 @@ export default React.memo(function Node(props: NodeProps) {
     connecting,
     colorIndex,
     canvasRect,
-    handleNodeMove,
+    mousePosition,
+    // handleNodeMove,
     handleNodeAction,
   } = props
   const [fieldsMissing, setFieldsMissing] = useState(true)
@@ -185,61 +187,43 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [nodeHovered, nodeActualSize, mouseDist, mouseAngle])
 
-  // handle node movement and check if mousePos is inside node
+  // check if mousePos is inside node
   // bounding box. if it is, setMouseDist and call calculateConnector
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
       if (!canvasRect) return
-      if (dragging && dragCurrentPos && dragOffset) {
-        const displacement = {
-          x: e.clientX - dragCurrentPos.x - dragOffset.x - canvasRect.left,
-          y: e.clientY - dragCurrentPos.y - dragOffset.y - canvasRect.top,
-        }
-        handleNodeMove(node.id, displacement)
-        setDragCurrentPos({
-          x: node.position.x + displacement.x,
-          y: node.position.y + displacement.y,
-        })
-      } else if (!connecting) {
-        const mousePos = {
-          x: e.clientX - canvasRect.left,
-          y: e.clientY - canvasRect.top,
-        }
+      if (!connecting) {
         const detectionRadius = 31
         // box detection, mouse inside box -> calculateConnector
         if (
-          mousePos.x >=
+          mousePosition.x >=
             node.position.x - (nodeActualSize / 2 + detectionRadius) &&
-          mousePos.x <=
+            mousePosition.x <=
             node.position.x + (nodeActualSize / 2 + detectionRadius) &&
-          mousePos.y >=
+            mousePosition.y >=
             node.position.y - (nodeActualSize / 2 + detectionRadius) &&
-          mousePos.y <= node.position.y + (nodeActualSize / 2 + detectionRadius)
+            mousePosition.y <= node.position.y + (nodeActualSize / 2 + detectionRadius)
         ) {
-          const dx = mousePos.x - node.position.x
-          const dy = mousePos.y - node.position.y
+          const dx = mousePosition.x - node.position.x
+          const dy = mousePosition.y - node.position.y
           const dist = Math.sqrt(dx * dx + dy * dy)
           setMouseDist(dist)
           calculateConnectorAngle(dx, dy)
-          return // from here
+          return // prevent rewrite of mouseDist
         }
       }
       setMouseDist(1000)
       setConnectorActive(false)
-    }
-    // to here
-
-    document.addEventListener("mousemove", handleMouseMove)
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-    }
-  }, [node, nodeActualSize, canvasRect, connecting, dragging, dragCurrentPos, dragOffset, handleNodeMove, calculateConnectorAngle])
+  }, [node, nodeActualSize, canvasRect, connecting, dragging, dragCurrentPos, dragOffset, calculateConnectorAngle, mousePosition])
 
 
 
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 2) return
+    if (e.button === 1) {
+      setDragging(true)
+      return
+    }
     e.stopPropagation()
     if (connectorActive && !node.isEditing) {
       handleNodeAction(node, "connect")
@@ -247,11 +231,6 @@ export default React.memo(function Node(props: NodeProps) {
       if (!canvasRect || node.isEditing) return
       setDragging(true)
       setDragStartPos({ x: node.position.x, y: node.position.y })
-      setDragCurrentPos({ x: node.position.x, y: node.position.y })
-      setDragOffset({
-        x: e.clientX - node.position.x - canvasRect.left,
-        y: e.clientY - node.position.y - canvasRect.top,
-      })
       handleNodeAction(node, "initMove")
     }
   }
@@ -272,8 +251,11 @@ export default React.memo(function Node(props: NodeProps) {
     ) {
       handleNodeAction(node, "click")
       if (fieldsMissing) handleNodeAction(node, "setIsEditing")
-    } else {
+    } else if (dragStartPos || e.button === 1) {
       handleNodeAction(node, "completeMove")
+    } else if (!dragStartPos) {
+      console.log("hier")
+      handleNodeAction(node, "click")
     }
     cleanupDrag()
   }
@@ -312,15 +294,12 @@ export default React.memo(function Node(props: NodeProps) {
         undefined,
         true
       )
-      cleanupDrag()
     }
   }
 
   const cleanupDrag = () => {
     setDragging(false)
     setDragStartPos(null)
-    setDragCurrentPos(null)
-    setDragOffset(null)
   }
 
   const springProps = useSpring({
@@ -364,7 +343,7 @@ export default React.memo(function Node(props: NodeProps) {
         style={{
           width: springProps.size.to((size) => size + 20),
           height: springProps.size.to((size) => size + 20),
-          cursor: nodeHovered ? !dragging ? fieldsMissing ? "default" : "grab" : "grabbing" : "default",
+          cursor: nodeHovered ? !dragging ? fieldsMissing || connectorActive ? "default" : "grab" : "grabbing" : "default",
         }}
         className="node-clickable"
         onClick={handleClickLocal} // prevent propagation to canvas onClick\
