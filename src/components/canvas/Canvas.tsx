@@ -1,4 +1,3 @@
-// TODO: multiselect with strg
 // TODO: copy - paste
 
 import React, { useState, useRef, useEffect, useCallback } from "react"
@@ -27,21 +26,20 @@ import {
   saveWorkflow,
   clamp,
 } from "../../common/helpers"
-import CanvasButtonGroup from "./CanvasButtons2"
+import CanvasButtonGroup from "./CanvasButtons"
 
 interface CanvasProps {
   colorIndex: number
   setWorkflow: React.Dispatch<React.SetStateAction<string | null>>
+  splitView: boolean
   style?: React.CSSProperties
 }
 
 export default function Canvas(props: CanvasProps) {
-  const { colorIndex, setWorkflow, style } = props
+  const { colorIndex, setWorkflow, splitView, style } = props
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
-  const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(
-    null
-  )
+  const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [connections, setConnections] = useState<IConnection[]>([])
   const [selectedConnectionID, setSelectedConnectionID] = useState<
@@ -55,13 +53,14 @@ export default function Canvas(props: CanvasProps) {
     nodes: INode[][]
     connections: IConnection[][]
   }>({ nodes: [], connections: [] })
-  const [mousePosition, setMousePosition] = useState<Position>({x:0,y:0})
+  const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 })
   const [navOpen, setNavOpen] = useState(false)
   const [clickPosition, setClickPosition] = useState<Position | null>(null)
   const [selectionRect, setSelectionRect] = useState<Rect | null>(null)
   const [dragging, setDragging] = useState(false)
   const [dragCurrentPos, setDragCurrentPos] = useState<Position | null>(null)
   const [altPressed, setAltPressed] = useState(false)
+  const [ctrlPressed, setCtrlPressed] = useState(false)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const undoSteps = 200
@@ -109,7 +108,7 @@ export default function Canvas(props: CanvasProps) {
       if (!canvasRect) return
       setMousePosition({
         x: e.clientX - canvasRect.left,
-        y: e.clientY - canvasRect.top
+        y: e.clientY - canvasRect.top,
       })
     }
 
@@ -159,15 +158,36 @@ export default function Canvas(props: CanvasProps) {
       addConnection(connectingNode, node)
       setConnectingNode(null)
     } else {
-
       updateHistoryRevert()
-      if (nodeSelectionStatus(node.id) > 0) {
-        setSelectedNodes([])
-      } else if (!navOpen) {
-        setSelectedNodes([node])
-        setSelectedConnectionID(null)
-      } else {
-        setNavOpen(false)
+      switch (nodeSelectionStatus(node.id)) {
+        case 0:
+          if (!navOpen) {
+            setSelectedConnectionID(null)
+            if (ctrlPressed) {
+              setSelectedNodes((selectedNodes) => [...selectedNodes, node])
+              return
+            }
+            setSelectedNodes([node])
+          } else {
+            setNavOpen(false)
+          }
+          break
+        case 1:
+          setSelectedNodes([])
+          break
+        case 2:
+          if (ctrlPressed) {
+            setSelectedNodes(
+              selectedNodes.filter(
+                (selectedNode) => selectedNode.id !== node.id
+              )
+            )
+            return
+          }
+          setSelectedNodes([node])
+          break
+        default:
+          return
       }
     }
   }
@@ -179,21 +199,30 @@ export default function Canvas(props: CanvasProps) {
     updateHistoryWithCaution()
     setConnectingNode(null)
     setNavOpen(false)
+    setClickPosition(null)
     setDragging(true)
     setDragCurrentPos(mousePosition)
-    switch (nodeSelectionStatus(nodeID)) {
-      case 0:
-        setSelectedNodes([])
-        setMovingNodeIDs(new Set([nodeID]))
-        break
-      case 1:
-        setMovingNodeIDs(new Set([nodeID]))
-        break
-      case 2:
-        setMovingNodeIDs(new Set(selectedNodes.map((n) => n.id)))
-        break
-      default:
-        return
+    if (altPressed) {
+      setMovingNodeIDs(new Set(nodes.map((n) => n.id)))
+    } else {
+      switch (nodeSelectionStatus(nodeID)) {
+        case 0:
+          if (ctrlPressed) {
+            setMovingNodeIDs(new Set(selectedNodes.map((n) => n.id)))
+            return
+          }
+          setSelectedNodes([])
+          setMovingNodeIDs(new Set([nodeID]))
+          break
+        case 1:
+          setMovingNodeIDs(new Set([nodeID]))
+          break
+        case 2:
+          setMovingNodeIDs(new Set(selectedNodes.map((n) => n.id)))
+          break
+        default:
+          return
+      }
     }
   }
 
@@ -217,26 +246,24 @@ export default function Canvas(props: CanvasProps) {
   // each movement step, to splitting array
   // into static and dynamic nodes and
   // moving whole array more efficiently
-  const handleNodeMove = _.throttle(
-    (displacement: Vector2D) => {
-      if (!movingNodeIDs) return
-      setNodes((prevNodes) =>
-        prevNodes.map((n) =>
-          movingNodeIDs.has(n.id)
-            ? {
-                ...n,
-                position: {
-                  // x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2)),
-                  // y: clamp(n.position.y + displacement.y, n.size/2, window.innerHeight - (n.size/2)),
-                  x: n.position.x + displacement.x,
-                  y: n.position.y + displacement.y
-                },
-              }
-            : n
-        )
+  const handleNodeMove = _.throttle((displacement: Vector2D) => {
+    if (!movingNodeIDs) return
+    setNodes((prevNodes) =>
+      prevNodes.map((n) =>
+        movingNodeIDs.has(n.id)
+          ? {
+              ...n,
+              position: {
+                // x: clamp(n.position.x + displacement.x, n.size/2 + 10, window.innerWidth - (n.size/2)),
+                // y: clamp(n.position.y + displacement.y, n.size/2, window.innerHeight - (n.size/2)),
+                x: n.position.x + displacement.x,
+                y: n.position.y + displacement.y,
+              },
+            }
+          : n
       )
-    }
-  )
+    )
+  })
 
   // move all nodes
   const handleCanvasGrab = (displacement: Vector2D) => {
@@ -247,12 +274,12 @@ export default function Canvas(props: CanvasProps) {
           // x: clamp(n.position.x + displacement.x, n.size / 2 + 10, window.innerWidth - (n.size / 2)),
           // y: clamp(n.position.y + displacement.y, n.size / 2, window.innerHeight - (n.size / 2)),
           x: n.position.x + displacement.x,
-          y: n.position.y + displacement.y
+          y: n.position.y + displacement.y,
         },
       }))
-    );
-  };
-  
+    )
+  }
+
   // initialize node connection
   // -> mouse needs to be released on another node
   //    to create a connection
@@ -269,6 +296,15 @@ export default function Canvas(props: CanvasProps) {
   const initNodeNameChange = (nodeID: INode["id"], undoHistory?: boolean) => {
     cleanupDrag()
     if (undoHistory) updateHistoryRevert()
+    if (ctrlPressed) {
+      const node = nodes.find((node) => node.id === nodeID)
+      if (node) {
+        handleNodeClick(node)
+        return
+      }
+    } else {
+      setSelectedNodes([])
+    }
     setNodes((prevNodes) =>
       prevNodes.map((node) =>
         node.id === nodeID ? { ...node, isEditing: true } : node
@@ -318,7 +354,8 @@ export default function Canvas(props: CanvasProps) {
         if (n.id === node.id) {
           return {
             ...n,
-            layer: up === true ? n.layer + 1 : n.layer - 1 > 0 ? n.layer - 1 : 0,
+            layer:
+              up === true ? n.layer + 1 : n.layer - 1 > 0 ? n.layer - 1 : 0,
           }
         } else {
           return n
@@ -339,7 +376,7 @@ export default function Canvas(props: CanvasProps) {
           return {
             ...n,
             size:
-            // 100
+              // 100
               delta < 0 && n.size < 350
                 ? n.size - delta * 5
                 : delta > 0 && n.size > 75
@@ -380,7 +417,7 @@ export default function Canvas(props: CanvasProps) {
 
     if (node) {
       const alreadySelected = rectSelectedNodes.some(
-        selectedNode => selectedNode.id === node.id
+        (selectedNode) => selectedNode.id === node.id
       )
       if (!alreadySelected) {
         rectSelectedNodes.push(node)
@@ -393,13 +430,10 @@ export default function Canvas(props: CanvasProps) {
 
   const copyNodes = () => {
     if (selectedNodes.length > 0) {
-
     }
   }
 
-  const pasteNodes = () => {
-
-  }
+  const pasteNodes = () => {}
 
   // switch node action
   // prevents the need for passing
@@ -410,7 +444,7 @@ export default function Canvas(props: CanvasProps) {
     name?: string,
     value?: number,
     operator?: INode["operator"],
-    conditional?: boolean,
+    conditional?: boolean
   ) => {
     switch (action) {
       case "click":
@@ -574,7 +608,7 @@ export default function Canvas(props: CanvasProps) {
       minX: Infinity,
       maxX: -Infinity,
       minY: Infinity,
-      maxY: -Infinity
+      maxY: -Infinity,
     }
 
     nodePositions.forEach((node) => {
@@ -608,8 +642,17 @@ export default function Canvas(props: CanvasProps) {
           }
 
           newNode.position = {
-            x: xPrime - (rotate ? bounds.minY : bounds.minX) + canvasRect.width / 2 - (rotate ? height / 2 : width / 2),
-            y: yPrime - (rotate ? bounds.minX : bounds.minY) + canvasRect.height / 2 - (rotate ? width / 2 : height / 2) - 40
+            x:
+              xPrime -
+              (rotate ? bounds.minY : bounds.minX) +
+              canvasRect.width / 2 -
+              (rotate ? height / 2 : width / 2),
+            y:
+              yPrime -
+              (rotate ? bounds.minX : bounds.minY) +
+              canvasRect.height / 2 -
+              (rotate ? width / 2 : height / 2) -
+              40,
           }
 
           // ############# handle nodes out of bounds
@@ -627,7 +670,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistory = () => {
-    console.log("updateHistory")
     setHistory((prev) => ({
       nodes: [...prev.nodes, nodes].slice(-undoSteps),
       connections: [...prev.connections, connections].slice(-undoSteps),
@@ -636,7 +678,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistoryWithCaution = () => {
-    console.log("updateHistorycaution")
     setHistory((prev) => ({
       nodes: [...prev.nodes, nodes].slice(-undoSteps),
       connections: [...prev.connections, connections].slice(-undoSteps),
@@ -644,7 +685,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistoryRevert = () => {
-    console.log("updateHistoryrevert")
     setHistory((prev) => ({
       nodes: prev.nodes.slice(0, -1),
       connections: prev.connections.slice(0, -1),
@@ -652,7 +692,6 @@ export default function Canvas(props: CanvasProps) {
   }
 
   const updateHistoryComplete = () => {
-    console.log("updateHistorycomplete")
     setFuture({ nodes: [], connections: [] })
   }
 
@@ -681,7 +720,12 @@ export default function Canvas(props: CanvasProps) {
         nodes: [nodes, ...prev.nodes].slice(-undoSteps),
         connections: [connections, ...prev.connections].slice(-undoSteps),
       }))
-      setNodes(history.nodes[history.nodes.length - 1].map(node => ({ ...node, isEditing: false })))
+      setNodes(
+        history.nodes[history.nodes.length - 1].map((node) => ({
+          ...node,
+          isEditing: false,
+        }))
+      )
       setConnections(history.connections[history.connections.length - 1])
       setHistory((prev) => ({
         nodes: prev.nodes.slice(0, -1),
@@ -696,7 +740,7 @@ export default function Canvas(props: CanvasProps) {
         nodes: [...prev.nodes, nodes].slice(-undoSteps),
         connections: [...prev.connections, connections].slice(-undoSteps),
       }))
-      setNodes(future.nodes[0].map(node => ({ ...node, isEditing: false })))
+      setNodes(future.nodes[0].map((node) => ({ ...node, isEditing: false })))
       setConnections(future.connections[0])
       setFuture((prev) => ({
         nodes: prev.nodes.slice(1),
@@ -711,10 +755,18 @@ export default function Canvas(props: CanvasProps) {
         e.preventDefault()
         redo()
       } else if (e.ctrlKey) {
+        setCtrlPressed(true)
         switch (e.key) {
+          case "a":
+            e.preventDefault()
+            setSelectedNodes(nodes)
+            break
           case "c":
             e.preventDefault()
-
+            break
+          case "d":
+            e.preventDefault()
+            setSelectedNodes([])
             break
           case "v":
             e.preventDefault()
@@ -740,10 +792,16 @@ export default function Canvas(props: CanvasProps) {
     return () => {
       window.removeEventListener("keydown", handleCanvasKeyDown)
     }
-  }, [undo, redo])
+  }, [undo, redo, nodes])
 
   const handleCanvasKeyUp = (e: React.KeyboardEvent) => {
-    if (e.key === "Alt") setAltPressed(false)
+    if (e.key === "Alt") {
+      e.preventDefault()
+      setAltPressed(false)
+    }
+    if (e.key === "Control") {
+      setCtrlPressed(false)
+    }
     if (e.key !== "Delete" || (!selectedNodes && !selectedConnectionID)) return
     updateHistory()
     if (selectedNodes.length > 0) {
@@ -759,8 +817,9 @@ export default function Canvas(props: CanvasProps) {
     } else if (selectedConnectionID) {
       setConnections((prevConnections) =>
         prevConnections.filter(
-          (connection) => connection.id !== selectedConnectionID 
-        ))
+          (connection) => connection.id !== selectedConnectionID
+        )
+      )
       // setConnections((prevConnections) =>
       //   prevConnections.filter((connection) => connection.id !== connectionID)
       // )
@@ -790,19 +849,18 @@ export default function Canvas(props: CanvasProps) {
         x: mousePosition.x - dragCurrentPos.x,
         y: mousePosition.y - dragCurrentPos.y,
       }
-      if (selectedNodes.length === nodes.length) {
+      if (movingNodeIDs?.size === nodes.length) {
         handleCanvasGrab(displacement)
       } else {
         handleNodeMove(displacement)
       }
-      
+
       setDragCurrentPos({
         x: mousePosition.x,
-        y: mousePosition.y
+        y: mousePosition.y,
       })
     }
 
-    console.log(clickPosition)
     if (!clickPosition) return
 
     setSelectionRect({
@@ -815,9 +873,9 @@ export default function Canvas(props: CanvasProps) {
 
   const handleCanvasMouseUp = (e: React.MouseEvent) => {
     if (e.button === 2) return
+    if (e.button !== 1 && !altPressed) setSelectedNodes([])
 
     setClickPosition(null)
-    setSelectedNodes([])
     setMovingNodeIDs(null)
     setSelectedConnectionID(null)
     cleanupDrag()
@@ -839,25 +897,28 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
-  const canvasZoom = useCallback((delta: number, mousePos: Position) => {
-    const updatedNodes = nodes.map((node) => {
-      const zoomFactor = 1 - (0.1 * delta)
+  const canvasZoom = useCallback(
+    (delta: number, mousePos: Position) => {
+      const updatedNodes = nodes.map((node) => {
+        const zoomFactor = 1 - 0.1 * delta
 
-      const dx = node.position.x - mousePos.x
-      const dy = node.position.y - mousePos.y
+        const dx = node.position.x - mousePos.x
+        const dy = node.position.y - mousePos.y
 
-      const newNodePosition: Position = {
-        x: mousePos.x + dx * zoomFactor,
-        y: mousePos.y + dy * zoomFactor
-      }
-      return {
-        ...node,
-        position: newNodePosition
-      }
-    })
+        const newNodePosition: Position = {
+          x: mousePos.x + dx * zoomFactor,
+          y: mousePos.y + dy * zoomFactor,
+        }
+        return {
+          ...node,
+          position: newNodePosition,
+        }
+      })
 
-    setNodes(updatedNodes)
-  }, [nodes])
+      setNodes(updatedNodes)
+    },
+    [nodes]
+  )
 
   useEffect(() => {
     const handleCanvasWheel = (e: WheelEvent) => {
@@ -981,10 +1042,11 @@ export default function Canvas(props: CanvasProps) {
         />
       )}
       {/* Canvas Buttons */}
-        <CanvasButtonGroup
-          canvasRect={canvasRect}
-          onSelect={handleButtonSelect}
-        />
+      <CanvasButtonGroup
+        canvasRect={canvasRect}
+        splitView={splitView}
+        onSelect={handleButtonSelect}
+      />
       {/* Canvas Context Menu */}
       {navOpen && clickPosition && (
         <div
@@ -993,7 +1055,7 @@ export default function Canvas(props: CanvasProps) {
             left: clickPosition.x,
             top: clickPosition.y,
             transform: "translate(-50%, -50%)",
-            zIndex: 3
+            zIndex: 3,
           }}
         >
           <ContextCanvas

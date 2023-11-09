@@ -27,7 +27,6 @@ function CanvasButton(props: CanvasButtonProps) {
     children,
   } = props
   const [buttonHovered, setButtonHovered] = useState<ICanvasButton["type"] | null>(null)
-  const [buttonDown, setButtonDown] = useState<ICanvasButton["type"] | null>(null)
 
   const handleMouseUpLocal = (e: React.MouseEvent) => {
     if (e.button === 2) return
@@ -35,17 +34,14 @@ function CanvasButton(props: CanvasButtonProps) {
   }
     return(
         <div
-          className="canvas-btn2"
+          className="canvas-btn"
           onClick={handleMouseUpLocal}
           onMouseEnter={() => setButtonHovered(buttonType)}
           onMouseLeave={() => setButtonHovered(null)}
-          onMouseDown={() => setButtonDown(buttonType)}
-          onMouseUp={() => setButtonDown(null)}
           children={children}
           style={{
-            backgroundColor: buttonDown === buttonType ? "#1a1b1e" : buttonHovered === buttonType ? "#2c2e33" : "#25262b",
-            // transform: buttonHovered === buttonType ? "scale(1.05)" : "none",
-            zIndex: buttonHovered === buttonType ? 10 : 1,
+            borderColor: buttonHovered === buttonType ? "#2c2e33" : "#222327",
+            transform: buttonHovered === buttonType ? "scale(1.05)" : "none",
           }}
         />
     )
@@ -65,11 +61,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
         <div
             className="canvas-btn-wrap"
             style={{
-              left: canvasRect ? canvasRect.width / 2 : "50%",
-              backgroundColor: "#25262b",
-              padding: 5,
-              borderRadius: "0.25rem",
-              border: "1px solid #333333"
+              left: canvasRect ? canvasRect.width / 2 : "50%"
             }}
         >
           {

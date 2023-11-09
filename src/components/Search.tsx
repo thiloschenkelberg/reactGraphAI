@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
-import DoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
-import DoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight'
-import SearchIcon from '@mui/icons-material/Search';
+import DoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft"
+import DoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight"
+import SearchIcon from "@mui/icons-material/Search"
 
 import Canvas from "./canvas/Canvas"
 import client from "../client"
@@ -17,6 +17,21 @@ export default function Search(props: SearchProps) {
   const [workflow, setWorkflow] = useState<string | null>(null)
   const [splitView, setSplitView] = useState(false)
   const [splitViewWidth, setSplitViewWidth] = useState(0)
+
+  useEffect(() => {
+    const splitView = localStorage.getItem("searchSplitView")
+    const splitViewWidth = localStorage.getItem("searchSplitViewWidth")
+
+    if (!splitView || !splitViewWidth) return
+
+    setSplitView(JSON.parse(splitView))
+    setSplitViewWidth(JSON.parse(splitViewWidth))
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem("searchSplitView", JSON.stringify(splitView))
+    localStorage.setItem("searchSplitViewWidth", JSON.stringify(splitViewWidth))
+  }, [splitView, splitViewWidth])
 
   async function workflowSearch() {
     try {
@@ -38,29 +53,28 @@ export default function Search(props: SearchProps) {
     setSplitView(!splitView)
   }
 
-  return(
-    <div style={{position: "fixed", display: "flex"}}>
+  return (
+    <div style={{ position: "fixed", display: "flex" }}>
       <Canvas
         colorIndex={colorIndex}
         setWorkflow={setWorkflow}
+        splitView={splitView}
         style={{
           width: `calc(100vw - ${splitViewWidth}px)`,
-          height: "100vh"
+          height: "100vh",
         }}
       />
       {splitView && (
         <div
           style={{
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
           }}
         >
-          <div
-            className="wflow-buttons" 
-          >
-            <SearchIcon onClick={workflowSearch}/>
+          <div className="wflow-buttons">
+            <SearchIcon onClick={workflowSearch} />
           </div>
-          <div className="wflow-text"> 
+          <div className="wflow-text">
             <textarea
               readOnly
               value={workflow ? workflow : "asd"}
@@ -83,12 +97,16 @@ export default function Search(props: SearchProps) {
         }}
         onClick={handleSplitView}
       >
-        {splitView
-          ? <DoubleArrowRightIcon style={{color: "#909296", width: "100%", height: "auto"}}/>
-          : <DoubleArrowLeftIcon style={{color: "#909296", width: "100%", height: "auto"}}/>
-        }
+        {splitView ? (
+          <DoubleArrowRightIcon
+            style={{ color: "#909296", width: "100%", height: "auto" }}
+          />
+        ) : (
+          <DoubleArrowLeftIcon
+            style={{ color: "#909296", width: "100%", height: "auto" }}
+          />
+        )}
       </div>
-
     </div>
   )
 }

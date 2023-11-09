@@ -20,7 +20,6 @@ interface NodeProps {
   colorIndex: number
   canvasRect: DOMRect | null
   mousePosition: Position
-  // handleNodeMove: (nodeID: INode["id"], displacement: Vector2D) => void
   handleNodeAction: (
     node: INode,
     action: string,
@@ -45,8 +44,6 @@ export default React.memo(function Node(props: NodeProps) {
   const [fieldsMissing, setFieldsMissing] = useState(true)
   const [dragging, setDragging] = useState(false)
   const [dragStartPos, setDragStartPos] = useState<Position | null>(null)
-  const [dragCurrentPos, setDragCurrentPos] = useState<Position | null>(null)
-  const [dragOffset, setDragOffset] = useState<Vector2D | null>(null)
   const [nodeHovered, setNodeHovered] = useState(false)
   const [connectorPos, setConnectorPos] = useState<Position>({ x: 0, y: 0 })
   const [connectorActive, setConnectorActive] = useState(false)
@@ -59,7 +56,6 @@ export default React.memo(function Node(props: NodeProps) {
   const [nodeActualSize, setNodeActualSize] = useState(100)
   const nodeRef = useRef<HTMLDivElement>(null)
   const nodeLabelRef = useRef<HTMLDivElement>(null)
-  // const shouldFocusNameInput = !nodeName || !isValueNode
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
@@ -122,9 +118,8 @@ export default React.memo(function Node(props: NodeProps) {
   //   setHasLabelOverflow(nodeLabelRef.current.offsetWidth > node.size + 5)
   // }, [nodeLabelRef.current?.offsetWidth, node.size, isSelected])
 
-  /* 2. based on characters <-- seems better for now */
-
-  // calculate label overflow
+  /* set label overflow
+   * 2. based on characters <-- seems better for now */
   useEffect(() => {
     if (!node.name) return
     if (node.name.length > node.size / 9.65) {
@@ -164,11 +159,10 @@ export default React.memo(function Node(props: NodeProps) {
 
   // calculate connector stats (position, and active status)
   // is called when mousePos is inside node bounding box
-  const calculateConnectorAngle = useCallback(
-    (dx: number, dy: number) => {
-      const angle = Math.atan2(dy, dx)
-      setMouseAngle(angle)
-    }, [])
+  const calculateConnectorAngle = useCallback((dx: number, dy: number) => {
+    const angle = Math.atan2(dy, dx)
+    setMouseAngle(angle)
+  }, [])
 
   useEffect(() => {
     const radius = nodeActualSize / 2 + 2
@@ -187,35 +181,35 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [nodeHovered, nodeActualSize, mouseDist, mouseAngle])
 
+  // ################### handleMouseMove ###################
   // check if mousePos is inside node
   // bounding box. if it is, setMouseDist and call calculateConnector
   useEffect(() => {
-      if (!canvasRect) return
-      if (!connecting) {
-        const detectionRadius = 31
-        // box detection, mouse inside box -> calculateConnector
-        if (
-          mousePosition.x >=
-            node.position.x - (nodeActualSize / 2 + detectionRadius) &&
-            mousePosition.x <=
-            node.position.x + (nodeActualSize / 2 + detectionRadius) &&
-            mousePosition.y >=
-            node.position.y - (nodeActualSize / 2 + detectionRadius) &&
-            mousePosition.y <= node.position.y + (nodeActualSize / 2 + detectionRadius)
-        ) {
-          const dx = mousePosition.x - node.position.x
-          const dy = mousePosition.y - node.position.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          setMouseDist(dist)
-          calculateConnectorAngle(dx, dy)
-          return // prevent rewrite of mouseDist
-        }
+    if (!canvasRect) return
+    if (!connecting) {
+      const detectionRadius = 31
+      // box detection, mouse inside box -> calculateConnector
+      if (
+        mousePosition.x >=
+          node.position.x - (nodeActualSize / 2 + detectionRadius) &&
+        mousePosition.x <=
+          node.position.x + (nodeActualSize / 2 + detectionRadius) &&
+        mousePosition.y >=
+          node.position.y - (nodeActualSize / 2 + detectionRadius) &&
+        mousePosition.y <=
+          node.position.y + (nodeActualSize / 2 + detectionRadius)
+      ) {
+        const dx = mousePosition.x - node.position.x
+        const dy = mousePosition.y - node.position.y
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        setMouseDist(dist)
+        calculateConnectorAngle(dx, dy)
+        return // prevent rewrite of mouseDist
       }
-      setMouseDist(1000)
-      setConnectorActive(false)
-  }, [node, nodeActualSize, canvasRect, connecting, dragging, dragCurrentPos, dragOffset, calculateConnectorAngle, mousePosition])
-
-
+    }
+    setMouseDist(1000)
+    setConnectorActive(false)
+  }, [node, nodeActualSize, canvasRect, connecting, dragging, calculateConnectorAngle, mousePosition])
 
   // initiate node movement
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -254,16 +248,9 @@ export default React.memo(function Node(props: NodeProps) {
     } else if (dragStartPos || e.button === 1) {
       handleNodeAction(node, "completeMove")
     } else if (!dragStartPos) {
-      console.log("hier")
       handleNodeAction(node, "click")
     }
     cleanupDrag()
-  }
-
-  // prevent event propagation (prevent canvas.tsx onClick)
-  const handleClickLocal = (e: React.MouseEvent) => {
-    // e.preventDefault()
-    // e.stopPropagation()
   }
 
   const handleContextActionLocal = (ctxtAction: string) => {
@@ -286,6 +273,7 @@ export default React.memo(function Node(props: NodeProps) {
       Math.abs(dragStartPos.y - node.position.y) < 15
     ) {
       e.stopPropagation()
+      cleanupDrag()
       handleNodeAction(
         node,
         "setIsEditing",
@@ -303,11 +291,15 @@ export default React.memo(function Node(props: NodeProps) {
   }
 
   const springProps = useSpring({
-    size: nodeOptimalSize && ((nodeHovered && mouseDist < 25) || isSelected === 1 || dragging) ? nodeOptimalSize : node.size,
+    size:
+      nodeOptimalSize &&
+      ((nodeHovered && mouseDist < 25) || isSelected === 1 || dragging)
+        ? nodeOptimalSize
+        : node.size,
     config: {
       tension: nodeHovered && mouseDist < 25 ? 1000 : 200,
       friction: 26,
-    }
+    },
   })
 
   return (
@@ -343,11 +335,15 @@ export default React.memo(function Node(props: NodeProps) {
         style={{
           width: springProps.size.to((size) => size + 20),
           height: springProps.size.to((size) => size + 20),
-          cursor: nodeHovered ? !dragging ? fieldsMissing || connectorActive ? "default" : "grab" : "grabbing" : "default",
+          cursor: nodeHovered
+            ? !dragging
+              ? fieldsMissing || connectorActive
+                ? "default"
+                : "grab"
+              : "grabbing"
+            : "default",
         }}
         className="node-clickable"
-        onClick={handleClickLocal} // prevent propagation to canvas onClick\
-        onContextMenu={handleClickLocal}
         onMouseDown={handleMouseDown} // init connection
         onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
@@ -403,17 +399,6 @@ export default React.memo(function Node(props: NodeProps) {
               />
             )}
         </animated.div>
-        {/* node label overflow outline */}
-        {/* {hasLabelOverflow &&
-          (nodeHovered || isSelected === 1) &&
-          !fieldsMissing && (
-            <NodeLabelOutline
-              width={nodeLabelRef.current?.offsetWidth}
-              height={(nodeLabelRef.current?.offsetHeight ?? 0) - 1}
-              color={colors[1]}
-              layer={node.layer}
-            />
-          )} */}
         {/* end of visible */}
         {/* node input fields
          * outside of visible node to not be

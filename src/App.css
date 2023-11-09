@@ -55,18 +55,25 @@ a:link {
   justify-content: center;
   display: flex;
   align-items: center;
-  width: 60px;
-  height: 40px;
+  /* width: 60px;
+  height: 40px; */
   /* color: #222327 */
 }
 
 .canvas-btn-divider {
-  width: 1px;
-  height: 20px;
-  margin-left: 10px;
-  margin-right: 10px;
-  background-color: #a6a7ab;
+  background-color: #333333;
+}
+
+.canvas-btn-handle {
+  position: relative;
+  display: flex;
   align-self: center;
+}
+
+.canvas-btn-handle-icon {
+  position: relative;
+  font-size: 26px;
+  color: #a6a7ab;
 }
 
 .canvas-btn-icon {
@@ -78,12 +85,16 @@ a:link {
 .canvas-btn-wrap {
   position: absolute;
   display: flex;
-  top: 15px;
   width: auto;
   height: auto;
+  border: 1px solid #333333;
+  border-radius: 0.25rem;
+  padding: 5px;
+  background-color: #25262b;
+  justify-content: left;
   /* border: 1px solid #ff0000; */
   /* justify-content: left; */
-  transform: translate(-50%, 0);
+  /* transform: translate(-50%, 0) translate(-12px,0); */
   /* height: 35px;
   top: 3px; */
   /* background-color: #25262b; */
@@ -193,6 +204,7 @@ a:link {
   justify-content: left;
   width: 25vw;
   height: auto;
+  transform: translate(5px,0);
 }
 
 .main-window {
