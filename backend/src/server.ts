@@ -17,7 +17,12 @@ app.get("/api/test", (req, res) => {
   res.send("jello")
 })
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
+// // Start the server (local)
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`)
+// })
+
+// Start the server on google app engine
+app.listen(() => {
+  console.log("Server is running.")
 })
