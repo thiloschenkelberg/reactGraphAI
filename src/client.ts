@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios"
 
-const API_URL = "https://reactgraphai.ew.r.appspot.com"
+const API_URL = "https://reactgraphai.ew.r.appspot.com" //google app engine
+// const API_URL = "http://localhost:8080" // local
 
 function getCookie(name: string) {
   const cookieValue = document.cookie

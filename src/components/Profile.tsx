@@ -9,7 +9,7 @@
 // import { useEffect, useContext, useState } from "react"
 // import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery } from "react-query"
-import IUser from "../types/user.type"
+import {MDB_IUser as IUser} from "../types/user.type"
 import client from "../client"
 // import { userContext } from "../common/userContext"
 import { toast } from "react-hot-toast"

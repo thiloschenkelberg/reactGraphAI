@@ -1,5 +1,5 @@
 import express from "express"
-import userRouter from "./controllers/user.controller"
+import userRouter from "./controllers/user.controller-mongodb"
 import cors from "cors"
 
 const app = express()

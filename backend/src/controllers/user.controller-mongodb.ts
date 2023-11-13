@@ -1,6 +1,6 @@
 import express from "express"
 import bcrypt from "bcrypt"
-import UserService from "../services/user.service"
+import UserService from "../services/user.service-mongodb"
 import { IGetUserAuthInfoRequest } from "../types/req"
 import { Response } from "express"
 import { v2 as cloudinary } from "cloudinary"
@@ -8,7 +8,7 @@ import axios from "axios"
 import fileUpload from "express-fileupload"
 import FormData from "form-data"
 
-import { CLOUDINARY_CONFIG } from "../../config"
+import { CLOUDINARY_CONFIG } from "../config"
 
 const router = express.Router()
 router.use(fileUpload())
@@ -37,7 +37,7 @@ router.post("/api/users/login", async (req, res) => {
       })
     }
 
-    const token = UserService.generateAccessToken(user.id)
+    const token = await UserService.generateAccessToken(user.email)
     return res.status(200).json({
       message: "Login successful!",
       token: token,
@@ -117,7 +117,7 @@ router.get(
   UserService.authenticateToken,
   async (req: IGetUserAuthInfoRequest, res: Response) => {
     try {
-      const id = req.userId // req.mail should be decoded user mail
+      const id = req.userId
       if (!id) {
         return res.status(401).json({
           message: "Unauthorized access!",

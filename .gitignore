@@ -24,7 +24,7 @@ yarn-error.log*
 
 # backend
 /backend/node_modules
-/backend/config.ts
+/backend/src/config.ts
 /backend/.env
 
 /src/txt

@@ -177,7 +177,7 @@ export default function Header(props: HeaderProps) {
                     style={{height:40}}
                   >
                     <Group spacing={7}>
-                      {user && (user.image ? <div></div> : <div></div>)}
+                      {user && (user.imgurl ? <div></div> : <div></div>)}
                       <Text
                         weight={500}
                         size="sm"

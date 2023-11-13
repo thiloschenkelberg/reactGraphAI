@@ -20,7 +20,7 @@ import {
 } from "@mantine/core"
 import logo from "../img/logo.png"
 
-import IUser from "../types/user.type"
+import {MDB_IUser as IUser} from "../types/user.type"
 import client from "../client"
 
 // export interface AuthenticationFormValues {

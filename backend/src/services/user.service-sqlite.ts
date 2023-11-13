@@ -1,5 +1,5 @@
-import UserRepository from "../repositories/user.repository"
-import IUser from "../types/user.type"
+import UserRepository from "../repositories/user.repo-sqlite"
+import {SQL_IUser as IUser} from "../types/user.type"
 import jwt from "jsonwebtoken"
 import { Response, NextFunction } from "express"
 import { IGetUserAuthInfoRequest } from "../types/req"

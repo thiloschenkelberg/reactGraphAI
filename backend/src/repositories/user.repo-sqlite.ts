@@ -1,5 +1,5 @@
 import sqlite3 from "sqlite3"
-import IUser from "../types/user.type"
+import {SQL_IUser as IUser} from "../types/user.type"
 
 // Create a new SQLite database connection
 // const db = new sqlite3.Database(":memory:")

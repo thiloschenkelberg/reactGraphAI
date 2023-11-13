@@ -5,7 +5,7 @@ import { Routes, Route} from "react-router-dom"
 import { userContext } from "./common/userContext"
 import { Toaster, toast } from "react-hot-toast"
 import Header from "./components/Header"
-import IUser from "./types/user.type"
+import {MDB_IUser as IUser} from "./types/user.type"
 
 import client from "./client"
 
