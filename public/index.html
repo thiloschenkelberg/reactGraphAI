@@ -31,7 +31,7 @@
     <script>
       (function() {
         function isValidPath(path) {
-          console.log(path)
+          console.log("path to check: " + path)
           const validPaths = [
             "/",
             "/search",
@@ -45,6 +45,7 @@
         const path = window.location.pathname
 
         if (isValidPath(path)) {
+          console.log("setting to path: " + path)
           sessionStorage.setItem("redirectPath", path)
         }
       })
