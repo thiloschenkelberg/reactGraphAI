@@ -24,8 +24,17 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string | null>(
     () => localStorage.getItem("activeTab") || null
   )
-
   const location = useLocation()
+
+  useEffect(() => {
+    const redirectPath = sessionStorage.getItem("redirectPath")
+    if (redirectPath) {
+
+      navigate(redirectPath)
+
+      sessionStorage.removeItem("redirectPath")
+    }
+  }, [navigate])
 
   const {
     data: currentUser,
@@ -43,6 +52,8 @@ export default function App() {
     // errors are caught separately
     if (!isLoading && !currentUser) {
       navigate("/login")
+    } else {
+      console.log("user found")
     }
   }, [isLoading, currentUser, navigate])
 
