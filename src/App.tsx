@@ -105,11 +105,11 @@ export default function App() {
         </div> */}
         <div className="main-window">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/login" element={<AuthenticationForm setTab={setTab}/>} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/reactGraphAI/" element={<Home />} />
+            <Route path="/reactGraphAI/search" element={<Search colorIndex={currentColorIndex} />} />
+            <Route path="/reactGraphAI/history" element={<History />} />
+            <Route path="/reactGraphAI/login" element={<AuthenticationForm setTab={setTab}/>} />
+            <Route path="/reactGraphAI/profile" element={<Profile />} />
           </Routes>
         </div>
       </userContext.Provider>
