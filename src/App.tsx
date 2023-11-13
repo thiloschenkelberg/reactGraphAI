@@ -52,8 +52,6 @@ export default function App() {
     // errors are caught separately
     if (!isLoading && !currentUser) {
       navigate("/login")
-    } else {
-      console.log("user found")
     }
   }, [isLoading, currentUser, navigate])
 
