@@ -8,9 +8,6 @@ import toast from "react-hot-toast"
 import { BrowserRouter } from "react-router-dom"
 import { QueryCache, QueryClient, QueryClientProvider } from "react-query"
 import { MantineProvider } from "@mantine/core"
-import dotenv from "dotenv"
-
-dotenv.config()
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
