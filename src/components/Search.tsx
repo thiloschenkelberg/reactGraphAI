@@ -54,7 +54,7 @@ export default function Search(props: SearchProps) {
   }
 
   return (
-    <div style={{ position: "fixed", display: "flex" }}>
+    <div style={{ position: "fixed", display: "flex"}}>
       <Canvas
         colorIndex={colorIndex}
         setWorkflow={setWorkflow}

@@ -337,9 +337,7 @@ export default React.memo(function Node(props: NodeProps) {
           height: springProps.size.to((size) => size + 20),
           cursor: nodeHovered
             ? !dragging
-              ? fieldsMissing || connectorActive
-                ? "default"
-                : "grab"
+              ? "pointer"
               : "grabbing"
             : "default",
         }}

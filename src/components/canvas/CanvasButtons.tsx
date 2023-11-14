@@ -65,6 +65,7 @@ function CanvasButton(props: CanvasButtonProps) {
             : "#25262b",
         // transform: buttonHovered === buttonType ? "scale(1.05)" : "none",
         zIndex: buttonHovered === buttonType ? 10 : 1,
+        cursor: buttonHovered === buttonType ? "pointer" : "default",
       }}
     />
   )
@@ -77,6 +78,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
   const [position, setPosition] = useState<Position>({ x: 0, y: 15 })
   const [vertical, setVertical] = useState(false)
   const [moveable, setMoveable] = useState(false)
+  const [handleHovered, setHandleHovered] = useState(false)
   const buttonsRef = useRef<HTMLDivElement>(null)
 
   // if not positioned manually
@@ -179,6 +181,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
       style={{
         width: "100%",
         height: "100%",
+        cursor: moveable ? "grabbing" : handleHovered ? "grab" : "inherit"
       }}
       onMouseMove={moveButtons}
       // onMouseLeave={() => setMoveable(false)}
@@ -202,6 +205,8 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
             style={{
               margin: vertical ? "-5px 0 0 0" : "0 0 0 -5px",
             }}
+            onMouseEnter={() => setHandleHovered(true)}
+            onMouseLeave={() => setHandleHovered(false)}
             onMouseUp={(e: React.MouseEvent) => {
               e.stopPropagation()
               setMoveable(false)

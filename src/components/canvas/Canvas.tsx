@@ -981,7 +981,10 @@ export default function Canvas(props: CanvasProps) {
   return (
     <div
       className="canvas"
-      style={style}
+      style={{
+        ...style,
+        cursor: (dragging && dragCurrentPos) ? "grabbing" : "default",
+      }}
       // Selection rectangle
       onMouseDown={handleCanvasMouseDown}
       onMouseMove={handleCanvasMouseMove}

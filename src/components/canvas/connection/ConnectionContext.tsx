@@ -48,6 +48,7 @@ function ContextButton(props: ContextButtonProps) {
         width: 40,
         height: 40,
         backgroundColor: "#666666",
+        cursor: hovered ? "pointer" : "inherit"
       }}
     >
       {styledChild}

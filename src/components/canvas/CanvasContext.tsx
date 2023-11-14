@@ -193,6 +193,7 @@ function ContextButton(props: ContextButtonProps) {
         outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: `-${outlineWidth}px`,
         zIndex: hovered === nodeType ? 5 : 3,
+        cursor: hovered === nodeType ? "pointer" : "inherit",
         ...buttonAnim,
       }}
     >

@@ -24,6 +24,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
   const [slicedValue, setSlicedValue] = useState<string>("")
   const [isNameSliced, setIsNameSliced] = useState(false)
   const [isValueSliced, setIsValueSliced] = useState(false)
+  const [labelHovered, setLabelHovered] = useState(false)
   const {
     // isEditing,
     isSelected,
@@ -96,6 +97,8 @@ export default function NodeLabel(props: NodeLabelsProps) {
       <div
         className="node-label"
         onMouseUp={onMouseUp}
+        onMouseEnter={() => setLabelHovered(true)}
+        onMouseLeave={() => setLabelHovered(false)}
         style={{
           marginTop: isValueNode && value !== undefined ? 3 : 0,
           marginBottom: isValueNode && value !== undefined ? -3 : 0,
@@ -104,7 +107,8 @@ export default function NodeLabel(props: NodeLabelsProps) {
             : "#ececec",
           zIndex: layer + 1,
           display: "flex",
-          flexDirection: "row"
+          flexDirection: "row",
+          // cursor: (isSelected === 1 && labelHovered) ? "text" : "inherit" //not sure about that yet
         }}
       >
         {/* name span  */}
