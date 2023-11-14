@@ -26,17 +26,6 @@ export default function App() {
   )
   const location = useLocation()
 
-  useEffect(() => {
-    const redirectPath = sessionStorage.getItem("redirectPath")
-    console.log("path: " + redirectPath)
-    if (redirectPath) {
-
-      navigate(redirectPath)
-
-      sessionStorage.removeItem("redirectPath")
-    }
-  }, [])
-
   const {
     data: currentUser,
     isLoading,
