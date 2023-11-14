@@ -22,6 +22,7 @@ export default function App() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const location = useLocation()
+  const version = process.env.REACT_APP_VERSION?.slice(1,-1) ?? "???"
 
   const {
     data: currentUser,
@@ -103,7 +104,7 @@ export default function App() {
       />
       <div
         className="app-version"
-        children={`v${process.env.REACT_APP_VERSION}`}
+        children={`v${version}`}
       />
     </div>
   )
