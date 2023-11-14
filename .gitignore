@@ -23,6 +23,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+/src/alt
+
 # backend
 /backend/node_modules
 /backend/src/config.ts
