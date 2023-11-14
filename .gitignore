@@ -30,3 +30,4 @@ yarn-error.log*
 /backend/node_modules
 /backend/src/config.ts
 /backend/.env
+/backend/.gitignore
