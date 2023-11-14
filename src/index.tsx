@@ -25,7 +25,7 @@ const container = document.getElementById("root")
 // @ts-ignore
 const root = createRoot(container)
 
-
+console.log(process.env.REACT_APP_PUBLIC_URL)
 
 root.render(
   // <React.StrictMode>
