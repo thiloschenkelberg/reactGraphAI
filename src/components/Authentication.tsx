@@ -30,12 +30,7 @@ import client from "../client"
 //     terms: boolean,
 // }
 
-interface AuthenticationFormProps {
-  setTab: (tab: string) => void
-}
-
-export default function AuthenticationForm(props: AuthenticationFormProps) {
-  const { setTab } = props
+export default function AuthenticationForm() {
   const queryClient = useQueryClient()
   const currentUser = useContext(userContext)
   const navigate = useNavigate()
@@ -51,7 +46,7 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
     onSuccess: (data) => {
       queryClient.prefetchQuery<IUser | null | undefined>('getCurrentUser', client.getCurrentUser)
       toast.success(data.message)
-      setTab("")
+      // setTab("")
       navigate("/")
     },
     onError: (err: any) => {
@@ -129,7 +124,7 @@ export default function AuthenticationForm(props: AuthenticationFormProps) {
 
   return (
     <div className="wrap-login">
-      <Paper radius="md" p="xl" withBorder {...props}>
+      <Paper radius="md" p="xl" withBorder>
         <img src={logo} alt="matGraphAI Logo" className="login-logo" />
         {/* <Text size="lg" weight={500}>
           Welcome to matGraphAI, {type} with

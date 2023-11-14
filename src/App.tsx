@@ -21,9 +21,6 @@ import "./App.css"
 export default function App() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<string | null>(
-    () => localStorage.getItem("activeTab") || null
-  )
   const location = useLocation()
 
   const {
@@ -57,14 +54,6 @@ export default function App() {
   //     //something
   //   }
   // }, [isLoading])
-
-  useEffect(() => {
-    localStorage.setItem("activeTab", activeTab || "")
-  }, [activeTab])
-
-  const setTab = (value: string | null) => {
-    setActiveTab(value)
-  }
   
   const handleHeaderLinkClick = (key: string) => {
     navigate(key)
@@ -72,10 +61,8 @@ export default function App() {
 
   const handleLogout = () => {
     queryClient.setQueryData<IUser | null | undefined>("getCurrentUser", undefined)
-    setActiveTab("")
     document.cookie = "token="
     navigate("/login")
-
   }
 
   const currentColorIndex = 0 // make colorPalette choosable in settings later
@@ -85,7 +72,7 @@ export default function App() {
       <userContext.Provider value={currentUser}>
         {currentUser &&(
           <div className="header">
-            <Header handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout} activeTab={activeTab} setActiveTab={setActiveTab} pathname={location.pathname}/>
+            <Header handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout}/>
           </div>
         )}
         {/* <div className="header">
@@ -96,7 +83,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
             <Route path="/history" element={<History />} />
-            <Route path="/login" element={<AuthenticationForm setTab={setTab}/>} />
+            <Route path="/login" element={<AuthenticationForm />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </div>

@@ -96,16 +96,20 @@ const tabs = ["Search", "History"];
 interface HeaderProps {
   handleHeaderLinkClick: (key: string) => void
   handleLogout: () => void;
-  activeTab: string | null
-  setActiveTab: (tab: string) => void
-  pathname: string
 }
 
 export default function Header(props: HeaderProps) {
-  const { handleHeaderLinkClick, handleLogout, activeTab, setActiveTab, pathname } = props;
+  const { handleHeaderLinkClick, handleLogout } = props;
   const { classes, cx } = useStyles();
   const [userMenuOpened, setUserMenuOpened] = useState(false);
   const user = useContext(userContext);
+  const [activeTab, setActiveTab] = useState<string | null>(null)
+  const location = useLocation()
+
+  useEffect(() => {
+    const slicedPath = location.pathname.slice(1)
+    setActiveTab(slicedPath.charAt(0).toUpperCase() + slicedPath.slice(1))
+  }, [location, setActiveTab])
 
   const handleLogoutLocal = () => {
     handleLogout();
@@ -125,7 +129,8 @@ export default function Header(props: HeaderProps) {
   return (
     <div className={classes.header}
       style={{
-        backgroundColor: pathname === "/" ? "#1a1b1e" : "#25262b",
+        // backgroundColor: location.pathname === "/" ? "#1a1b1e" : "#25262b",
+        backgroundColor: "#25262b",
       }}
     >
       <Container size="default" className={classes.mainSection}>
@@ -144,7 +149,7 @@ export default function Header(props: HeaderProps) {
           {/* Tabs */}
           <Tabs
             value={activeTab}
-            onTabChange={setActiveTab}
+            // onTabChange={setActiveTab}
             variant="outline"
             style={{
               transform: "translate(0px,0)",
