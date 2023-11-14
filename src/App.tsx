@@ -28,6 +28,7 @@ export default function App() {
 
   useEffect(() => {
     const redirectPath = sessionStorage.getItem("redirectPath")
+    console.log(redirectPath)
     if (redirectPath) {
 
       navigate(redirectPath)
@@ -103,8 +104,7 @@ export default function App() {
         </div> */}
         <div className="main-window">
           <Routes>
-            {/* <Route path="/" element={<Home />} /> */}
-            <Route path="/" element={<AuthenticationForm setTab={setTab}/>} />
+            <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
             <Route path="/history" element={<History />} />
             <Route path="/login" element={<AuthenticationForm setTab={setTab}/>} />
