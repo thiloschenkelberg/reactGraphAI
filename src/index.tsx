@@ -25,10 +25,12 @@ const container = document.getElementById("root")
 // @ts-ignore
 const root = createRoot(container)
 
+
+
 root.render(
   // <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <BrowserRouter basename={process.env.REACT_APP_PUBLIC_URL}>
         <MantineProvider
           theme={{ colorScheme: "dark" }}
           withGlobalStyles
