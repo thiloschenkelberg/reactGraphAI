@@ -21,7 +21,6 @@ import "./App.css"
 export default function App() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const location = useLocation()
   const version = process.env.REACT_APP_VERSION?.slice(1,-1) ?? "???"
 
   const {
