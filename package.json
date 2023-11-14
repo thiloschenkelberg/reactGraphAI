@@ -1,6 +1,6 @@
 {
   "name": "reactgraphai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://thiloschenkelberg.github.io/reactGraphAI",
   "private": true,
   "dependencies": {
