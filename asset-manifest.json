@@ -1,18 +1,18 @@
 {
   "files": {
     "main.css": "/reactGraphAI/static/css/main.f1743c8e.css",
-    "main.js": "/reactGraphAI/static/js/main.e8268700.js",
+    "main.js": "/reactGraphAI/static/js/main.a0e99a8a.js",
     "static/js/787.f1b2af88.chunk.js": "/reactGraphAI/static/js/787.f1b2af88.chunk.js",
     "static/media/logo_nodes.png": "/reactGraphAI/static/media/logo_nodes.fd49f26667f47c8f4827.png",
     "static/media/logo.png": "/reactGraphAI/static/media/logo.9ba7b44c142d8da25014.png",
     "static/media/user.png": "/reactGraphAI/static/media/user.25ee1c6469efb93bf13a.png",
     "index.html": "/reactGraphAI/index.html",
     "main.f1743c8e.css.map": "/reactGraphAI/static/css/main.f1743c8e.css.map",
-    "main.e8268700.js.map": "/reactGraphAI/static/js/main.e8268700.js.map",
+    "main.a0e99a8a.js.map": "/reactGraphAI/static/js/main.a0e99a8a.js.map",
     "787.f1b2af88.chunk.js.map": "/reactGraphAI/static/js/787.f1b2af88.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f1743c8e.css",
-    "static/js/main.e8268700.js"
+    "static/js/main.a0e99a8a.js"
   ]
 }
