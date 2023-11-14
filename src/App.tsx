@@ -101,6 +101,10 @@ export default function App() {
           }
         }}
       />
+      <div
+        className="app-version"
+        children={`v${process.env.REACT_APP_VERSION}`}
+      />
     </div>
   )
 }

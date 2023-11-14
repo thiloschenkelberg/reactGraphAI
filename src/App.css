@@ -16,6 +16,16 @@ a:link {
   background-color: #1a1b1e;
 }
 
+.app-version {
+  position: absolute;
+  top: 98%;
+  left: 50%;
+  transform: translate(-50%,0);
+  font-size: 11px;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
 .blur-circle {
   width: 200px;
   height: 200px;
