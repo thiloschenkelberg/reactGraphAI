@@ -24,6 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 
 /src/alt
+/src/img/old
 
 # backend
 /backend/node_modules
