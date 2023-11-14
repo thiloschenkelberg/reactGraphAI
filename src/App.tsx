@@ -28,7 +28,7 @@ export default function App() {
 
   useEffect(() => {
     const redirectPath = sessionStorage.getItem("redirectPath")
-    console.log(redirectPath)
+    console.log("path: " + redirectPath)
     if (redirectPath) {
 
       navigate(redirectPath)
