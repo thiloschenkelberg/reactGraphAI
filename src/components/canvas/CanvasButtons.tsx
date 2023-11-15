@@ -11,7 +11,7 @@ import { PiDotsSixVertical as HandleIcon } from "react-icons/pi"
 
 import { ICanvasButton, Position } from "./types/canvas.types"
 import { clamp } from "../../common/helpers"
-import { verify } from "crypto"
+import { Tooltip } from 'react-tooltip'
 
 interface CanvasButtonGroupProps {
   canvasRect: DOMRect | null
@@ -24,10 +24,11 @@ interface CanvasButtonProps {
   buttonType: ICanvasButton["type"]
   children: React.ReactNode
   vertical: boolean
+  tooltipText: string
 }
 
 function CanvasButton(props: CanvasButtonProps) {
-  const { onSelect, buttonType, children, vertical } = props
+  const { onSelect, buttonType, children, vertical, tooltipText } = props
   const [buttonHovered, setButtonHovered] = useState<
     ICanvasButton["type"] | null
   >(null)
@@ -46,8 +47,14 @@ function CanvasButton(props: CanvasButtonProps) {
   }
 
   return (
+    <>
     <div
       className="canvas-btn2"
+      data-tooltip-id="canvas-btn-tooltip"
+      data-tooltip-content={tooltipText}
+      data-tooltip-place={vertical ? "right" : "bottom"}
+      data-tooltip-offset={15}
+      data-tooltip-delay-hide={0}
       onClick={handleMouseUpLocal}
       onMouseEnter={() => setButtonHovered(buttonType)}
       onMouseLeave={handleMouseLeave}
@@ -68,6 +75,8 @@ function CanvasButton(props: CanvasButtonProps) {
         cursor: buttonHovered === buttonType ? "pointer" : "default",
       }}
     />
+    <Tooltip id="canvas-btn-tooltip" className="canvas-btn-ttip"/>
+    </>
   )
 }
 
@@ -240,6 +249,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
               buttonType={button.type}
               children={button.icon}
               vertical={vertical}
+              tooltipText={button.tooltip}
             />
           ))}
         </div>
@@ -248,11 +258,10 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
   )
 }
 
-const BUTTON_TYPES: { type: ICanvasButton["type"]; icon: JSX.Element }[] = [
-  { type: "layout", icon: <GraphIcon2 className="canvas-btn-icon" /> },
-  { type: "undo", icon: <UndoIcon className="canvas-btn-icon" /> },
-  { type: "reset", icon: <ResetIcon2 className="canvas-btn-icon" /> },
-  { type: "redo", icon: <RedoIcon className="canvas-btn-icon" /> },
-
-  { type: "saveToFile", icon: <JsonFileIcon className="canvas-btn-icon" /> },
+const BUTTON_TYPES: { type: ICanvasButton["type"]; icon: JSX.Element; tooltip: string }[] = [
+  { type: "layout", icon: <GraphIcon2 className="canvas-btn-icon"/>, tooltip: "Layout Nodes" },
+  { type: "undo", icon: <UndoIcon className="canvas-btn-icon" />, tooltip: "Undo" },
+  { type: "reset", icon: <ResetIcon2 className="canvas-btn-icon" />, tooltip: "Reset Canvas" },
+  { type: "redo", icon: <RedoIcon className="canvas-btn-icon" />, tooltip: "Redo" },
+  { type: "showJSON", icon: <JsonFileIcon className="canvas-btn-icon" />, tooltip: "Show/Hide Workflow JSON" },
 ]

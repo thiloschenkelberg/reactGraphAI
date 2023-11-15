@@ -972,7 +972,7 @@ export default function Canvas(props: CanvasProps) {
         updateHistory()
         handleLayoutNodes()
         break
-      case "saveToFile":
+      case "showJSON":
         saveWorkflow(nodes, connections)
         break
     }
