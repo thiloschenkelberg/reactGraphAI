@@ -19,4 +19,4 @@ Then go to "Search" tab for main functionality
 
 On Search canvas, press <b>Right Click</b> to open the radial menu and create nodes.
 
-![Radial menu](https://res.cloudinary.com/dseyvzrwt/image/upload/v1703001996/wheel-1_gotxxl.png)
+![Radial menu]([https://res.cloudinary.com/dseyvzrwt/image/upload/v1703001996/wheel-1_gotxxl.png](https://res.cloudinary.com/dseyvzrwt/image/upload/v1703003089/wheel-3_v9suti.png)https://res.cloudinary.com/dseyvzrwt/image/upload/v1703003089/wheel-3_v9suti.png)
