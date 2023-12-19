@@ -6,9 +6,9 @@ Hosted at: https://thiloschenkelberg.github.io/reactGraphAI/
 
 Refers to: https://github.com/IEK-13/MatGraphAI
 
----
+## Try it out
 
-You can try it out using a test account:
+You can try out a prototype using a test account:
 
 Mail: test@test.com
 Password: testaccount
