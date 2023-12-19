@@ -13,5 +13,10 @@ You can try out a prototype using a test account:
 Mail: test@test.com <br>
 Password: testaccount
 
+Then go to "Search" tab for main functionality
 
+### Controls
 
+On Search canvas, press <b>Right Click</b> to open the radial menu and create nodes.
+
+![Radial menu](https://res.cloudinary.com/dseyvzrwt/image/upload/v1703001996/wheel-1_gotxxl.png)
