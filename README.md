@@ -10,6 +10,8 @@ Refers to: https://github.com/IEK-13/MatGraphAI
 
 You can try out a prototype using a test account:
 
-Mail: test@test.com
+Mail: test@test.com  return
 Password: testaccount
+
+
 
