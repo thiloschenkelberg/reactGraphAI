@@ -15,7 +15,6 @@ import { Tooltip } from 'react-tooltip'
 
 interface CanvasButtonGroupProps {
   canvasRect: DOMRect | null
-  splitView: boolean
   onSelect: (buttonType: ICanvasButton["type"]) => void
 }
 
@@ -81,46 +80,29 @@ function CanvasButton(props: CanvasButtonProps) {
 }
 
 export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
-  const { canvasRect, splitView, onSelect } = props
+  const { canvasRect, onSelect } = props
   const [initialized, setInitialized] = useState(false)
   const [positioned, setPositioned] = useState(false)
-  const [position, setPosition] = useState<Position>({ x: 0, y: 15 })
+  const [position, setPosition] = useState<Position>({ x: 12, y: 12 })
   const [vertical, setVertical] = useState(false)
+  const [left, setLeft] = useState(false)
   const [moveable, setMoveable] = useState(false)
   const [handleHovered, setHandleHovered] = useState(false)
   const buttonsRef = useRef<HTMLDivElement>(null)
-
-  // if not positioned manually
-  useEffect(() => {
-    if (!canvasRect || !buttonsRef.current || positioned) return
-
-    if (splitView) {
-      setPosition({
-        x: 0,
-        y: 15,
-      })
-      setVertical(true)
-    } else {
-      setPosition({
-        x: canvasRect.width / 2 - buttonsRef.current.offsetWidth / 2 - 22,
-        y: 15,
-      })
-      setVertical(false)
-    }
-    setInitialized(true)
-  }, [positioned, canvasRect, splitView])
 
   // load position from local storage
   useEffect(() => {
     const positioned = localStorage.getItem("canvasBtnPositioned")
     const position = localStorage.getItem("canvasBtnPosition")
     const vertical = localStorage.getItem("canvasBtnVertical")
+    const left = localStorage.getItem("canvasBtnLeft")
 
-    if (!position || !vertical || !positioned) return
+    if (!position || !vertical || !positioned || !left) return
 
     setPositioned(JSON.parse(positioned))
     setPosition(JSON.parse(position))
     setVertical(JSON.parse(vertical))
+    setLeft(JSON.parse(left))
 
     setInitialized(true)
   }, [])
@@ -130,9 +112,23 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
     localStorage.setItem("canvasBtnPositioned", JSON.stringify(positioned))
     localStorage.setItem("canvasBtnPosition", JSON.stringify(position))
     localStorage.setItem("canvasBtnVertical", JSON.stringify(vertical))
-  }, [positioned, position, vertical])
+    localStorage.setItem("canvasBtnLeft", JSON.stringify(left))
+  }, [positioned, position, vertical, left])
 
-  // move buttons (and enable manual positioning)
+  // automatic positioning (!positioned)
+  useEffect(() => {
+    if (!canvasRect || !buttonsRef.current || positioned) return
+
+    setPosition({
+      x: canvasRect.width / 2 - buttonsRef.current.offsetWidth / 2 - 22,
+      y: 12,
+    })
+    setVertical(false)
+    setLeft(false)
+    setInitialized(true)
+  }, [positioned, canvasRect])
+
+  // manual positioning (sets positioned)
   const moveButtons = (e: React.MouseEvent) => {
     if (!moveable || !canvasRect) return
 
@@ -141,21 +137,51 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
 
     let btnX, btnY
 
-    if (mouseX > 90) {
-      setVertical(false)
-      btnX = mouseX - 29
-      btnY = 15
-    } else {
+    if (mouseX <= 90) { // left
       setVertical(true)
-      btnX = 0
-      btnY = clamp(mouseY - 19, 15, Infinity)
+      setLeft(true)
+      btnX = 12
+      btnY = clamp(mouseY - 19, 12, Infinity)
+    } else if (mouseX <= (canvasRect.width - 90)) { // top
+      setVertical(false)
+      setLeft(false)
+      btnX = clamp(mouseX - 15, 91, canvasRect.width - 290)
+      btnY = 12
+    } else { // right
+      setVertical(true)
+      setLeft(false)
+      btnX = canvasRect.width - 69
+      btnY = clamp(mouseY - 19, 12, Infinity)
     }
 
     setPositioned(true)
     setPosition({ x: btnX, y: btnY })
   }
 
-  // reset button positioning (and disable manual positioning)
+  // manual positioning automatic fixes
+  useEffect(() => {
+    if (!canvasRect || !buttonsRef.current || !positioned || moveable) return
+
+    if (vertical && left) {
+      setPosition({
+        x: 12,
+        y: position.y
+      })
+    } else if (vertical) {
+      setPosition({
+        x: canvasRect.width - 69,
+        y: position.y
+      })
+    } else {
+      setPosition({
+        x: clamp(position.x, 91, canvasRect.right - 290),
+        y: position.y
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasRect, positioned])
+
+  // reset button positioning (sets !positioned)
   const resetButtons = () => {
     if (!canvasRect || !buttonsRef.current) return
 
@@ -167,30 +193,21 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
     }
     setPositioned(false)
 
-    if (splitView) {
-      setPosition({
-        x: 0,
-        y:
-          canvasRect.height / 2 -
-          canvasRect.top -
-          buttonsRef.current.offsetHeight / 2,
-      })
-      setVertical(true)
-    } else {
-      setPosition({
-        x: canvasRect.width / 2 - width - 22,
-        y: 15,
-      })
-      setVertical(false)
-    }
+    setPosition({
+      x: canvasRect.width / 2 - width - 22,
+      y: 12,
+    })
+    setVertical(false)
+    setLeft(false)
   }
 
   return (
     <div
+      className="canvas-btn-window"
       style={{
         width: "100%",
         height: "100%",
-        cursor: moveable ? "grabbing" : handleHovered ? "grab" : "inherit"
+        cursor: moveable ? "grabbing" : handleHovered ? "grab" : "inherit",
       }}
       onMouseMove={moveButtons}
       // onMouseLeave={() => setMoveable(false)}
@@ -203,7 +220,6 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
         <div
           className="canvas-btn-wrap"
           style={{
-            left: 10,
             transform: `translate(${position.x}px,${position.y}px)`,
             flexDirection: vertical ? "column" : "row",
           }}
@@ -259,9 +275,9 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
 }
 
 const BUTTON_TYPES: { type: ICanvasButton["type"]; icon: JSX.Element; tooltip: string }[] = [
-  { type: "layout", icon: <GraphIcon2 className="canvas-btn-icon"/>, tooltip: "Layout Nodes" },
   { type: "undo", icon: <UndoIcon className="canvas-btn-icon" />, tooltip: "Undo" },
   { type: "reset", icon: <ResetIcon2 className="canvas-btn-icon" />, tooltip: "Reset Canvas" },
   { type: "redo", icon: <RedoIcon className="canvas-btn-icon" />, tooltip: "Redo" },
-  { type: "showJSON", icon: <JsonFileIcon className="canvas-btn-icon" />, tooltip: "Show/Hide Workflow JSON" },
+  { type: "layout", icon: <GraphIcon2 className="canvas-btn-icon"/>, tooltip: "Layout Nodes" },
+  // { type: "saveWorkflow", icon: <JsonFileIcon className="canvas-btn-icon" />, tooltip: "Save Workflow to File" },
 ]

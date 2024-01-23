@@ -413,7 +413,6 @@ router.post(
         })
       }
 
-      
       const signParams = {
         timestamp: Math.round(new Date().getTime() / 1000),
         eager: "g_face,c_crop,ar_1:1,z_0.9/w_400,h_400",

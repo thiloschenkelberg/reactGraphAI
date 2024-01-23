@@ -91,7 +91,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-const tabs = ["Search", "History"];
+const tabs = ["Workflow", "Database"];
 
 interface HeaderProps {
   handleHeaderLinkClick: (key: string) => void
@@ -129,7 +129,6 @@ export default function Header(props: HeaderProps) {
   return (
     <div className={classes.header}
       style={{
-        // backgroundColor: location.pathname === "/" ? "#1a1b1e" : "#25262b",
         backgroundColor: "#25262b",
       }}
     >

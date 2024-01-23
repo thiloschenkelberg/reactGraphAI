@@ -133,7 +133,10 @@ export default React.memo(function Node(props: NodeProps) {
 
   // calculate nodeOptimalSize
   useEffect(() => {
-    if (!node.name) return
+    if (!node.name) {
+      setNodeOptimalSize(node.size)
+      return
+    }
 
     const nameMinimumSize = node.name.length * 11
     let nodeMinimumSize = nameMinimumSize
@@ -144,7 +147,7 @@ export default React.memo(function Node(props: NodeProps) {
     }
 
     setNodeOptimalSize(nodeMinimumSize > 100 ? nodeMinimumSize : null)
-  }, [node.name, node.value, isValueNode])
+  }, [node.size, node.name, node.value, isValueNode])
 
   // setup color array
   useEffect(() => {

@@ -10,8 +10,8 @@ import {MDB_IUser as IUser} from "./types/user.type"
 import client from "./client"
 
 import Home from "./components/Home"
-import Search from "./components/Search"
-import History from "./components/History"
+import Workflow from "./components/Workflow"
+import Database from "./components/Database"
 import Profile from "./components/Profile"
 import AuthenticationForm from "./components/Authentication"
 
@@ -81,8 +81,8 @@ export default function App() {
         <div className="main-window">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
-            <Route path="/history" element={<History />} />
+            <Route path="/workflow" element={<Workflow colorIndex={currentColorIndex} />} />
+            <Route path="/database" element={<Database />} />
             <Route path="/login" element={<AuthenticationForm />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>

@@ -58,5 +58,5 @@ export interface NodeJSON {
 }
 
 export interface ICanvasButton {
-  type: "undo" | "redo" | "reset" | "layout" | "showJSON"
+  type: "undo" | "redo" | "reset" | "layout" | "saveWorkflow"
 }

@@ -36,11 +36,6 @@ a:link {
   z-index: 0;
 }
 
-.canvas {
-  background-color: #1a1b1e;
-  position: relative;
-}
-
 .canvas-btn {
   position: relative;
   border-radius: 50%;
@@ -107,16 +102,6 @@ a:link {
   padding: 5px;
   background-color: #25262b;
   justify-content: left;
-  /* border: 1px solid #ff0000; */
-  /* justify-content: left; */
-  /* transform: translate(-50%, 0) translate(-12px,0); */
-  /* height: 35px;
-  top: 3px; */
-  /* background-color: #25262b; */
-  /* padding-left: 10px;
-  padding-right: 10px;
-  filter: drop-shadow(1px 1px 1px #111);
-  border-radius: 0 0 3px 3px; */
 }
 
 .card-container.card {
@@ -188,9 +173,8 @@ a:link {
 
 .header {
   position: fixed;
-  width: 100%;
-  height: 60px;
-  z-index: 1001;
+  width: 100vw;
+  height: 65px;
 }
 
 .header-width {
@@ -223,7 +207,10 @@ a:link {
 }
 
 .main-window {
-  padding-top: 60px;
+  width: 100vw;
+  height: calc(100vh - 65px);
+  position: fixed;
+  top: 65px;
 }
 
 .node {
@@ -481,30 +468,55 @@ a:link {
   justify-content: right;
 }
 
-.wflow-buttons {
+.workflow-window {
   position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.workflow-window-json-btn-group {
+  position: fixed;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #25262b;
-  height: 50px;
+  height: 72px;
+  width: 450px;
   color: #a6a7ab;
   outline: none;
   border: none;
   border-left: 1px solid #333;
 }
 
-.wflow-text textarea {
+.workflow-window-json-textarea textarea {
   background-color: #25262b;
   position: relative;
   color: #a6a7ab;
   outline: none;
   border: none;
   border-left: 1px solid #333;
+  top: 50px;
 }
 
+.workflow-window-btn {
+  position: fixed;
+  width: 35px;
+  height: 35px;
+}
+
+/* .workflow-window-btn-wrap {
+  width: 100%;
+  height: 100%;
+} */
+
 .wrap-app {
+  position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
   /* position: relative; */
 }
 

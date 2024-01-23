@@ -31,12 +31,11 @@ import CanvasButtonGroup from "./CanvasButtons"
 interface CanvasProps {
   colorIndex: number
   setWorkflow: React.Dispatch<React.SetStateAction<string | null>>
-  splitView: boolean
   style?: React.CSSProperties
 }
 
 export default function Canvas(props: CanvasProps) {
-  const { colorIndex, setWorkflow, splitView, style } = props
+  const { colorIndex, setWorkflow, style } = props
   const [nodes, setNodes] = useState<INode[]>([])
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
@@ -118,7 +117,7 @@ export default function Canvas(props: CanvasProps) {
     }
   })
 
-  // pass workflow to parent (search component)
+  // pass workflow to parent (view component)
   useEffect(() => {
     setWorkflow(convertToJSONFormat(nodes, connections))
   }, [nodes, connections, setWorkflow])
@@ -930,9 +929,12 @@ export default function Canvas(props: CanvasProps) {
       canvasZoom(delta, mousePosition)
     }
 
-    window.addEventListener("wheel", handleCanvasWheel, { passive: false })
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    canvas.addEventListener("wheel", handleCanvasWheel, { passive: false })
     return () => {
-      window.removeEventListener("wheel", handleCanvasWheel)
+      canvas.removeEventListener("wheel", handleCanvasWheel)
     }
   }, [canvasRect, canvasZoom, mousePosition])
 
@@ -972,7 +974,7 @@ export default function Canvas(props: CanvasProps) {
         updateHistory()
         handleLayoutNodes()
         break
-      case "showJSON":
+      case "saveWorkflow":
         saveWorkflow(nodes, connections)
         break
     }
@@ -980,10 +982,11 @@ export default function Canvas(props: CanvasProps) {
 
   return (
     <div
-      className="canvas"
+      className="workflow-window-canvas"
       style={{
         ...style,
         cursor: (dragging && dragCurrentPos) ? "grabbing" : "default",
+        backgroundColor: "#1a1b1e",
       }}
       // Selection rectangle
       onMouseDown={handleCanvasMouseDown}
@@ -1047,7 +1050,6 @@ export default function Canvas(props: CanvasProps) {
       {/* Canvas Buttons */}
       <CanvasButtonGroup
         canvasRect={canvasRect}
-        splitView={splitView}
         onSelect={handleButtonSelect}
       />
       {/* Canvas Context Menu */}
