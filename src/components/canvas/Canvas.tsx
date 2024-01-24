@@ -982,7 +982,7 @@ export default function Canvas(props: CanvasProps) {
 
   return (
     <div
-      className="workflow-window-canvas"
+      className="canvas"
       style={{
         ...style,
         cursor: (dragging && dragCurrentPos) ? "grabbing" : "default",

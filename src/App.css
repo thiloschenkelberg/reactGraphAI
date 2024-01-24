@@ -471,6 +471,7 @@ a:link {
 .workflow-window {
   position: relative;
   display: flex;
+  flex-direction: row;
   width: 100%;
   height: 100%;
 }
@@ -500,15 +501,17 @@ a:link {
 }
 
 .workflow-window-btn {
-  position: fixed;
+  position: absolute;
   width: 35px;
   height: 35px;
 }
 
-/* .workflow-window-btn-wrap {
+.workflow-window-btn-wrap {
+  pointer-events: none;
+  position: absolute;
   width: 100%;
   height: 100%;
-} */
+}
 
 .wrap-app {
   position: relative;

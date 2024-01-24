@@ -1,4 +1,20 @@
+  // useEffect(() => {
+  //   const splitView = localStorage.getItem("viewSplitView")
+  //   const splitViewWidth = localStorage.getItem("viewSplitViewWidth")
+
+  //   if (!splitView || !splitViewWidth) return
+
+  //   setSplitView(JSON.parse(splitView))
+  //   setSplitViewWidth(JSON.parse(splitViewWidth))
+  // }, [])
+
+  // useEffect(() => {
+  //   localStorage.setItem("viewSplitView", JSON.stringify(splitView))
+  //   localStorage.setItem("viewSplitViewWidth", JSON.stringify(splitViewWidth))
+  // }, [splitView, splitViewWidth])
+
 import { useEffect, useRef, useState } from "react"
+import { useSpring, animated } from 'react-spring';
 
 import SearchIcon from "@mui/icons-material/Search"
 
@@ -17,54 +33,62 @@ export default function Workflow(props: WorkflowProps) {
 
   const [canvasWidth, setCanvasWidth] = useState(0)
   const [canvasHeight, setCanvasHeight] = useState(0)
-  const workflowWindowRef = useRef<HTMLDivElement>(null)
+  const workflowRef = useRef<HTMLDivElement>(null)
+  const [workflowRect, setWorkflowRect] = useState<DOMRect | null>(null)
 
-  const [jsonView, setJsonView] = useState(true)
-  const [jsonViewWidth, setJsonViewWidth] = useState(450)
+  const [jsonView, setJsonView] = useState(false)
+  const [jsonViewWidth, setJsonViewWidth] = useState(0)
   const [historyView, setHistoryView] = useState(false)
   const [historyViewWidth, setHistoryViewWidth] = useState(0)
-  const [tableView, setTableView] = useState(false)
-  const [tableViewHeight, setTableViewHeight] = useState(0)
+  const [tableView, setTableView] = useState(true)
+  const [tableViewHeight, setTableViewHeight] = useState(400)
+
+  const springProps = useSpring({
+    jsonViewWidth:
+      jsonView ? jsonViewWidth : 0,
+    historyViewWidth:
+      historyView ? historyViewWidth : 0,
+    tableViewHeight:
+      tableView ? tableViewHeight : 0,
+    canvasWidth:
+      canvasWidth,
+    canvasHeight:
+      canvasHeight,
+    config: {
+      tension: 1000,
+      friction: 100,
+    }
+  })
 
   useEffect(() => {
-    // Function to handle window resize and update dimensions
-    const handleResize = () => {
-      if (workflowWindowRef.current) {
-        const rect = workflowWindowRef.current.getBoundingClientRect()
-        const width = rect.width - jsonViewWidth - historyViewWidth
-        const height = rect.height - tableViewHeight
+    if (workflowRect) {
+      const width = workflowRect.width - jsonViewWidth - historyViewWidth
+      const height = workflowRect.height - tableViewHeight
 
-        setCanvasWidth(width)
-        setCanvasHeight(height)
+      setCanvasWidth(width)
+      setCanvasHeight(height)
+    }  
+  }, [workflowRect, jsonViewWidth, historyViewWidth, tableViewHeight])
+
+  // Resize Observer for workflow window
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (workflowRef.current) {
+        setWorkflowRect(workflowRef.current.getBoundingClientRect())
+      }
+    })
+
+    const currentWorkflow = workflowRef.current
+    if (currentWorkflow) {
+      resizeObserver.observe(currentWorkflow)
+    }
+
+    return () => {
+      if (currentWorkflow) {
+        resizeObserver.unobserve(currentWorkflow)
       }
     }
-
-    // Call once to set initial size
-    handleResize()
-
-    // Add event listener for window resize
-    window.addEventListener("resize", handleResize)
-
-    // Cleanup function to remove event listener
-    return () => {
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [jsonViewWidth, historyViewWidth, tableViewHeight, workflowWindowRef])
-
-  // useEffect(() => {
-  //   const splitView = localStorage.getItem("viewSplitView")
-  //   const splitViewWidth = localStorage.getItem("viewSplitViewWidth")
-
-  //   if (!splitView || !splitViewWidth) return
-
-  //   setSplitView(JSON.parse(splitView))
-  //   setSplitViewWidth(JSON.parse(splitViewWidth))
-  // }, [])
-
-  // useEffect(() => {
-  //   localStorage.setItem("viewSplitView", JSON.stringify(splitView))
-  //   localStorage.setItem("viewSplitViewWidth", JSON.stringify(splitViewWidth))
-  // }, [splitView, splitViewWidth])
+  }, [workflowRef])
 
   async function workflowSearch() {
     try {
@@ -85,85 +109,111 @@ export default function Workflow(props: WorkflowProps) {
         } else {
           setJsonViewWidth(450)
         }
-        setJsonView(!jsonView)
-        break
+        setJsonView(!jsonView);
+        break;
       case "history":
         if (historyView) {
           setHistoryViewWidth(0)
         } else {
           setHistoryViewWidth(450)
         }
-        setHistoryView(!historyView)
-        break
+        setHistoryView(!historyView);
+        break;
       case "table":
         if (tableView) {
           setTableViewHeight(0)
         } else {
-          setTableViewHeight(450)
+          setTableViewHeight(400)
         }
-        setTableView(!tableView)
-        break
+        setTableView(!tableView);
+        break;
       default:
-        break
+        break;
     }
   }
 
   return (
-    <div className="workflow-window" ref={workflowWindowRef}>
-      <Canvas
-        colorIndex={colorIndex}
-        setWorkflow={setWorkflow}
+    <div className="workflow-window" ref={workflowRef}>
+
+
+
+
+      <animated.div
+        className="workflow-window-canvas"
         style={{
-          position: "relative",
-          left: historyViewWidth,
-          width: canvasWidth,
-          height: canvasHeight,
+          overflow: "hidden",
+          position: "absolute",
+          left: springProps.historyViewWidth,
+          width: springProps.canvasWidth,
+          height: springProps.canvasHeight,
         }}
-      />
-      {jsonView && (
-        <div
+      >
+        <Canvas
+          colorIndex={colorIndex}
+          setWorkflow={setWorkflow}
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+          }}
+        />
+      </animated.div>
+
+
+
+
+        <animated.div
           className="workflow-window-json"
           style={{
             display: "flex",
             flexDirection: "column",
             position: "absolute",
-            left: `calc(100% - ${jsonViewWidth}px)`,
-            height: `100%`,
-            top: 0,
+            right: "0%",
+            height: springProps.canvasHeight,
+            width: springProps.jsonViewWidth,
+            overflow: "hidden",
           }}
         >
           <div className="workflow-window-json-btn-group">
             <SearchIcon onClick={workflowSearch} />
           </div>
-          <div className="workflow-window-json-textarea">
+          <animated.div
+            className="workflow-window-json-textarea"
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+          >
             <textarea
               readOnly
               value={workflow ? workflow : "asd"}
               style={{
-                width: jsonViewWidth,
-                height: `calc(100vh - 115px)`,
+                width: "100%",
+                height: "100%",
                 resize: "none",
               }}
             />
-          </div>
-        </div>
-      )}
-      <div
-        className="workflow-window-btn-wrap"
-        style={{
-          pointerEvents: "none",
-          position: "absolute",
-          width: canvasWidth,
-          height: canvasHeight,
-        }}
-      >
+          </animated.div>
+        </animated.div>
+
+
+
+
+      <animated.div className="workflow-window-btn-wrap">
         <WorkflowButtons
           jsonView={jsonView}
+          jsonViewWidth={jsonViewWidth}
           historyView={historyView}
+          historyViewWidth={historyViewWidth}
           tableView={tableView}
+          tableViewHeight={tableViewHeight}
           onSelect={handleSplitView}
         />
-      </div>
+      </animated.div>
+
+
+
+
     </div>
   )
 }

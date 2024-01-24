@@ -1,36 +1,53 @@
-import { useState, CSSProperties } from "react"
-import { TbMinusVertical } from "react-icons/tb"
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi"
+import { useState, CSSProperties, useEffect } from "react"
+import { TbMinusVertical, TbMinus } from "react-icons/tb"
+import { FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp } from "react-icons/fi"
+import { useSpring, animated } from "react-spring"
 
 interface WorkflowButtonProps {
   jsonView: boolean
+  jsonViewWidth: number
   historyView: boolean
+  historyViewWidth: number
   tableView: boolean
+  tableViewHeight: number
   onSelect: (view: string) => void
 }
 
-export default function WorkflowButtons({
-  jsonView,
-  historyView,
-  tableView,
-  onSelect,
-}: WorkflowButtonProps) {
+export default function WorkflowButtons(props: WorkflowButtonProps) {
+  const {
+    jsonView,
+    jsonViewWidth,
+    historyView,
+    historyViewWidth,
+    tableView,
+    tableViewHeight,
+    onSelect,
+  } = props
   const [hovered, setHovered] = useState("none")
 
-  const rightIconStyle: CSSProperties = {
+  useEffect(() => {
+    setHovered("none")
+  }, [jsonView, historyView, tableView])
+
+  const springProps = useSpring({
+    jsonIconRight:
+      jsonView ? jsonViewWidth : 0,
+    historyIconLeft:
+      historyView ? historyViewWidth : 0,
+    tableIconBottom:
+      tableView ? tableViewHeight + 5 : 0,
+    config: {
+      tension: 1000,
+      friction: 100,
+    }
+  })
+
+  const iconStyle: CSSProperties = {
     pointerEvents: "all",
     position: "absolute",
-    top: "49%",
-    right: "5px",
     color: "#909296",
     width: "35px",
     height: "auto",
-  }
-
-  const leftIconStyle: CSSProperties = {
-    ...rightIconStyle,
-    right: "unset",
-    left: "5px",
   }
 
   const handleMouseLeave = () => {
@@ -38,69 +55,126 @@ export default function WorkflowButtons({
   }
 
   const handleMouseUpLocal = (e: React.MouseEvent) => {
-    console.log("test")
     if (e.button === 2) return
     onSelect(hovered)
   }
 
-  const renderRightIcon = () => {
-    return jsonView ? (
-      hovered === "json" ? (
-        <FiChevronRight
-          style={rightIconStyle}
-          onClick={handleMouseUpLocal}
-          onMouseEnter={() => setHovered("json")}
-          onMouseLeave={handleMouseLeave}
-        />
-      ) : (
-        <TbMinusVertical
-          style={rightIconStyle}
-          onClick={handleMouseUpLocal}
-          onMouseEnter={() => setHovered("json")}
-          onMouseLeave={handleMouseLeave}
-        />
-      )
-    ) : (
-      <FiChevronLeft
-        style={rightIconStyle}
-        onClick={handleMouseUpLocal}
-        onMouseEnter={() => setHovered("json")}
-        onMouseLeave={handleMouseLeave}
-      />
+  const renderJsonIcon = () => {
+    return (
+      <animated.div
+        className="workflow-window-btn"
+        style={{
+          top: "49%",
+          right: 0,
+        }}
+      >
+        {hovered === "json" ? (
+          jsonView ? (
+            <FiChevronRight
+              style={iconStyle}
+              onClick={handleMouseUpLocal}
+              onMouseEnter={() => setHovered("json")}
+              onMouseLeave={handleMouseLeave}
+            />
+          ) : (
+            <FiChevronLeft
+              style={iconStyle}
+              onClick={handleMouseUpLocal}
+              onMouseEnter={() => setHovered("json")}
+              onMouseLeave={handleMouseLeave}
+            />
+          )
+        ) : (
+          <TbMinusVertical
+            style={iconStyle}
+            onClick={handleMouseUpLocal}
+            onMouseEnter={() => setHovered("json")}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+      </animated.div>
     )
   }
 
-  const renderLeftIcon = () => {
-    return historyView ? (
-      hovered === "history" ? (
-        <FiChevronLeft
-          style={leftIconStyle}
-          onClick={handleMouseUpLocal}
-          onMouseEnter={() => setHovered("history")}
-          onMouseLeave={handleMouseLeave}
-        />
-      ) : (
-        <TbMinusVertical
-          style={leftIconStyle}
-          onClick={handleMouseUpLocal}
-          onMouseEnter={() => setHovered("history")}
-          onMouseLeave={handleMouseLeave}
-        />
-      )
-    ) : (
-      <FiChevronRight
-        style={leftIconStyle}
-        onClick={handleMouseUpLocal}
-        onMouseEnter={() => setHovered("history")}
-        onMouseLeave={handleMouseLeave}
-      />
+  const renderHistoryIcon = () => {
+    return (
+      <animated.div
+        className="workflow-window-btn"
+        style={{
+          left: 0,
+          top: "49%"
+        }}
+      >
+        {hovered === "history" ? (
+          historyView ? (
+            <FiChevronLeft
+              style={iconStyle}
+              onClick={handleMouseUpLocal}
+              onMouseEnter={() => setHovered("history")}
+              onMouseLeave={handleMouseLeave}
+            />
+          ) : (
+            <FiChevronRight
+              style={iconStyle}
+              onClick={handleMouseUpLocal}
+              onMouseEnter={() => setHovered("history")}
+              onMouseLeave={handleMouseLeave}
+            />
+          )
+        ) : (
+          <TbMinusVertical
+            style={iconStyle}
+            onClick={handleMouseUpLocal}
+            onMouseEnter={() => setHovered("history")}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+      </animated.div>
+    )
+  }
+
+  const renderTableIcon = () => {
+    return (
+      <animated.div
+        className="workflow-window-btn"
+        style={{
+          bottom: 5,
+          left: "50%"
+        }}
+      >
+        {hovered === "table" ? (
+          tableView ? (
+            <FiChevronDown
+              style={iconStyle}
+              onClick={handleMouseUpLocal}
+              onMouseEnter={() => setHovered("table")}
+              onMouseLeave={handleMouseLeave}
+            />
+          ) : (
+            <FiChevronUp
+              style={iconStyle}
+              onClick={handleMouseUpLocal}
+              onMouseEnter={() => setHovered("table")}
+              onMouseLeave={handleMouseLeave}
+            />
+          )
+        ) : (
+          <TbMinus
+            style={iconStyle}
+            onClick={handleMouseUpLocal}
+            onMouseEnter={() => setHovered("table")}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+      </animated.div>
     )
   }
 
   return (
     <>
-      {renderRightIcon()}
-      {renderLeftIcon()}
+      {renderHistoryIcon()}
+      {renderJsonIcon()}
+      {renderTableIcon()}
     </>
   )
 }

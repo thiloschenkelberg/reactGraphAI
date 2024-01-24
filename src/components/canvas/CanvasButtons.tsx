@@ -89,6 +89,25 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
   const [moveable, setMoveable] = useState(false)
   const [handleHovered, setHandleHovered] = useState(false)
   const buttonsRef = useRef<HTMLDivElement>(null)
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeObserver = useRef<ResizeObserver | null>(null)
+  const canvasBtnRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    resizeObserver.current = new ResizeObserver(() => {
+      setIsResizing(true)
+    })
+
+    if (canvasBtnRef.current) {
+      resizeObserver.current.observe(canvasBtnRef.current)
+    }
+
+    return () => {
+      if (resizeObserver.current) {
+        resizeObserver.current.disconnect()
+      }
+    }
+  }, [canvasRect])
 
   // load position from local storage
   useEffect(() => {
@@ -126,6 +145,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
     setVertical(false)
     setLeft(false)
     setInitialized(true)
+    // setIsResizing(false)
   }, [positioned, canvasRect])
 
   // manual positioning (sets positioned)
@@ -203,6 +223,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
 
   return (
     <div
+      ref={canvasBtnRef}
       className="canvas-btn-window"
       style={{
         width: "100%",
@@ -220,7 +241,10 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
         <div
           className="canvas-btn-wrap"
           style={{
-            transform: `translate(${position.x}px,${position.y}px)`,
+            pointerEvents: "all",
+            // transform: `translate(${position.x}px,${position.y}px)`,
+            top: position.y,
+            left: position.x,
             flexDirection: vertical ? "column" : "row",
           }}
           ref={buttonsRef}
