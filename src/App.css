@@ -476,12 +476,29 @@ a:link {
   height: 100%;
 }
 
+.workflow-window-history {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 0%;
+  overflow: hidden;
+  background-color: #25262b;
+}
+
+.workflow-window-json {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  right: 0%;
+  overflow: hidden;
+  background-color: #25262b;
+}
+
 .workflow-window-json-btn-group {
-  position: fixed;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #25262b;
   height: 72px;
   width: 450px;
   color: #a6a7ab;
@@ -491,7 +508,7 @@ a:link {
 }
 
 .workflow-window-json-textarea textarea {
-  background-color: #25262b;
+  background-color: inherit;
   position: relative;
   color: #a6a7ab;
   outline: none;

@@ -16,10 +16,9 @@
 import { useEffect, useRef, useState } from "react"
 import { useSpring, animated } from 'react-spring';
 
-import SearchIcon from "@mui/icons-material/Search"
-
 import Canvas from "./canvas/Canvas"
 import WorkflowButtons from "./WorkflowButtons"
+import WorkflowJson from "./WorkflowJson";
 import client from "../client"
 import { saveBlobAsFile } from "../common/helpers"
 
@@ -160,46 +159,35 @@ export default function Workflow(props: WorkflowProps) {
       </animated.div>
 
 
-
+        <animated.div
+          className="workflow-window-history"
+          style={{
+            height: springProps.canvasHeight,
+            width: springProps.historyViewWidth,
+          }}
+        >
+          
+        </animated.div>
 
         <animated.div
           className="workflow-window-json"
           style={{
-            display: "flex",
-            flexDirection: "column",
-            position: "absolute",
-            right: "0%",
             height: springProps.canvasHeight,
             width: springProps.jsonViewWidth,
-            overflow: "hidden",
           }}
-        >
-          <div className="workflow-window-json-btn-group">
-            <SearchIcon onClick={workflowSearch} />
-          </div>
-          <animated.div
-            className="workflow-window-json-textarea"
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            <textarea
-              readOnly
-              value={workflow ? workflow : "asd"}
-              style={{
-                width: "100%",
-                height: "100%",
-                resize: "none",
-              }}
-            />
-          </animated.div>
-        </animated.div>
+          children={
+            <WorkflowJson
+            workflowSearch={workflowSearch}
+            workflow={workflow}
+          />
+          }
+        />
 
 
 
 
-      <animated.div className="workflow-window-btn-wrap">
+
+      <div className="workflow-window-btn-wrap">
         <WorkflowButtons
           jsonView={jsonView}
           jsonViewWidth={jsonViewWidth}
@@ -209,7 +197,7 @@ export default function Workflow(props: WorkflowProps) {
           tableViewHeight={tableViewHeight}
           onSelect={handleSplitView}
         />
-      </animated.div>
+      </div>
 
 
 

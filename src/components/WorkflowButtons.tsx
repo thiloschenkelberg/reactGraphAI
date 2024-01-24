@@ -35,12 +35,16 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
     historyIconLeft:
       historyView ? historyViewWidth : 0,
     tableIconBottom:
-      tableView ? tableViewHeight + 5 : 0,
+      tableView ? tableViewHeight : 0,
     config: {
       tension: 1000,
       friction: 100,
     }
   })
+
+  const iconTopValue = springProps.tableIconBottom.to(value =>
+    `calc(0.49 * (100% - ${value}px))`
+  )
 
   const iconStyle: CSSProperties = {
     pointerEvents: "all",
@@ -64,8 +68,8 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
       <animated.div
         className="workflow-window-btn"
         style={{
-          top: "49%",
-          right: 0,
+          top: iconTopValue,
+          right: springProps.jsonIconRight,
         }}
       >
         {hovered === "json" ? (
@@ -101,8 +105,8 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
       <animated.div
         className="workflow-window-btn"
         style={{
-          left: 0,
-          top: "49%"
+          left: springProps.historyIconLeft,
+          top: iconTopValue
         }}
       >
         {hovered === "history" ? (
@@ -138,8 +142,9 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
       <animated.div
         className="workflow-window-btn"
         style={{
-          bottom: 5,
-          left: "50%"
+          bottom: springProps.tableIconBottom,
+          left: "50%",
+          transform: "translate(-50%,0)"
         }}
       >
         {hovered === "table" ? (
