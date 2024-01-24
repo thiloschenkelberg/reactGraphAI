@@ -530,6 +530,15 @@ a:link {
   height: 100%;
 }
 
+.workflow-window-table {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0%;
+  overflow: hidden;
+  background-color: #25262b;
+}
+
 .wrap-app {
   position: relative;
   overflow: hidden;

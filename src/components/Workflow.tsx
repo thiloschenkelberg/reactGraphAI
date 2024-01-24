@@ -19,6 +19,7 @@ import { useSpring, animated } from 'react-spring';
 import Canvas from "./canvas/Canvas"
 import WorkflowButtons from "./WorkflowButtons"
 import WorkflowJson from "./WorkflowJson";
+import WorkflowHistory from "./WorkflowHistory";
 import client from "../client"
 import { saveBlobAsFile } from "../common/helpers"
 
@@ -39,8 +40,8 @@ export default function Workflow(props: WorkflowProps) {
   const [jsonViewWidth, setJsonViewWidth] = useState(0)
   const [historyView, setHistoryView] = useState(false)
   const [historyViewWidth, setHistoryViewWidth] = useState(0)
-  const [tableView, setTableView] = useState(true)
-  const [tableViewHeight, setTableViewHeight] = useState(400)
+  const [tableView, setTableView] = useState(false)
+  const [tableViewHeight, setTableViewHeight] = useState(0)
 
   const springProps = useSpring({
     jsonViewWidth:
@@ -165,9 +166,8 @@ export default function Workflow(props: WorkflowProps) {
             height: springProps.canvasHeight,
             width: springProps.historyViewWidth,
           }}
-        >
-          
-        </animated.div>
+          children={<WorkflowHistory/>}
+        />
 
         <animated.div
           className="workflow-window-json"
@@ -183,7 +183,14 @@ export default function Workflow(props: WorkflowProps) {
           }
         />
 
-
+        <animated.div
+          className="workflow-window-table"
+          style={{
+            height: springProps.tableViewHeight,
+            width: "100%",
+          }}
+          children={<WorkflowHistory/>}
+        />
 
 
 
