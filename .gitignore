@@ -33,3 +33,4 @@ yarn-error.log*
 /backend/src/config.ts
 /backend/.env
 /backend/.gitignore
+/backend/app.yaml
