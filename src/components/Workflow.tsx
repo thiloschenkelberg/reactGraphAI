@@ -90,17 +90,6 @@ export default function Workflow(props: WorkflowProps) {
     }
   }, [workflowRef])
 
-  async function workflowSearch() {
-    try {
-      const response = await client.workflowSearch(workflow)
-      if (response) {
-        saveBlobAsFile(response.data, "workflows.csv")
-      }
-    } catch (err: any) {
-      throw new Error("Search failed: " + err.message)
-    }
-  }
-
   const handleSplitView = (view: String) => {
     switch (view) {
       case "json":
@@ -175,12 +164,7 @@ export default function Workflow(props: WorkflowProps) {
             height: springProps.canvasHeight,
             width: springProps.jsonViewWidth,
           }}
-          children={
-            <WorkflowJson
-            workflowSearch={workflowSearch}
-            workflow={workflow}
-          />
-          }
+          children={<WorkflowJson workflow={workflow}/>}
         />
 
         <animated.div

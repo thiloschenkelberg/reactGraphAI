@@ -1,15 +1,28 @@
 import SearchIcon from "@mui/icons-material/Search"
 
+import client from "../client"
+import { saveBlobAsFile } from "../common/helpers"
+import toast from "react-hot-toast"
+
 interface WorkflowJsonProps {
-  workflowSearch: () => Promise<void>
   workflow: string | null
 }
 
 export default function WorkflowJson(props: WorkflowJsonProps) {
   const {
-    workflowSearch,
     workflow
   } = props
+
+  async function workflowSearch() {
+    try {
+      const response = await client.workflowSearch(workflow)
+      if (response) {
+        saveBlobAsFile(response.data, "workflows.csv")
+      }
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
 
   return (
     <>

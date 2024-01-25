@@ -1,5 +1,7 @@
 import { PiAddressBookDuotone } from "react-icons/pi"
 import { INode, IConnection } from "../components/canvas/types/canvas.types"
+import toast from "react-hot-toast"
+import client from "../client"
 
 const connectionToRelType: Record<string, string> = {
   "matter-manufacturing": "IS_MANUFACTURING_INPUT",
@@ -151,13 +153,22 @@ export function isConnectionLegitimate(start: INode, end: INode): boolean {
 
 export function saveWorkflow(nodes: INode[], connections: IConnection[]) {
   const workflow = convertToJSONFormat(nodes, connections)
+  saveToHistory(workflow)
   // saveToFile(workflow, "json", "workflow.json")
 }
 
-export function saveToHistory(workflow: string) {
+export async function saveToHistory(workflow: string) {
   // create timestamp
   // save to history -> backend (workflow + timestamp)
-  const date = new Date()
+  try {
+    const response = await client.saveWorkflow(workflow)
+
+    if (response) {
+      toast.success(response.data.message)
+    }
+  } catch (err: any) {
+    toast.error(err.message)
+  }
 }
 
 export function saveToFile(
