@@ -472,6 +472,111 @@ router.post(
   }
 )
 
+router.post(
+  "/api/users/workflows/",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const userId = req.userId
+      if (!userId) {
+        return res.status(401).json({
+          message: "Unauthorized access!",
+        })
+      }
+
+      const { workflow } = req.body
+
+      const saveSuccess = await UserService.saveWorkflow(userId, workflow)
+      if (!saveSuccess) {
+        return res.status(400).json({
+          message: "Workflow could not be saved!",
+        })
+      }
+
+      return res.status(201).json({
+        message: "Workflow saved successfully!",
+      })
+
+    } catch (err: any) {
+      if (err.response) {
+        console.error("error:", err.response.data)
+        return res.status(err.response.status).json({
+          message: err.message
+        })
+      }
+      return res.status(500).json("Internal server error!")
+    }
+  }
+)
+
+router.delete(
+  "/api/users/workflows/:workflowId",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const userId = req.userId
+      if (!userId) {
+        return res.status(401).json({
+          message: "Unauthorized access!",
+        })
+      }
+
+      const { workflowId } = req.params
+
+      const deleteSuccess = await UserService.deleteWorkflow(workflowId)
+      if (!deleteSuccess) {
+        return res.status(400).json({
+          message: "Workflow could not be deleted!",
+        })
+      }
+
+      return res.status(200).json({
+        message: "Workflow deleted successfully!",
+      })
+
+    } catch (err: any) {
+      if (err.response) {
+        console.error("error:", err.response.data)
+        return res.status(err.response.status).json({
+          message: err.message
+        })
+      }
+      return res.status(500).json("Internal server error!")
+    }
+  }
+)
+
+router.get(
+  "/api/users/workflows",
+  UserService.authenticateToken,
+  async (req: IGetUserAuthInfoRequest, res: Response) => {
+    try {
+      const userId = req.userId
+      if (!userId) {
+        return res.status(401).json({
+          message: "Unauthorized access!",
+        })
+      }
+
+      const workflows = await UserService.getWorkflowsByUserID(userId)
+
+      return res.status(200).json({
+        message: "Workflows retrieved successfully!",
+        workflows: workflows,
+      })
+
+    } catch (err: any) {
+      if (err.response) {
+        console.error("error:", err.response.data)
+        return res.status(err.response.status).json({
+          message: err.message
+        })
+      }
+      return res.status(500).json("Internal server error!")
+    }
+  }
+)
+
 // Additional API endpoints for updating, deleting users, etc.
 
 export default router

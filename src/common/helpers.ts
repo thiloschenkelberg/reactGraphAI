@@ -1,3 +1,4 @@
+import { PiAddressBookDuotone } from "react-icons/pi"
 import { INode, IConnection } from "../components/canvas/types/canvas.types"
 
 const connectionToRelType: Record<string, string> = {
@@ -150,7 +151,13 @@ export function isConnectionLegitimate(start: INode, end: INode): boolean {
 
 export function saveWorkflow(nodes: INode[], connections: IConnection[]) {
   const workflow = convertToJSONFormat(nodes, connections)
-  saveToFile(workflow, "json", "workflow.json")
+  // saveToFile(workflow, "json", "workflow.json")
+}
+
+export function saveToHistory(workflow: string) {
+  // create timestamp
+  // save to history -> backend (workflow + timestamp)
+  const date = new Date()
 }
 
 export function saveToFile(
@@ -164,7 +171,7 @@ export function saveToFile(
   // Create a blob with the JSON string
   const blob = new Blob([data], { type: `application/${type}` })
 
-  // Create a URL for the blob
+  // Create a URL for the blobn
   const url = URL.createObjectURL(blob)
 
   // Create an anchor element and set its href to the blob's URL

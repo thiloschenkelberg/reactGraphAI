@@ -274,6 +274,77 @@ class Client {
     }
   }
 
+  async saveWorkflow(workflow: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.client.post("/api/users/workflows", {
+        workflow
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while saving workflow!")
+    }
+  }
+
+  async deleteWorkflow(workflowId: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.client.delete(`/api/users/workflows/${workflowId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while deleting workflow!")
+    }
+  }
+
+  async getWorkflows() {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.client.get(`/api/users/workflows`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+      })
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while retrieving workflows!")
+    }
+  }
+
   async workflowSearch(workflow: string | null) {
     try {
       const response = await this.client.get("/api/search/fabrication-workflow", {
@@ -296,3 +367,4 @@ class Client {
 const client = new Client()
 
 export default client
+

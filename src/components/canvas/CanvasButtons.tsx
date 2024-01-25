@@ -5,7 +5,8 @@ import { PiGraph as GraphIcon2 } from "react-icons/pi"
 import ResetIcon from "@mui/icons-material/RestartAlt"
 import { MdUndo as UndoIcon } from "react-icons/md"
 import { MdRedo as RedoIcon } from "react-icons/md"
-import { LuFileJson as JsonFileIcon } from "react-icons/lu"
+import { VscSaveAs, VscSave } from "react-icons/vsc";
+import { RiSave3Line } from "react-icons/ri";
 import { MdRestartAlt as ResetIcon2 } from "react-icons/md"
 import { PiDotsSixVertical as HandleIcon } from "react-icons/pi"
 
@@ -303,5 +304,5 @@ const BUTTON_TYPES: { type: ICanvasButton["type"]; icon: JSX.Element; tooltip: s
   { type: "reset", icon: <ResetIcon2 className="canvas-btn-icon" />, tooltip: "Reset Canvas" },
   { type: "redo", icon: <RedoIcon className="canvas-btn-icon" />, tooltip: "Redo" },
   { type: "layout", icon: <GraphIcon2 className="canvas-btn-icon"/>, tooltip: "Layout Nodes" },
-  // { type: "saveWorkflow", icon: <JsonFileIcon className="canvas-btn-icon" />, tooltip: "Save Workflow to File" },
+  { type: "saveWorkflow", icon: <VscSave className="canvas-btn-icon" style={{width:25, height:25}}/>, tooltip: "Save Workflow" },
 ]

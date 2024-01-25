@@ -4,14 +4,15 @@ import { ObjectId } from "mongodb"
 import jwt from "jsonwebtoken"
 
 import UserRepository from "../repositories/user.repo-mongodb"
+import WorkflowRepository from "../repositories/workflow.repo-mongodb"
 import {MDB_IUser as IUser} from "../types/user.type"
+import { IWorkflow } from "../types/workflow.type"
 import { IGetUserAuthInfoRequest } from "../types/req"
 
 dotenv.config()
 
 class UserService {
   static findByMail(email: string): Promise<IUser | null> {
-    // Additional business logic or validation can be performed here
     return UserRepository.findByMail(email)
   }
 
@@ -108,6 +109,18 @@ class UserService {
         next()
       }
     )
+  }
+
+  static saveWorkflow(userId: string, workflow: string): Promise<ObjectId> {
+    return WorkflowRepository.saveWorkflow(userId, workflow)
+  }
+
+  static deleteWorkflow(workflowId: string): Promise<boolean> {
+    return WorkflowRepository.deleteWorkflow(workflowId)
+  }
+
+  static getWorkflowsByUserID(userId: string): Promise<IWorkflow[]> {
+    return WorkflowRepository.getWorkflowsByUserID(userId)
   }
 }
 
