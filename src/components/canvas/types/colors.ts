@@ -5,6 +5,7 @@ export const colorPalette: { [key: number]: { [key: string]: string } } = {
     parameter: "#3ABEFF", // Deep Sky Blue (w) parameter
     property: "#595457", // Davy's Grey (w) propert
     measurement: "#FFF07C", // Maize Yellow (b) measurement
+    metadata: "#B67FF4", // Light purple (w) measurement
   }
 }
 

@@ -13,6 +13,7 @@ import PropertyIcon from "@mui/icons-material/Description"
 import ParameterIcon from "@mui/icons-material/Tune"
 import MeasurementIcon from "@mui/icons-material/SquareFoot"
 import MatterIcon from "@mui/icons-material/Diamond"
+import MetadataIcon from '@mui/icons-material/DataObject';
 
 import { Position } from "./types/canvas.types"
 import { colorPalette } from "./types/colors"
@@ -249,7 +250,7 @@ export default function CanvasContext(props: CanvasContextProps) {
         }
         open={open}
         hideOrbit
-        orbitRadius={buttonsToRender.length > 1 ? 80 : 1}
+        orbitRadius={buttonsToRender.length > 1 ? 95 : 1}
         rotation={ROTATIONS[buttonsToRender.length] || 0}
       >
         {buttonsToRender.map(button => (
@@ -280,6 +281,7 @@ const BUTTON_TYPES: { type: INode["type"], icon: JSX.Element, fColor: string, fS
   { type: 'manufacturing', icon: <ManufacturingIcon style={{ color: "#ececec" }} />, fColor: "#ececec", fSize: 10 },
   { type: 'parameter', icon: <ParameterIcon style={{ color: "#ececec" }} />, fColor: "#ececec", fSize: 11 },
   { type: 'property', icon: <PropertyIcon style={{ color: "#ececec" }} />, fColor: "#ececec", fSize: 11 },
+  { type: 'metadata', icon: <MetadataIcon style={{ color: "#1a1b1e" }} />, fColor: "#1a1b1e", fSize: 11 },
   { type: 'measurement', icon: <MeasurementIcon style={{ color: "#1a1b1e" }} />, fColor: "#1a1b1e", fSize: 11 },
 ];
 
@@ -287,5 +289,6 @@ const ROTATIONS: { [key: number]: number } = {
   1: 0,
   2: 90,
   3: 120,
-  5: 144
+  5: 144,
+  6: 120,
 };

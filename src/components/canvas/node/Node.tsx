@@ -10,7 +10,7 @@ import NodeLabel from "./NodeLabel"
 import NodeWarning from "./NodeWarning"
 // import { NodeLabelOutline } from "./node-label.component"
 import NodeConnector from "./NodeConnector"
-import { INode, Position, Vector2D } from "../types/canvas.types"
+import { INode, Position, StrOpPair, Vector2D } from "../types/canvas.types"
 import { colorPalette } from "../types/colors"
 
 interface NodeProps {
@@ -23,10 +23,15 @@ interface NodeProps {
   handleNodeAction: (
     node: INode,
     action: string,
+    conditional?: boolean,
     name?: string,
-    value?: number,
-    operator?: INode["operator"],
-    condition?: boolean
+    value?: StrOpPair,
+    batchNum?: string,
+    ratio?: StrOpPair,
+    concentration?: StrOpPair,
+    unit?: string,
+    std?: StrOpPair,
+    error?: StrOpPair,
   ) => void
 }
 
@@ -104,11 +109,11 @@ export default React.memo(function Node(props: NodeProps) {
   // update missing fields
   useEffect(() => {
     if (isValueNode) {
-      setFieldsMissing(!node.name || node.value === undefined || !node.operator)
+      setFieldsMissing(!node.name || node.value === undefined)
     } else {
       setFieldsMissing(!node.name)
     }
-  }, [isValueNode, node.name, node.value, node.operator])
+  }, [isValueNode, node.name, node.value])
 
   /* set label overflow
    * 1. based on labelwidth */
@@ -120,16 +125,16 @@ export default React.memo(function Node(props: NodeProps) {
 
   /* set label overflow
    * 2. based on characters <-- seems better for now */
-  useEffect(() => {
-    if (!node.name) return
-    if (node.name.length > node.size / 9.65) {
-      setHasLabelOverflow(true)
-      return
-    }
-    if (isValueNode && node.value !== undefined) {
-      setHasLabelOverflow(node.value.toString().length > (node.size - 20) / 8.2)
-    }
-  }, [node.name, node.value, node.size, isValueNode])
+  // useEffect(() => {
+  //   if (!node.name) return
+  //   if (node.name.length > node.size / 9.65) {
+  //     setHasLabelOverflow(true)
+  //     return
+  //   }
+  //   if (isValueNode && node.value !== undefined) {
+  //     setHasLabelOverflow(node.value.toString().length > (node.size - 20) / 8.2)
+  //   }
+  // }, [node.name, node.value, node.size, isValueNode])
 
   // calculate nodeOptimalSize
   useEffect(() => {
@@ -141,8 +146,8 @@ export default React.memo(function Node(props: NodeProps) {
     const nameMinimumSize = node.name.length * 11
     let nodeMinimumSize = nameMinimumSize
 
-    if (isValueNode && node.value !== undefined) {
-      const valueMinimumSize = node.value.toString().length * 9 + 20
+    if (isValueNode && node.value?.string !== undefined) {
+      const valueMinimumSize = node.value.string.length * 9 + 20
       nodeMinimumSize = Math.max(nodeMinimumSize, valueMinimumSize)
     }
 
@@ -261,11 +266,16 @@ export default React.memo(function Node(props: NodeProps) {
   }
 
   const handleNodeRename = (
-    name?: string,
-    value?: number,
-    operator?: INode["operator"]
+    name: string,
+    value?: StrOpPair,
+    batchNum?: string,
+    ratio?: StrOpPair,
+    concentration?: StrOpPair,
+    unit?: string,
+    std?: StrOpPair,
+    error?: StrOpPair,
   ) => {
-    handleNodeAction(node, "rename", name, value, operator)
+    handleNodeAction(node, "setNodeVals", undefined, name, value, batchNum, ratio, concentration, unit, std, error)
   }
 
   const handleNameMouseUp = (e: React.MouseEvent) => {
@@ -280,9 +290,6 @@ export default React.memo(function Node(props: NodeProps) {
       handleNodeAction(
         node,
         "setIsEditing",
-        undefined,
-        undefined,
-        undefined,
         true
       )
     }
@@ -330,6 +337,8 @@ export default React.memo(function Node(props: NodeProps) {
             onSelect={handleContextActionLocal}
             isOpen={isSelected === 1}
             nodeSize={nodeActualSize}
+            isEditing={node.isEditing}
+            type={node.type}
           />
         </div>
       )}
@@ -379,10 +388,9 @@ export default React.memo(function Node(props: NodeProps) {
               size={nodeActualSize}
               name={node.name}
               value={node.value}
-              operator={node.operator}
               type={node.type}
               layer={node.layer}
-              hasLabelOverflow={hasLabelOverflow}
+              // hasLabelOverflow={hasLabelOverflow}
               color={colors[0]}
               onMouseUp={handleNameMouseUp}
             />
@@ -407,11 +415,7 @@ export default React.memo(function Node(props: NodeProps) {
         {node.isEditing && (
           <NodeInput
             isValueNode={isValueNode}
-            nodeLayer={node.layer}
-            nodeType={node.type}
-            nodeDotName={node.name}
-            nodeDotValue={node.value}
-            nodeDotOperator={node.operator}
+            node={node}
             handleNodeRename={handleNodeRename}
           />
         )}

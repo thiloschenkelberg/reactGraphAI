@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { INode } from "../types/canvas.types"
+import { INode, StrOpPair } from "../types/canvas.types"
 
 interface NodeLabelsProps {
   // isEditing: boolean
@@ -10,11 +10,10 @@ interface NodeLabelsProps {
   hovered: boolean
   size: number
   name: string | undefined
-  value: number | undefined
-  operator: INode["operator"] | undefined
+  value?: StrOpPair
   type: INode["type"]
   layer: number
-  hasLabelOverflow: boolean
+  // hasLabelOverflow: boolean
   color: string
   onMouseUp: (e: React.MouseEvent) => void
 }
@@ -35,16 +34,15 @@ export default function NodeLabel(props: NodeLabelsProps) {
     size,
     name,
     value,
-    operator,
     type,
     layer,
-    hasLabelOverflow,
+    // hasLabelOverflow,
     color,
     onMouseUp,
   } = props
 
   useEffect(() => {
-    if (!name) return
+    if (name === undefined) return
     const subName = name.substring(0, size / 9.65) // 9.65 = width of 1 char
     if (subName.length < name.length) {
       setIsNameSliced(true)
@@ -56,22 +54,21 @@ export default function NodeLabel(props: NodeLabelsProps) {
   }, [name, size])
 
   useEffect(() => {
-    if (!value) return
-    const valueString = value.toString()
-    const subValue = valueString.substring(0, (size - 20) / 8.2) // 8.2 = width of 1 char
-    if (subValue.length < valueString.length) {
+    if (!value?.string) return
+    const subValue = value.string.substring(0, (size - 20) / 8.2) // 8.2 = width of 1 char
+    if (subValue.length < value.string.length) {
       setIsValueSliced(true)
       setSlicedValue(subValue.slice(0,-2))
     } else {
       setIsValueSliced(false)
-      setSlicedValue(valueString)
+      setSlicedValue(value.string)
     }
   }, [value, size])
 
   const mapOperatorSign = () => {
     let operatorCode: string
-    if (!operator) return ""
-    switch (operator) {
+    if (!value?.operator) return ""
+    switch (value.operator) {
       case "<=":
         operatorCode = "\u2264"
         break
@@ -82,7 +79,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
         operatorCode = "\u2260"
         break
       default:
-        operatorCode = operator
+        operatorCode = value.operator
         break
     }
     return operatorCode
@@ -102,7 +99,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
         style={{
           marginTop: isValueNode && value !== undefined ? 3 : 0,
           marginBottom: isValueNode && value !== undefined ? -3 : 0,
-          color: ["matter", "measurement"].includes(type)
+          color: ["matter", "measurement", "metadata"].includes(type)
             ? "#1a1b1e"
             : "#ececec",
           zIndex: layer + 1,
@@ -136,7 +133,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
           }}
         >
           {/* operator */}
-          {operator && 
+          {value.operator && 
             <span children={mapOperatorSign()}/>
           }
           {/* value */}

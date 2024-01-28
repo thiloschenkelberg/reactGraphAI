@@ -17,13 +17,14 @@ import {
   Position,
   Vector2D,
   ICanvasButton,
+  StrOpPair,
 } from "./types/canvas.types"
 import { graphLayouts } from "./types/canvas.graphLayouts"
 import {
   isConnectableNode,
   isConnectionLegitimate,
-  convertToJSONFormat,
-  saveWorkflow,
+  // convertToJSONFormat,
+  // saveWorkflow,
   clamp,
 } from "../../common/helpers"
 import CanvasButtonGroup from "./CanvasButtons"
@@ -118,9 +119,9 @@ export default function Canvas(props: CanvasProps) {
   })
 
   // pass workflow to parent (view component)
-  useEffect(() => {
-    setWorkflow(convertToJSONFormat(nodes, connections))
-  }, [nodes, connections, setWorkflow])
+  // useEffect(() => {
+  //   setWorkflow(convertToJSONFormat(nodes, connections))
+  // }, [nodes, connections, setWorkflow])
 
   // addNode from canvas context menu
   // if created from connector, automatically
@@ -302,7 +303,7 @@ export default function Canvas(props: CanvasProps) {
         return
       }
     } else {
-      setSelectedNodes([])
+      // setSelectedNodes([])
     }
     setNodes((prevNodes) =>
       prevNodes.map((node) =>
@@ -312,28 +313,42 @@ export default function Canvas(props: CanvasProps) {
   }
 
   // rename node -> resetting isEditing to false
-  const handleNodeNameChange = (
+  const handleSetNodeVals = (
     nodeID: INode["id"],
-    name?: string,
-    value?: number,
-    operator?: INode["operator"]
+    name: string,
+    value?: StrOpPair,
+    batchNum?: string,
+    ratio?: StrOpPair,
+    concentration?: StrOpPair,
+    unit?: string,
+    std?: StrOpPair,
+    error?: StrOpPair,
   ) => {
-    const newName = name ? name : ""
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
         if (n.id === nodeID) {
           const updatedNode: INode = {
             ...n,
-            name: newName,
+            name: name,
             value: value,
-            operator: operator,
+            batch_num: batchNum,
+            ratio: ratio,
+            concentration: concentration,
+            unit: unit,
+            std: std,
+            error: error,
             isEditing: false,
           }
           // Check if any fields have changed
           if (
-            newName !== n.name ||
+            name !== n.name ||
             value !== n.value ||
-            operator !== n.operator
+            batchNum !== n.batch_num ||
+            ratio !== n.ratio ||
+            concentration !== n.concentration ||
+            unit !== n.unit ||
+            std !== n.std ||
+            error !== n.error
           ) {
             updateHistory() // Call updateHistory only if a change has occurred
           }
@@ -440,10 +455,15 @@ export default function Canvas(props: CanvasProps) {
   const handleNodeAction = (
     node: INode,
     action: string,
+    conditional?: boolean,
     name?: string,
-    value?: number,
-    operator?: INode["operator"],
-    conditional?: boolean
+    value?: StrOpPair,
+    batchNum?: string,
+    ratio?: StrOpPair,
+    concentration?: StrOpPair,
+    unit?: string,
+    std?: StrOpPair,
+    error?: StrOpPair,
   ) => {
     switch (action) {
       case "click":
@@ -456,13 +476,26 @@ export default function Canvas(props: CanvasProps) {
         completeNodeMove()
         break
       case "scale":
-        handleNodeScale(node.id, value)
+        // ############# REDO SCALE ############
+        // if (typeof value === 'number')
+        // handleNodeScale(node.id, value)
         break
       case "connect":
         handleNodeConnect(node)
         break
-      case "rename":
-        handleNodeNameChange(node.id, name, value, operator)
+      case "setNodeVals":
+        if (typeof name === 'string')
+        handleSetNodeVals(
+          node.id,
+          name,
+          value,
+          batchNum,
+          ratio,
+          concentration,
+          unit,
+          std,
+          error
+        )
         break
       case "setIsEditing":
         initNodeNameChange(node.id, conditional)
@@ -929,6 +962,8 @@ export default function Canvas(props: CanvasProps) {
       canvasZoom(delta, mousePosition)
     }
 
+    console.log("asd")
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -936,7 +971,7 @@ export default function Canvas(props: CanvasProps) {
     return () => {
       canvas.removeEventListener("wheel", handleCanvasWheel)
     }
-  }, [canvasRect, canvasZoom, mousePosition])
+  }, [canvasRect, canvasZoom])
 
   const handleDefaultContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -975,7 +1010,7 @@ export default function Canvas(props: CanvasProps) {
         handleLayoutNodes()
         break
       case "saveWorkflow":
-        saveWorkflow(nodes, connections)
+        // saveWorkflow(nodes, connections)
         break
     }
   }

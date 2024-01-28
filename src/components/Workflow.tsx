@@ -20,8 +20,6 @@ import Canvas from "./canvas/Canvas"
 import WorkflowButtons from "./WorkflowButtons"
 import WorkflowJson from "./WorkflowJson";
 import WorkflowHistory from "./WorkflowHistory";
-import client from "../client"
-import { saveBlobAsFile } from "../common/helpers"
 
 interface WorkflowProps {
   colorIndex: number
