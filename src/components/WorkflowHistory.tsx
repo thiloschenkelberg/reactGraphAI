@@ -4,35 +4,18 @@ import client from "../client"
 import { IWorkflow } from "../types/workflow.types"
 import { IConnection, INode } from "../types/canvas.types"
 import { convertFromJSONFormat } from "../common/helpers"
+import { useQuery } from "react-query"
 
 interface WorkflowHistoryProps {
+  workflows: IWorkflow[] | undefined
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
   setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export default function WorkflowHistory(props: WorkflowHistoryProps) {
-  const {setNodes, setConnections, setNeedLayout} = props
-  const [workflows, setWorkflows] = useState<IWorkflow[]>([])
+  const {workflows, setNodes, setConnections, setNeedLayout} = props
   const [hovered, setHovered] = useState<number | undefined>()
-
-  useEffect(() => {
-    async function fetchWorkflows() {
-      try {
-        const response = await client.getWorkflows()
-
-        if (!response || !response.data.workflows || !response.data.message) {
-          toast.error("Error while retrieving workflows!")
-        }
-
-        setWorkflows(response.data.workflows)
-      } catch (err: any) {
-        toast.error(err.message)
-      }
-    }
-
-    fetchWorkflows()
-  }, [])
 
   const setNodesAndConnections = (workflow: string) => {
     const {nodes, connections} = convertFromJSONFormat(workflow)
@@ -50,7 +33,7 @@ export default function WorkflowHistory(props: WorkflowHistoryProps) {
         paddingRight: 10,
       }}
     >
-      {workflows.map((workflow, index) => (
+      {workflows && workflows.map((workflow, index) => (
         <div
           key={index}
           style={{

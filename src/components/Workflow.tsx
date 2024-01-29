@@ -23,6 +23,9 @@ import WorkflowHistory from "./WorkflowHistory";
 import WorkflowTable from "./WorkflowTable";
 import { IConnection, INode } from "../types/canvas.types";
 import { convertToJSONFormat } from "../common/helpers";
+import toast from "react-hot-toast";
+import client from "../client";
+import { IWorkflow } from "../types/workflow.types";
 
 const undoSteps = 200
 
@@ -35,6 +38,8 @@ export default function Workflow(props: WorkflowProps) {
   const [nodes, setNodes] = useState<INode[]>([])
   const [connections, setConnections] = useState<IConnection[]>([])
   const [workflow, setWorkflow] = useState<string | null>(null)
+  const [workflows, setWorkflows] = useState<IWorkflow[] | undefined>()
+
   const [needLayout, setNeedLayout] = useState(false)
 
   const [history, setHistory] = useState<{
@@ -58,10 +63,52 @@ export default function Workflow(props: WorkflowProps) {
   const [tableView, setTableView] = useState(false)
   const [tableViewHeight, setTableViewHeight] = useState(0)
 
-    // pass workflow to parent (workflow component)
-    useEffect(() => {
-      setWorkflow(convertToJSONFormat(nodes, connections))
-    }, [nodes, connections])
+  useEffect(() => {
+    setWorkflow(convertToJSONFormat(nodes, connections))
+  }, [nodes, connections])
+
+  useEffect(() => {
+    fetchWorkflows()
+  }, [])
+
+  async function saveWorkflow() {
+    const workflow = convertToJSONFormat(nodes, connections, true)
+
+    try {
+      await saveWorkflowToHistory(workflow)
+
+      fetchWorkflows()
+
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  async function saveWorkflowToHistory(workflow: string) {
+    try {
+      const response = await client.saveWorkflow(workflow)
+
+      if (response) {
+        toast.success(response.data.message)
+      }
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  async function fetchWorkflows() {
+    try {
+      const response = await client.getWorkflows()
+
+      if (!response || !response.data.workflows || !response.data.message) {
+        toast.error("Error while retrieving workflows!")
+      }
+
+      setWorkflows(response.data.workflows)
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
 
   useEffect(() => {
     if (workflowWindowRect) {
@@ -244,6 +291,7 @@ export default function Workflow(props: WorkflowProps) {
             colorIndex={colorIndex}
             setNodes={setNodes}
             setConnections={setConnections}
+            saveWorkflow={saveWorkflow}
             updateHistory={updateHistory}
             updateHistoryWithCaution={updateHistoryWithCaution}
             updateHistoryRevert={updateHistoryRevert}
@@ -271,6 +319,7 @@ export default function Workflow(props: WorkflowProps) {
         }}
         children={
           <WorkflowHistory
+            workflows={workflows}
             setNodes={setNodes}
             setConnections={setConnections}
             setNeedLayout={setNeedLayout}

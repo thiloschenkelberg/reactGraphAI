@@ -22,8 +22,7 @@ import {
 import { graphLayouts } from "../../types/canvas.graphLayouts"
 import {
   isConnectableNode,
-  isConnectionLegitimate,
-  saveWorkflow,
+  isConnectionLegitimate
 } from "../../common/helpers"
 import CanvasButtonGroup from "./CanvasButtons"
 
@@ -33,6 +32,7 @@ interface CanvasProps {
   colorIndex: number
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
+  saveWorkflow: () => void
   updateHistory: () => void
   updateHistoryWithCaution: () => void
   updateHistoryRevert: () => void
@@ -52,6 +52,7 @@ export default function Canvas(props: CanvasProps) {
     colorIndex,
     setNodes,
     setConnections,
+    saveWorkflow,
     updateHistory,
     updateHistoryWithCaution,
     updateHistoryRevert,
@@ -906,7 +907,7 @@ export default function Canvas(props: CanvasProps) {
         handleLayoutNodes()
         break
       case "saveWorkflow":
-        saveWorkflow(nodes, connections)
+        saveWorkflow()
         break
     }
   }

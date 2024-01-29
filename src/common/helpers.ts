@@ -315,25 +315,19 @@ export function isConnectionLegitimate(start: INode, end: INode): boolean {
   )
 }
 
-export function saveWorkflow(nodes: INode[], connections: IConnection[]) {
-  const workflow = convertToJSONFormat(nodes, connections, true)
-  saveToHistory(workflow)
-  // saveToFile(workflow, "json", "workflow.json")
-}
+// export async function saveToHistory(workflow: string) {
+//   // create timestamp
+//   // save to history -> backend (workflow + timestamp)
+//   try {
+//     const response = await client.saveWorkflow(workflow)
 
-export async function saveToHistory(workflow: string) {
-  // create timestamp
-  // save to history -> backend (workflow + timestamp)
-  try {
-    const response = await client.saveWorkflow(workflow)
-
-    if (response) {
-      toast.success(response.data.message)
-    }
-  } catch (err: any) {
-    toast.error(err.message)
-  }
-}
+//     if (response) {
+//       toast.success(response.data.message)
+//     }
+//   } catch (err: any) {
+//     toast.error(err.message)
+//   }
+// }
 
 export function saveToFile(
   data: string,
