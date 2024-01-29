@@ -1,7 +1,7 @@
 import { Select } from "@mantine/core"
 import { useEffect, useRef, useState } from "react"
 
-import { INode, StrOpPair, Operator } from "../types/canvas.types"
+import { INode, ValOpPair, Operator } from "../types/canvas.types"
 import NodeInputStr from "./NodeInputStr"
 import NodeInputStrOp from "./NodeInputStrOp"
 import { useAutoIncrementRefs } from "../../../common/helpers"
@@ -11,13 +11,13 @@ interface NodeInputProps {
   node: INode
   handleNodeRename: (
     name: string,
-    value?: StrOpPair,
+    value?: ValOpPair,
     batchNum?: string,
-    ratio?: StrOpPair,
-    concentration?: StrOpPair,
+    ratio?: ValOpPair,
+    concentration?: ValOpPair,
     unit?: string,
-    std?: StrOpPair,
-    error?: StrOpPair
+    std?: ValOpPair,
+    error?: ValOpPair
   ) => void
 }
 
@@ -29,27 +29,18 @@ export default function NodeInput(props: NodeInputProps) {
   } = props
 
   const [nodeName, setNodeName] = useState<string>(node.name)
-  const [nodeValue, setNodeValue] = useState<StrOpPair | undefined>(node.value)
+  const [nodeValue, setNodeValue] = useState<ValOpPair | undefined>(node.value)
   const [nodeBatchNum, setNodeBatchNum] = useState<string | undefined>(node.batch_num)
-  const [nodeRatio, setNodeRatio] = useState<StrOpPair | undefined>(node.ratio)
-  const [nodeConcentration, setNodeConcentration] = useState<StrOpPair | undefined>(node.concentration)
+  const [nodeRatio, setNodeRatio] = useState<ValOpPair | undefined>(node.ratio)
+  const [nodeConcentration, setNodeConcentration] = useState<ValOpPair | undefined>(node.concentration)
   const [nodeUnit, setNodeUnit] = useState<string | undefined>(node.unit)
-  const [nodeStd, setNodeStd] = useState<StrOpPair | undefined>(node.std)
-  const [nodeError, setNodeError] = useState<StrOpPair | undefined>(node.error)
-
-  const nameInputRef = useRef<HTMLInputElement>(null)
-  const valueInputRef = useRef<HTMLInputElement>(null)
-  const operatorInputRef = useRef<HTMLInputElement>(null)
-  const batchInputRef = useRef<HTMLInputElement>(null)
-  const ratioInputRef = useRef<HTMLInputElement>(null)
-  const concentrationInputRef = useRef<HTMLInputElement>(null)
-  const unitInputRef = useRef<HTMLInputElement>(null)
-  const stdInputRef = useRef<HTMLInputElement>(null)
-  const errorInputRef = useRef<HTMLInputElement>(null)
+  const [nodeStd, setNodeStd] = useState<ValOpPair | undefined>(node.std)
+  const [nodeError, setNodeError] = useState<ValOpPair | undefined>(node.error)
 
   const { getNewRef, refs } = useAutoIncrementRefs()
 
   const handleBlur = () => {
+    console.log('handling')
     setTimeout(() => {
       // Check if the active element is one of the refs
       if (refs.some(ref => document.activeElement === ref.current)) {
@@ -73,7 +64,6 @@ export default function NodeInput(props: NodeInputProps) {
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      console.log(nodeRatio)
       handleNodeRename(
         nodeName,
         nodeValue,
@@ -117,23 +107,23 @@ export default function NodeInput(props: NodeInputProps) {
     switch (id) {
       case "value":
         const valOp = nodeValue?.operator
-        setNodeValue({ string: value, operator: valOp as Operator })
+        setNodeValue({ value: value, operator: valOp as Operator })
         break
       case "ratio":
         const ratOp = nodeRatio?.operator
-        setNodeRatio({ string: value, operator: ratOp as Operator })
+        setNodeRatio({ value: value, operator: ratOp as Operator })
         break
       case "concentration":
         const conOp = nodeConcentration?.operator
-        setNodeConcentration({ string: value, operator: conOp as Operator })
+        setNodeConcentration({ value: value, operator: conOp as Operator })
         break
       case "std":
         const stdOp = nodeStd?.operator
-        setNodeStd({ string: value, operator: stdOp as Operator })
+        setNodeStd({ value: value, operator: stdOp as Operator })
         break
       case "error":
         const errOp = nodeError?.operator
-        setNodeError({ string: value, operator: errOp as Operator })
+        setNodeError({ value: value, operator: errOp as Operator })
         break
       default:
         break
@@ -143,24 +133,24 @@ export default function NodeInput(props: NodeInputProps) {
   const handleOpChangeLocal = (id: string, operator: string | null) => {
     switch (id) {
       case "value":
-        const val = nodeValue?.string
-        setNodeValue({ string: val, operator: operator as Operator })
+        const val = nodeValue?.value
+        setNodeValue({ value: val, operator: operator as Operator })
         break
       case "ratio":
-        const rat = nodeRatio?.string
-        setNodeRatio({ string: rat, operator: operator as Operator })
+        const rat = nodeRatio?.value
+        setNodeRatio({ value: rat, operator: operator as Operator })
         break
       case "concentration":
-        const con = nodeConcentration?.string
-        setNodeConcentration({ string: con, operator: operator as Operator })
+        const con = nodeConcentration?.value
+        setNodeConcentration({ value: con, operator: operator as Operator })
         break
       case "std":
-        const std = nodeStd?.string
-        setNodeStd({ string: std, operator: operator as Operator })
+        const std = nodeStd?.value
+        setNodeStd({ value: std, operator: operator as Operator })
         break
       case "error":
-        const err = nodeError?.string
-        setNodeError({ string: err, operator: operator as Operator })
+        const err = nodeError?.value
+        setNodeError({ value: err, operator: operator as Operator })
         break
       default:
         break
@@ -197,7 +187,7 @@ export default function NodeInput(props: NodeInputProps) {
         id="name"
         reference={getNewRef()}
         defaultValue={nodeName}
-        autoFocus={!node.name || !isValueNode}
+        autoFocus={true}
         add={false}
         zIndex={node.layer + 4}
       />
@@ -224,7 +214,7 @@ export default function NodeInput(props: NodeInputProps) {
             opReference={getNewRef()}
             valReference={getNewRef()}
             defaultOp={nodeRatio?.operator}
-            defaultVal={nodeRatio?.string}
+            defaultVal={nodeRatio?.value}
             autoFocus={false}
             zIndex={node.layer + 2}
           />
@@ -236,8 +226,8 @@ export default function NodeInput(props: NodeInputProps) {
             id="concentration"
             opReference={getNewRef()}
             valReference={getNewRef()}
-            defaultOp={nodeRatio?.operator}
-            defaultVal={nodeRatio?.string}
+            defaultOp={nodeConcentration?.operator}
+            defaultVal={nodeConcentration?.value}
             autoFocus={false}
             zIndex={node.layer + 1}
           />
@@ -245,19 +235,58 @@ export default function NodeInput(props: NodeInputProps) {
       )}
 
       {["parameter", "property"].includes(node.type) && (
-        <NodeInputStrOp
-          handleOpChange={handleOpChangeLocal}
-          handleValChange={handleValChangeLocal}
-          handleKeyUp={handleKeyUp}
-          handleBlur={handleBlur}
-          id="value"
-          opReference={getNewRef()}
-          valReference={getNewRef()}
-          defaultOp={nodeValue?.operator}
-          defaultVal={nodeValue?.string}
-          autoFocus={!(!node.name || !isValueNode)}
-          zIndex={node.layer + 1}
-        />
+        <>
+          <NodeInputStrOp
+            handleOpChange={handleOpChangeLocal}
+            handleValChange={handleValChangeLocal}
+            handleKeyUp={handleKeyUp}
+            handleBlur={handleBlur}
+            id="value"
+            opReference={getNewRef()}
+            valReference={getNewRef()}
+            defaultOp={nodeValue?.operator}
+            defaultVal={nodeValue?.value}
+            autoFocus={!(!node.name || !isValueNode || node.value?.value)}
+            zIndex={node.layer + 3}
+          />
+          <NodeInputStr
+            handleChange={handleStrChangeLocal}
+            handleKeyUp={handleKeyUp}
+            handleBlur={handleBlur}
+            id="unit"
+            reference={getNewRef()}
+            defaultValue={nodeUnit}
+            autoFocus={false}
+            add={true}
+            zIndex={node.layer + 2}
+          />
+          <NodeInputStrOp
+            handleOpChange={handleOpChangeLocal}
+            handleValChange={handleValChangeLocal}
+            handleKeyUp={handleKeyUp}
+            handleBlur={handleBlur}
+            id="std"
+            opReference={getNewRef()}
+            valReference={getNewRef()}
+            defaultOp={nodeStd?.operator}
+            defaultVal={nodeStd?.value}
+            autoFocus={false}
+            zIndex={node.layer + 2}
+          />
+          <NodeInputStrOp
+            handleOpChange={handleOpChangeLocal}
+            handleValChange={handleValChangeLocal}
+            handleKeyUp={handleKeyUp}
+            handleBlur={handleBlur}
+            id="error"
+            opReference={getNewRef()}
+            valReference={getNewRef()}
+            defaultOp={nodeError?.operator}
+            defaultVal={nodeError?.value}
+            autoFocus={false}
+            zIndex={node.layer + 1}
+          />
+        </>
       )}
     </div>
   )

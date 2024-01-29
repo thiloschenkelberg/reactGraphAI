@@ -4,11 +4,14 @@ import {
   IConnection,
   JSONNode,
   IDConnection,
+  ValOpPair,
+  ParsedValOpPair,
 } from "../components/canvas/types/canvas.types"
 import toast from "react-hot-toast"
 import client from "../client"
 import { v4 as uuidv4 } from "uuid"
 import React, { useRef } from "react"
+import { valueGetters } from "@mantine/core/lib/Box/style-system-props/value-getters/value-getters"
 
 const connectionToRelType: Record<string, string> = {
   "matter-manufacturing": "IS_MANUFACTURING_INPUT",
@@ -90,54 +93,109 @@ export function isConnectableNode(nodeType: string | undefined): boolean {
   )
 }
 
-// export function convertToJSONFormat(
-//   nodes: INode[],
-//   connections: IConnection[],
-//   preventMapTypes?: boolean,
-// ): string {
-//   // Convert connections into a map for easier lookup, and include the entire connection
-//   const connectionMap = connections.reduce((acc, connection) => {
-//     // Capture relationships where the node is the start point
-//     if (!acc[connection.start.id]) {
-//       acc[connection.start.id] = []
-//     }
-//     acc[connection.start.id].push(connection)
+export function isAttrDefined(attribute: string | ValOpPair | undefined): boolean {
+  if (typeof attribute === 'string') {
+    return attribute !== "";
+  } else if (typeof attribute === 'object') {
+    // Check if 'string' and 'operator' are defined and valid
+    const isStringDefined = typeof attribute.value === 'string' && attribute.value !== "";
+    const isValidOperator = attribute.operator === "<" || attribute.operator === "<=" ||
+                            attribute.operator === "=" || attribute.operator === "!=" ||
+                            attribute.operator === ">=" || attribute.operator === ">";
 
-//     // Capture relationships where the node is the end point
-//     if (!acc[connection.end.id]) {
-//       acc[connection.end.id] = []
-//     }
-//     acc[connection.end.id].push(connection)
+    // StrOpPair is valid if both 'string' and 'operator' are valid
+    return isStringDefined && isValidOperator;
+  }  
+  return false;
+}
 
-//     return acc
-//   }, {} as Record<string, IConnection[]>)
+export function parseAttr(attribute: string | ValOpPair | undefined): string | string[] | ParsedValOpPair {
+  let stringToParse = "";
 
-//   return JSON.stringify(
-//     nodes.map((node) => {
-//       const relationships = (connectionMap[node.id] || []).map(
-//         (connection) => ({
-//           rel_type: determineRelationshipType(
-//             connection.start.type,
-//             connection.end.type
-//           ),
-//           connection: [connection.start.id, connection.end.id] as [
-//             string,
-//             string
-//           ],
-//         })
-//       )
-//       return {
-//         id: node.id,
-//         name: node.name || "",
-//         value: node.value || "",
-//         type: preventMapTypes ? node.type : mapNodeType(node.type),
-//         relationships,
-//       }
-//     }),
-//     null,
-//     2
-//   )
-// }
+  // Determine the string to parse based on the type of attribute
+  if (typeof attribute === 'string') {
+    stringToParse = attribute;
+  } else if (typeof attribute?.value === 'string') {
+    stringToParse = attribute.value;
+  }
+
+  // Split the string by semicolons
+  const splitStrings = stringToParse.split(';').map(s => s.trim()).filter(s => s !== "");
+  const parsedString = splitStrings.length === 1 ? splitStrings[0] : splitStrings;
+
+  if (typeof attribute === 'string') {
+    return parsedString;
+  } else {
+    if (!attribute?.operator) return "ERROR_WHILE_PARSING"
+    return {value: parsedString, operator: attribute?.operator}
+
+  }
+
+  // Return a single string if there's only one, otherwise return the array
+}
+
+export function convertToJSONFormat(
+  nodes: INode[],
+  connections: IConnection[],
+  preventMapTypes?: boolean,
+): string {
+  // Convert connections into a map for easier lookup
+  const connectionMap = connections.reduce((acc, connection) => {
+    // Capture relationships where the node is the start point
+    if (!acc[connection.start.id]) {
+      acc[connection.start.id] = [];
+    }
+    acc[connection.start.id].push(connection);
+
+    // Capture relationships where the node is the end point
+    if (!acc[connection.end.id]) {
+      acc[connection.end.id] = [];
+    }
+    acc[connection.end.id].push(connection);
+
+    return acc;
+  }, {} as Record<string, IConnection[]>);
+
+  return JSON.stringify(
+    nodes.map((node) => {
+      // Group all attributes under an attributes object
+      const attributes: { [key: string]: any } = {};
+      attributes.name = parseAttr(node.name);
+      if (isAttrDefined(node.value)) attributes.value = parseAttr(node.value) 
+      if (isAttrDefined(node.batch_num)) attributes.batch_num = parseAttr(node.batch_num);
+      if (isAttrDefined(node.unit)) attributes.unit = parseAttr(node.unit);
+      if (isAttrDefined(node.ratio)) attributes.ratio = parseAttr(node.ratio);
+      if (isAttrDefined(node.concentration)) attributes.concentration = parseAttr(node.concentration);
+      if (isAttrDefined(node.std)) attributes.std = parseAttr(node.std);
+      if (isAttrDefined(node.error)) attributes.error = parseAttr(node.error);
+
+      // Build relationships
+      const relationships = (connectionMap[node.id] || []).map(
+        (connection) => ({
+          rel_type: determineRelationshipType(
+            connection.start.type,
+            connection.end.type
+          ),
+          connection: [connection.start.id, connection.end.id] as [
+            string,
+            string
+          ],
+        })
+      );
+
+      // Return the node object with id, type, attributes, and relationships
+      return {
+        id: node.id,
+        type: preventMapTypes ? node.type : mapNodeType(node.type),
+        attributes,
+        relationships,
+      };
+    }),
+    null,
+    2
+  );
+}
+
 
 // function convertFromJSONFormat(workflow: string) {
 //   const data: JSONNode[] = JSON.parse(workflow)

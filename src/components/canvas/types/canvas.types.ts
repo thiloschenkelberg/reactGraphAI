@@ -29,21 +29,26 @@ export interface NumOpPair {
   operator?: Operator
 }
 
-export interface StrOpPair {
-  string?: string
+export interface ValOpPair {
+  value?: string
   operator?: Operator
+}
+
+export type ParsedValOpPair = {
+  value: string | string[]
+  operator: Operator
 }
 
 export interface INode {
   id: string
+  name: string // obligatory in json for all nodes
+  value?: ValOpPair // obligatory in json for property/parameter nodes
   batch_num?: string
-  name: string //muss immer
-  ratio?: StrOpPair
-  concentration?: StrOpPair
-  value?: StrOpPair //muss immer
+  ratio?: ValOpPair
+  concentration?: ValOpPair
   unit?: string
-  std?: StrOpPair
-  error?: StrOpPair
+  std?: ValOpPair
+  error?: ValOpPair
   type: "matter" | "manufacturing" | "measurement" | "parameter" | "property" | "metadata"
   position: {x: number, y: number}
   size: number

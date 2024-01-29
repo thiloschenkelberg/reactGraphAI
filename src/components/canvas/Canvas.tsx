@@ -17,13 +17,13 @@ import {
   Position,
   Vector2D,
   ICanvasButton,
-  StrOpPair,
+  ValOpPair,
 } from "./types/canvas.types"
 import { graphLayouts } from "./types/canvas.graphLayouts"
 import {
   isConnectableNode,
   isConnectionLegitimate,
-  // convertToJSONFormat,
+  convertToJSONFormat,
   // saveWorkflow,
   clamp,
 } from "../../common/helpers"
@@ -38,6 +38,7 @@ interface CanvasProps {
 export default function Canvas(props: CanvasProps) {
   const { colorIndex, setWorkflow, style } = props
   const [nodes, setNodes] = useState<INode[]>([])
+  const [nodeEditing, setNodeEditing] = useState(false)
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
@@ -118,10 +119,10 @@ export default function Canvas(props: CanvasProps) {
     }
   })
 
-  // pass workflow to parent (view component)
-  // useEffect(() => {
-  //   setWorkflow(convertToJSONFormat(nodes, connections))
-  // }, [nodes, connections, setWorkflow])
+  // pass workflow to parent (workflow component)
+  useEffect(() => {
+    setWorkflow(convertToJSONFormat(nodes, connections))
+  }, [nodes, connections, setWorkflow])
 
   // addNode from canvas context menu
   // if created from connector, automatically
@@ -161,6 +162,7 @@ export default function Canvas(props: CanvasProps) {
       updateHistoryRevert()
       switch (nodeSelectionStatus(node.id)) {
         case 0:
+          if (nodeEditing) return
           if (!navOpen) {
             setSelectedConnectionID(null)
             if (ctrlPressed) {
@@ -295,6 +297,7 @@ export default function Canvas(props: CanvasProps) {
   // so input field will show
   const initNodeNameChange = (nodeID: INode["id"], undoHistory?: boolean) => {
     cleanupDrag()
+    if (nodeEditing) return
     if (undoHistory) updateHistoryRevert()
     if (ctrlPressed) {
       const node = nodes.find((node) => node.id === nodeID)
@@ -310,19 +313,20 @@ export default function Canvas(props: CanvasProps) {
         node.id === nodeID ? { ...node, isEditing: true } : node
       )
     )
+    setNodeEditing(true)
   }
 
   // rename node -> resetting isEditing to false
   const handleSetNodeVals = (
     nodeID: INode["id"],
     name: string,
-    value?: StrOpPair,
+    value?: ValOpPair,
     batchNum?: string,
-    ratio?: StrOpPair,
-    concentration?: StrOpPair,
+    ratio?: ValOpPair,
+    concentration?: ValOpPair,
     unit?: string,
-    std?: StrOpPair,
-    error?: StrOpPair,
+    std?: ValOpPair,
+    error?: ValOpPair,
   ) => {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
@@ -357,6 +361,7 @@ export default function Canvas(props: CanvasProps) {
         return n
       })
     )
+    setNodeEditing(false)
     setSelectedNodes([])
   }
 
@@ -457,13 +462,13 @@ export default function Canvas(props: CanvasProps) {
     action: string,
     conditional?: boolean,
     name?: string,
-    value?: StrOpPair,
+    value?: ValOpPair,
     batchNum?: string,
-    ratio?: StrOpPair,
-    concentration?: StrOpPair,
+    ratio?: ValOpPair,
+    concentration?: ValOpPair,
     unit?: string,
-    std?: StrOpPair,
-    error?: StrOpPair,
+    std?: ValOpPair,
+    error?: ValOpPair,
   ) => {
     switch (action) {
       case "click":
@@ -955,14 +960,12 @@ export default function Canvas(props: CanvasProps) {
   useEffect(() => {
     const handleCanvasWheel = (e: WheelEvent) => {
       e.preventDefault()
-      if (!canvasRect) return
+      if (!canvasRect || nodeEditing) return
 
       const delta = Math.sign(e.deltaY)
 
       canvasZoom(delta, mousePosition)
     }
-
-    console.log("asd")
 
     const canvas = canvasRef.current
     if (!canvas) return
@@ -973,7 +976,7 @@ export default function Canvas(props: CanvasProps) {
     }
   }, [canvasRect, canvasZoom])
 
-  const handleDefaultContextMenu = (e: React.MouseEvent) => {
+  const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     setSelectionRect(null)
     if (canvasRect) {
@@ -1028,7 +1031,7 @@ export default function Canvas(props: CanvasProps) {
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={handleCanvasMouseUp}
       // Context menu
-      onContextMenu={handleDefaultContextMenu}
+      onContextMenu={handleContextMenu}
       // Delete stuff
       onKeyUp={handleCanvasKeyUp}
       ref={canvasRef}

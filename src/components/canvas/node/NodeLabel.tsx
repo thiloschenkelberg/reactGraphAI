@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { INode, StrOpPair } from "../types/canvas.types"
+import { INode, ValOpPair } from "../types/canvas.types"
+import { isAttrDefined } from "../../../common/helpers"
 
 interface NodeLabelsProps {
   // isEditing: boolean
@@ -9,8 +10,8 @@ interface NodeLabelsProps {
   labelRef: React.RefObject<HTMLDivElement>
   hovered: boolean
   size: number
-  name: string | undefined
-  value?: StrOpPair
+  name: string
+  value?: ValOpPair
   type: INode["type"]
   layer: number
   // hasLabelOverflow: boolean
@@ -42,7 +43,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
   } = props
 
   useEffect(() => {
-    if (name === undefined) return
+    if (!isAttrDefined(name)) return
     const subName = name.substring(0, size / 9.65) // 9.65 = width of 1 char
     if (subName.length < name.length) {
       setIsNameSliced(true)
@@ -54,14 +55,14 @@ export default function NodeLabel(props: NodeLabelsProps) {
   }, [name, size])
 
   useEffect(() => {
-    if (!value?.string) return
-    const subValue = value.string.substring(0, (size - 20) / 8.2) // 8.2 = width of 1 char
-    if (subValue.length < value.string.length) {
+    if (!value?.value || !value.operator) return
+    const subValue = value.value.substring(0, (size - 20) / 8.2) // 8.2 = width of 1 char
+    if (subValue.length < value.value.length) {
       setIsValueSliced(true)
       setSlicedValue(subValue.slice(0,-2))
     } else {
       setIsValueSliced(false)
-      setSlicedValue(value.string)
+      setSlicedValue(value.value)
     }
   }, [value, size])
 
@@ -97,8 +98,8 @@ export default function NodeLabel(props: NodeLabelsProps) {
         onMouseEnter={() => setLabelHovered(true)}
         onMouseLeave={() => setLabelHovered(false)}
         style={{
-          marginTop: isValueNode && value !== undefined ? 3 : 0,
-          marginBottom: isValueNode && value !== undefined ? -3 : 0,
+          marginTop: isValueNode && isAttrDefined(value) ? 3 : 0,
+          marginBottom: isValueNode && isAttrDefined(value) ? -3 : 0,
           color: ["matter", "measurement", "metadata"].includes(type)
             ? "#1a1b1e"
             : "#ececec",
@@ -119,7 +120,7 @@ export default function NodeLabel(props: NodeLabelsProps) {
       </div>
 
         {/* value label  */}
-      {(isValueNode && value !== undefined) && (
+      {(isValueNode && isAttrDefined(value)) && (
         <div
           className="node-label node-label-value"
           onMouseUp={onMouseUp}
@@ -133,11 +134,11 @@ export default function NodeLabel(props: NodeLabelsProps) {
           }}
         >
           {/* operator */}
-          {value.operator && 
+          {value?.operator && 
             <span children={mapOperatorSign()}/>
           }
           {/* value */}
-          <span>
+          <span style={{paddingLeft: 2}}>
             {slicedValue}
           </span>
           {/* dots */}

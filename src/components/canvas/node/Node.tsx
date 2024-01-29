@@ -10,8 +10,9 @@ import NodeLabel from "./NodeLabel"
 import NodeWarning from "./NodeWarning"
 // import { NodeLabelOutline } from "./node-label.component"
 import NodeConnector from "./NodeConnector"
-import { INode, Position, StrOpPair, Vector2D } from "../types/canvas.types"
+import { INode, Position, ValOpPair, Vector2D } from "../types/canvas.types"
 import { colorPalette } from "../types/colors"
+import { isAttrDefined } from "../../../common/helpers"
 
 interface NodeProps {
   node: INode
@@ -25,13 +26,13 @@ interface NodeProps {
     action: string,
     conditional?: boolean,
     name?: string,
-    value?: StrOpPair,
+    value?: ValOpPair,
     batchNum?: string,
-    ratio?: StrOpPair,
-    concentration?: StrOpPair,
+    ratio?: ValOpPair,
+    concentration?: ValOpPair,
     unit?: string,
-    std?: StrOpPair,
-    error?: StrOpPair,
+    std?: ValOpPair,
+    error?: ValOpPair,
   ) => void
 }
 
@@ -109,9 +110,9 @@ export default React.memo(function Node(props: NodeProps) {
   // update missing fields
   useEffect(() => {
     if (isValueNode) {
-      setFieldsMissing(!node.name || node.value === undefined)
+      setFieldsMissing(!isAttrDefined(node.name) || !isAttrDefined(node.value))
     } else {
-      setFieldsMissing(!node.name)
+      setFieldsMissing(!isAttrDefined(node.name))
     }
   }, [isValueNode, node.name, node.value])
 
@@ -138,7 +139,7 @@ export default React.memo(function Node(props: NodeProps) {
 
   // calculate nodeOptimalSize
   useEffect(() => {
-    if (!node.name) {
+    if (!isAttrDefined(node.name)) {
       setNodeOptimalSize(node.size)
       return
     }
@@ -146,8 +147,8 @@ export default React.memo(function Node(props: NodeProps) {
     const nameMinimumSize = node.name.length * 11
     let nodeMinimumSize = nameMinimumSize
 
-    if (isValueNode && node.value?.string !== undefined) {
-      const valueMinimumSize = node.value.string.length * 9 + 20
+    if (isValueNode && isAttrDefined(node.value) && node.value?.value) {
+      const valueMinimumSize = node.value.value.length * 9 + 20
       nodeMinimumSize = Math.max(nodeMinimumSize, valueMinimumSize)
     }
 
@@ -267,13 +268,13 @@ export default React.memo(function Node(props: NodeProps) {
 
   const handleNodeRename = (
     name: string,
-    value?: StrOpPair,
+    value?: ValOpPair,
     batchNum?: string,
-    ratio?: StrOpPair,
-    concentration?: StrOpPair,
+    ratio?: ValOpPair,
+    concentration?: ValOpPair,
     unit?: string,
-    std?: StrOpPair,
-    error?: StrOpPair,
+    std?: ValOpPair,
+    error?: ValOpPair,
   ) => {
     handleNodeAction(node, "setNodeVals", undefined, name, value, batchNum, ratio, concentration, unit, std, error)
   }
@@ -358,6 +359,10 @@ export default React.memo(function Node(props: NodeProps) {
         onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
+        onContextMenu={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+        }}
         tabIndex={0}
       >
         {/* visible node */}

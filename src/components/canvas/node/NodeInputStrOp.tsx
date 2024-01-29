@@ -1,5 +1,5 @@
 import { Select } from "@mantine/core"
-import { RefObject, useEffect, useRef, useState } from "react"
+import React, { RefObject, useEffect, useRef, useState } from "react"
 import { Operator } from "../types/canvas.types"
 
 interface NodeInputStrOpProps {
@@ -31,37 +31,19 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
     zIndex
   } = props
   const [selectOpen, setSelectOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const placeholder = id.charAt(0).toUpperCase() + id.slice(1)
 
   const toggleSelectOpen = () => {
     if (selectOpen) {
       setTimeout(() => {
-        // setSelectOpen(false)
+        setSelectOpen(false)
       }, 100)
     } else {
       setSelectOpen(true)
     }
   }
-
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      console.log("tessst")
-    }
-
-    console.log("tessst")
-
-    const dropdown = dropdownRef.current
-    if (!dropdown) return
-
-    dropdown.addEventListener("wheel", handleWheel, { passive: false })
-    return () => {
-      dropdown.removeEventListener("wheel", handleWheel)
-    }
-  }, [dropdownRef])
+  
 
   return (
     <>
@@ -72,6 +54,19 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
         marginTop: 8,
       }}
     >
+      {/* {selectOpen && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onMouseUp={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: "transparent",
+            width: 60,
+            height: 280,
+            position: "absolute",
+            zIndex: zIndex,
+          }}
+        />
+      )} */}
       <Select
         ref={opReference}
         onChange={(e) => handleOpChange(id, e)}
@@ -87,24 +82,10 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
         style={{
           width: "25%",
           borderRight: "none",
-          zIndex: zIndex,
+          zIndex: selectOpen ? zIndex + 10 : zIndex,
           filter: "drop-shadow(1px 1px 1px #111",
         }}
       />
-      {selectOpen && (
-        <div
-          ref={dropdownRef}
-          onClick={(e) => e.stopPropagation()}
-          onMouseUp={(e) => e.stopPropagation()}
-          style={{
-            backgroundColor: "#ff0000",
-            width: 200,
-            height: 266,
-            display: "block",
-            position: "absolute",
-          }}
-        />
-      )}
       <input
         ref={valReference}
         type="text"
@@ -121,6 +102,7 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
         }}
       />
     </div>
+
     </>
   )
 }

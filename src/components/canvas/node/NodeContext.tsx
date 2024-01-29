@@ -85,7 +85,7 @@ export default function NodeContext(props: NodeContextProps) {
         return nodeSize / 2 + 65
       case "property":
       case "parameter":
-        return nodeSize / 2 + 100
+        return nodeSize / 2 + 88
       default:
         return nodeSize / 2 + 40
     }
