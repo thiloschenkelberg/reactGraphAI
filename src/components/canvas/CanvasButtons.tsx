@@ -10,7 +10,7 @@ import { RiSave3Line } from "react-icons/ri";
 import { MdRestartAlt as ResetIcon2 } from "react-icons/md"
 import { PiDotsSixVertical as HandleIcon } from "react-icons/pi"
 
-import { ICanvasButton, Position } from "./types/canvas.types"
+import { ICanvasButton, Position } from "../../types/canvas.types"
 import { clamp } from "../../common/helpers"
 import { Tooltip } from 'react-tooltip'
 

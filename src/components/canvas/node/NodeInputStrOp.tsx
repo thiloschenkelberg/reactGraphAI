@@ -1,6 +1,6 @@
 import { Select } from "@mantine/core"
 import React, { RefObject, useEffect, useRef, useState } from "react"
-import { Operator } from "../types/canvas.types"
+import { Operator } from "../../../types/canvas.types"
 
 interface NodeInputStrOpProps {
   handleOpChange: (id: string, operator: string | null) => void

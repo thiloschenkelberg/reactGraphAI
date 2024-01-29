@@ -67,30 +67,6 @@ export interface IDConnection {
   end: string
 }
 
-export interface JSONNode {
-  id: string
-  name?: string
-  value?: number
-  operator?: "<" | "<=" | "=" | "!=" | ">=" | ">"
-  type: "matter" | "manufacturing" | "measurement" | "parameter" | "property" | "metadata"
-  relationships: Array<{
-    rel_type: string
-    connection: [string, string]
-  }>
-}
-
-interface RelationshipJSON {
-  rel_type: string;
-  connection: [string, string];
-}
-
-export interface NodeJSON {
-  id: string;
-  type: string;
-  name: string;
-  relationships: RelationshipJSON[];
-}
-
 export interface ICanvasButton {
   type: "undo" | "redo" | "reset" | "layout" | "saveWorkflow"
 }

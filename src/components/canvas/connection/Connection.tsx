@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 
-import { IConnection } from "../types/canvas.types"
+import { IConnection } from "../../../types/canvas.types"
 import ConnectionContext from "./ConnectionContext"
 
 interface ConnectionProps {

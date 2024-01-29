@@ -18,31 +18,43 @@ import {
   Vector2D,
   ICanvasButton,
   ValOpPair,
-} from "./types/canvas.types"
-import { graphLayouts } from "./types/canvas.graphLayouts"
+} from "../../types/canvas.types"
+import { graphLayouts } from "../../types/canvas.graphLayouts"
 import {
   isConnectableNode,
   isConnectionLegitimate,
   convertToJSONFormat,
-  // saveWorkflow,
+  saveWorkflow,
   clamp,
 } from "../../common/helpers"
 import CanvasButtonGroup from "./CanvasButtons"
 
 interface CanvasProps {
+  nodes: INode[]
+  connections: IConnection[]
   colorIndex: number
   setWorkflow: React.Dispatch<React.SetStateAction<string | null>>
+  setNodes: React.Dispatch<React.SetStateAction<INode[]>>
+  setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
   style?: React.CSSProperties
 }
 
 export default function Canvas(props: CanvasProps) {
-  const { colorIndex, setWorkflow, style } = props
-  const [nodes, setNodes] = useState<INode[]>([])
+  const {
+    nodes,
+    connections,
+    colorIndex,
+    setWorkflow,
+    setNodes,
+    setConnections,
+    style,
+  } = props
+
   const [nodeEditing, setNodeEditing] = useState(false)
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
-  const [connections, setConnections] = useState<IConnection[]>([])
+
   const [selectedConnectionID, setSelectedConnectionID] = useState<
     IConnection["id"] | null
   >(null)
@@ -75,7 +87,7 @@ export default function Canvas(props: CanvasProps) {
       setNodes(JSON.parse(savedNodes))
       if (savedConnections) setConnections(JSON.parse(savedConnections))
     }
-  }, [])
+  }, [setNodes, setConnections])
 
   // Save nodes and connections to local storage
   useEffect(() => {
@@ -159,10 +171,10 @@ export default function Canvas(props: CanvasProps) {
       addConnection(connectingNode, node)
       setConnectingNode(null)
     } else {
+      if (nodeEditing) return
       updateHistoryRevert()
       switch (nodeSelectionStatus(node.id)) {
         case 0:
-          if (nodeEditing) return
           if (!navOpen) {
             setSelectedConnectionID(null)
             if (ctrlPressed) {
@@ -297,17 +309,18 @@ export default function Canvas(props: CanvasProps) {
   // so input field will show
   const initNodeNameChange = (nodeID: INode["id"], undoHistory?: boolean) => {
     cleanupDrag()
-    if (nodeEditing) return
+    if (nodeEditing || ctrlPressed) return
     if (undoHistory) updateHistoryRevert()
-    if (ctrlPressed) {
-      const node = nodes.find((node) => node.id === nodeID)
-      if (node) {
-        handleNodeClick(node)
-        return
-      }
-    } else {
-      // setSelectedNodes([])
-    }
+    // if (ctrlPressed) {
+    //   return
+    //   // const node = nodes.find((node) => node.id === nodeID)
+    //   // if (node) {
+    //   //   handleNodeClick(node)
+    //   //   return
+    //   // }
+    // } else {
+    //   // setSelectedNodes([])
+    // }
     setNodes((prevNodes) =>
       prevNodes.map((node) =>
         node.id === nodeID ? { ...node, isEditing: true } : node
@@ -769,7 +782,7 @@ export default function Canvas(props: CanvasProps) {
         connections: prev.connections.slice(0, -1),
       }))
     }
-  }, [history, nodes, connections])
+  }, [history, nodes, connections, setNodes, setConnections])
 
   const redo = useCallback(() => {
     if (future.nodes.length) {
@@ -784,7 +797,7 @@ export default function Canvas(props: CanvasProps) {
         connections: prev.connections.slice(1),
       }))
     }
-  }, [future, nodes, connections])
+  }, [future, nodes, connections, setNodes, setConnections])
 
   useEffect(() => {
     const handleCanvasKeyDown = (e: KeyboardEvent) => {
@@ -954,7 +967,7 @@ export default function Canvas(props: CanvasProps) {
 
       setNodes(updatedNodes)
     },
-    [nodes]
+    [nodes, setNodes]
   )
 
   useEffect(() => {
@@ -974,6 +987,7 @@ export default function Canvas(props: CanvasProps) {
     return () => {
       canvas.removeEventListener("wheel", handleCanvasWheel)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasRect, canvasZoom])
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -1013,7 +1027,7 @@ export default function Canvas(props: CanvasProps) {
         handleLayoutNodes()
         break
       case "saveWorkflow":
-        // saveWorkflow(nodes, connections)
+        saveWorkflow(nodes, connections)
         break
     }
   }

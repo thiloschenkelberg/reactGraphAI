@@ -1,7 +1,7 @@
 import { Select } from "@mantine/core"
 import { useEffect, useRef, useState } from "react"
 
-import { INode, ValOpPair, Operator } from "../types/canvas.types"
+import { INode, ValOpPair, Operator } from "../../../types/canvas.types"
 import NodeInputStr from "./NodeInputStr"
 import NodeInputStrOp from "./NodeInputStrOp"
 import { useAutoIncrementRefs } from "../../../common/helpers"
@@ -40,7 +40,6 @@ export default function NodeInput(props: NodeInputProps) {
   const { getNewRef, refs } = useAutoIncrementRefs()
 
   const handleBlur = () => {
-    console.log('handling')
     setTimeout(() => {
       // Check if the active element is one of the refs
       if (refs.some(ref => document.activeElement === ref.current)) {

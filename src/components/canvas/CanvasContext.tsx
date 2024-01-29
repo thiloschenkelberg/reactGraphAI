@@ -15,9 +15,9 @@ import MeasurementIcon from "@mui/icons-material/SquareFoot"
 import MatterIcon from "@mui/icons-material/Diamond"
 import MetadataIcon from '@mui/icons-material/DataObject';
 
-import { Position } from "./types/canvas.types"
-import { colorPalette } from "./types/colors"
-import { INode } from "./types/canvas.types"
+import { Position } from "../../types/canvas.types"
+import { colorPalette } from "../../types/colors"
+import { INode } from "../../types/canvas.types"
 import { possibleConnections } from "../../common/helpers"
 
 interface CanvasContextProps {

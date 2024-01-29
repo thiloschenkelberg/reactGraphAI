@@ -9,8 +9,8 @@ import LayersIcon from "@mui/icons-material/Layers"
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove';
 
-import { hoverColors } from "../types/colors"
-import { INode } from "../types/canvas.types"
+import { hoverColors } from "../../../types/colors"
+import { INode } from "../../../types/canvas.types"
 
 interface NodeContextProps {
   onSelect: (action: string) => void

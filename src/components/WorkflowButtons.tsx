@@ -1,6 +1,11 @@
 import { useState, CSSProperties, useEffect } from "react"
 import { TbMinusVertical, TbMinus } from "react-icons/tb"
-import { FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp } from "react-icons/fi"
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi"
 import { useSpring, animated } from "react-spring"
 
 interface WorkflowButtonProps {
@@ -30,26 +35,22 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
   }, [jsonView, historyView, tableView])
 
   const springProps = useSpring({
-    jsonIconRight:
-      jsonView ? jsonViewWidth : 0,
-    historyIconLeft:
-      historyView ? historyViewWidth : 0,
-    tableIconBottom:
-      tableView ? tableViewHeight : 0,
+    jsonIconRight: jsonView ? jsonViewWidth : 0,
+    historyIconLeft: historyView ? historyViewWidth : 0,
+    tableIconBottom: tableView ? tableViewHeight : 0,
     config: {
       tension: 1000,
       friction: 100,
-    }
+    },
   })
 
-  const iconTopValue = springProps.tableIconBottom.to(value =>
-    `calc(0.49 * (100% - ${value}px))`
+  const iconTopValue = springProps.tableIconBottom.to(
+    (value) => `calc(0.49 * (100% - ${value}px))`
   )
 
   const iconStyle: CSSProperties = {
     pointerEvents: "all",
     position: "absolute",
-    color: "#909296",
     width: "35px",
     height: "auto",
   }
@@ -75,14 +76,20 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
         {hovered === "json" ? (
           jsonView ? (
             <FiChevronRight
-              style={iconStyle}
+              style={{
+                ...iconStyle,
+                color: hovered === "json" ? "#909296" : "#373A40",
+              }}
               onClick={handleMouseUpLocal}
               onMouseEnter={() => setHovered("json")}
               onMouseLeave={handleMouseLeave}
             />
           ) : (
             <FiChevronLeft
-              style={iconStyle}
+              style={{
+                ...iconStyle,
+                color: hovered === "json" ? "#909296" : "#373A40",
+              }}
               onClick={handleMouseUpLocal}
               onMouseEnter={() => setHovered("json")}
               onMouseLeave={handleMouseLeave}
@@ -90,7 +97,10 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
           )
         ) : (
           <TbMinusVertical
-            style={iconStyle}
+            style={{
+              ...iconStyle,
+              color: hovered === "json" ? "#909296" : "#373A40",
+            }}
             onClick={handleMouseUpLocal}
             onMouseEnter={() => setHovered("json")}
             onMouseLeave={handleMouseLeave}
@@ -106,20 +116,26 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
         className="workflow-window-btn"
         style={{
           left: springProps.historyIconLeft,
-          top: iconTopValue
+          top: iconTopValue,
         }}
       >
         {hovered === "history" ? (
           historyView ? (
             <FiChevronLeft
-              style={iconStyle}
+              style={{
+                ...iconStyle,
+                color: hovered === "history" ? "#909296" : "#373A40",
+              }}
               onClick={handleMouseUpLocal}
               onMouseEnter={() => setHovered("history")}
               onMouseLeave={handleMouseLeave}
             />
           ) : (
             <FiChevronRight
-              style={iconStyle}
+              style={{
+                ...iconStyle,
+                color: hovered === "history" ? "#909296" : "#373A40",
+              }}
               onClick={handleMouseUpLocal}
               onMouseEnter={() => setHovered("history")}
               onMouseLeave={handleMouseLeave}
@@ -127,7 +143,10 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
           )
         ) : (
           <TbMinusVertical
-            style={iconStyle}
+            style={{
+              ...iconStyle,
+              color: hovered === "history" ? "#909296" : "#373A40",
+            }}
             onClick={handleMouseUpLocal}
             onMouseEnter={() => setHovered("history")}
             onMouseLeave={handleMouseLeave}
@@ -144,20 +163,26 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
         style={{
           bottom: springProps.tableIconBottom,
           left: "50%",
-          transform: "translate(-50%,0)"
+          transform: "translate(-50%,0)",
         }}
       >
         {hovered === "table" ? (
           tableView ? (
             <FiChevronDown
-              style={iconStyle}
+              style={{
+                ...iconStyle,
+                color: hovered === "table" ? "#909296" : "#373A40",
+              }}
               onClick={handleMouseUpLocal}
               onMouseEnter={() => setHovered("table")}
               onMouseLeave={handleMouseLeave}
             />
           ) : (
             <FiChevronUp
-              style={iconStyle}
+              style={{
+                ...iconStyle,
+                color: hovered === "table" ? "#909296" : "#373A40",
+              }}
               onClick={handleMouseUpLocal}
               onMouseEnter={() => setHovered("table")}
               onMouseLeave={handleMouseLeave}
@@ -165,7 +190,10 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
           )
         ) : (
           <TbMinus
-            style={iconStyle}
+            style={{
+              ...iconStyle,
+              color: hovered === "table" ? "#909296" : "#373A40",
+            }}
             onClick={handleMouseUpLocal}
             onMouseEnter={() => setHovered("table")}
             onMouseLeave={handleMouseLeave}

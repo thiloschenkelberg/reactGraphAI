@@ -119,8 +119,15 @@ class UserService {
     return WorkflowRepository.deleteWorkflow(workflowId)
   }
 
-  static getWorkflowsByUserID(userId: string): Promise<IWorkflow[]> {
-    return WorkflowRepository.getWorkflowsByUserID(userId)
+  static async getWorkflowsByUserID(userId: string): Promise<IWorkflow[]> {
+    const workflows = await WorkflowRepository.getWorkflowsByUserID(userId)
+
+    const workflowsWithoutUserId = workflows.map((workflow: IWorkflow) => {
+      const {userId, ...restOfWorkflow} = workflow
+      return restOfWorkflow
+    })
+
+    return workflowsWithoutUserId
   }
 }
 

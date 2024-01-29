@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 
 export interface IWorkflow {
-    userId: ObjectId
+    userId?: ObjectId
     workflow: string
     timestamp: Date
 }

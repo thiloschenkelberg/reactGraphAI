@@ -10,8 +10,8 @@ import NodeLabel from "./NodeLabel"
 import NodeWarning from "./NodeWarning"
 // import { NodeLabelOutline } from "./node-label.component"
 import NodeConnector from "./NodeConnector"
-import { INode, Position, ValOpPair, Vector2D } from "../types/canvas.types"
-import { colorPalette } from "../types/colors"
+import { INode, Position, ValOpPair, Vector2D } from "../../../types/canvas.types"
+import { colorPalette } from "../../../types/colors"
 import { isAttrDefined } from "../../../common/helpers"
 
 interface NodeProps {

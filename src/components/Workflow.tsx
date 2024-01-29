@@ -20,6 +20,8 @@ import Canvas from "./canvas/Canvas"
 import WorkflowButtons from "./WorkflowButtons"
 import WorkflowJson from "./WorkflowJson";
 import WorkflowHistory from "./WorkflowHistory";
+import WorkflowTable from "./WorkflowTable";
+import { IConnection, INode } from "../types/canvas.types";
 
 interface WorkflowProps {
   colorIndex: number
@@ -27,12 +29,14 @@ interface WorkflowProps {
 
 export default function Workflow(props: WorkflowProps) {
   const { colorIndex } = props
+  const [nodes, setNodes] = useState<INode[]>([])
+  const [connections, setConnections] = useState<IConnection[]>([])
   const [workflow, setWorkflow] = useState<string | null>(null)
 
   const [canvasWidth, setCanvasWidth] = useState(0)
   const [canvasHeight, setCanvasHeight] = useState(0)
-  const workflowRef = useRef<HTMLDivElement>(null)
-  const [workflowRect, setWorkflowRect] = useState<DOMRect | null>(null)
+  const workflowWindowRef = useRef<HTMLDivElement>(null)
+  const [workflowWindowRect, setWorkflowWindowRect] = useState<DOMRect | null>(null)
 
   const [jsonView, setJsonView] = useState(false)
   const [jsonViewWidth, setJsonViewWidth] = useState(0)
@@ -59,24 +63,24 @@ export default function Workflow(props: WorkflowProps) {
   })
 
   useEffect(() => {
-    if (workflowRect) {
-      const width = workflowRect.width - jsonViewWidth - historyViewWidth
-      const height = workflowRect.height - tableViewHeight
+    if (workflowWindowRect) {
+      const width = workflowWindowRect.width - jsonViewWidth - historyViewWidth
+      const height = workflowWindowRect.height - tableViewHeight
 
       setCanvasWidth(width)
       setCanvasHeight(height)
     }  
-  }, [workflowRect, jsonViewWidth, historyViewWidth, tableViewHeight])
+  }, [workflowWindowRect, jsonViewWidth, historyViewWidth, tableViewHeight])
 
   // Resize Observer for workflow window
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
-      if (workflowRef.current) {
-        setWorkflowRect(workflowRef.current.getBoundingClientRect())
+      if (workflowWindowRef.current) {
+        setWorkflowWindowRect(workflowWindowRef.current.getBoundingClientRect())
       }
     })
 
-    const currentWorkflow = workflowRef.current
+    const currentWorkflow = workflowWindowRef.current
     if (currentWorkflow) {
       resizeObserver.observe(currentWorkflow)
     }
@@ -86,7 +90,7 @@ export default function Workflow(props: WorkflowProps) {
         resizeObserver.unobserve(currentWorkflow)
       }
     }
-  }, [workflowRef])
+  }, [workflowWindowRef])
 
   const handleSplitView = (view: String) => {
     switch (view) {
@@ -102,7 +106,7 @@ export default function Workflow(props: WorkflowProps) {
         if (historyView) {
           setHistoryViewWidth(0)
         } else {
-          setHistoryViewWidth(450)
+          setHistoryViewWidth(300)
         }
         setHistoryView(!historyView);
         break;
@@ -120,11 +124,7 @@ export default function Workflow(props: WorkflowProps) {
   }
 
   return (
-    <div className="workflow-window" ref={workflowRef}>
-
-
-
-
+    <div className="workflow-window" ref={workflowWindowRef}>
       <animated.div
         className="workflow-window-canvas"
         style={{
@@ -134,47 +134,57 @@ export default function Workflow(props: WorkflowProps) {
           width: springProps.canvasWidth,
           height: springProps.canvasHeight,
         }}
-      >
-        <Canvas
-          colorIndex={colorIndex}
-          setWorkflow={setWorkflow}
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      </animated.div>
+        children={
+          <Canvas
+            nodes={nodes}
+            connections={connections}
+            colorIndex={colorIndex}
+            setWorkflow={setWorkflow}
+            setNodes={setNodes}
+            setConnections={setConnections}
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+            }}
+          />
+        }
+      />
 
+      <animated.div
+        className="workflow-window-history"
+        style={{
+          height: springProps.canvasHeight,
+          width: springProps.historyViewWidth,
+          borderRight: historyView ? "1px solid #333" : "none"
+        }}
+        children={
+          <WorkflowHistory
+            setNodes={setNodes}
+            setConnections={setConnections}
+          />
+        }
+      />
 
-        <animated.div
-          className="workflow-window-history"
-          style={{
-            height: springProps.canvasHeight,
-            width: springProps.historyViewWidth,
-          }}
-          children={<WorkflowHistory/>}
-        />
+      <animated.div
+        className="workflow-window-json"
+        style={{
+          height: springProps.canvasHeight,
+          width: springProps.jsonViewWidth,
+          borderLeft: jsonView ? "1px solid #333" : "none"
+        }}
+        children={<WorkflowJson workflow={workflow}/>}
+      />
 
-        <animated.div
-          className="workflow-window-json"
-          style={{
-            height: springProps.canvasHeight,
-            width: springProps.jsonViewWidth,
-          }}
-          children={<WorkflowJson workflow={workflow}/>}
-        />
-
-        <animated.div
-          className="workflow-window-table"
-          style={{
-            height: springProps.tableViewHeight,
-            width: "100%",
-          }}
-          children={<WorkflowHistory/>}
-        />
-
-
+      <animated.div
+        className="workflow-window-table"
+        style={{
+          height: springProps.tableViewHeight,
+          width: "100%",
+          borderTop: tableView ? "1px solid #333" : "none"
+        }}
+        children={<WorkflowTable/>}
+      />
 
       <div className="workflow-window-btn-wrap">
         <WorkflowButtons
@@ -187,10 +197,6 @@ export default function Workflow(props: WorkflowProps) {
           onSelect={handleSplitView}
         />
       </div>
-
-
-
-
     </div>
   )
 }

@@ -2,11 +2,11 @@ import { PiAddressBookDuotone } from "react-icons/pi"
 import {
   INode,
   IConnection,
-  JSONNode,
   IDConnection,
   ValOpPair,
   ParsedValOpPair,
-} from "../components/canvas/types/canvas.types"
+} from "../types/canvas.types"
+import { ITempNode } from "../types/workflow.types"
 import toast from "react-hot-toast"
 import client from "../client"
 import { v4 as uuidv4 } from "uuid"
@@ -197,65 +197,69 @@ export function convertToJSONFormat(
 }
 
 
-// function convertFromJSONFormat(workflow: string) {
-//   const data: JSONNode[] = JSON.parse(workflow)
-//   const nodes: INode[] = []
-//   const connectionsMap: Map<string, IDConnection> = new Map()
+export function convertFromJSONFormat(workflow: string) {
+  const data: ITempNode[] = JSON.parse(workflow)
+  const nodes: INode[] = []
+  const connectionsMap: Map<string, IDConnection> = new Map()
 
-//   data.forEach((item) => {
-//     nodes.push({
-//       id: item.id,
-//       name: item.name,
-//       value: item.value,
-//       operator: item.operator,
-//       type: item.type,
-//       // Assuming position, size, layer, isEditing are required, set to default values
-//       position: { x: 0, y: 0 },
-//       size: 100,
-//       layer: 0,
-//       isEditing: false,
-//     })
+  data.forEach((item) => {
+    nodes.push({
+      id: item.id,
+      name: item.attributes.name,
+      value: item.attributes.value,
+      batch_num: item.attributes.batch_num,
+      ratio: item.attributes.ratio,
+      concentration: item.attributes.concentration,
+      unit: item.attributes.unit,
+      std: item.attributes.std,
+      error: item.attributes.error,
+      type: item.type,
+      position: { x: 0, y: 0 },
+      size: 100,
+      layer: 0,
+      isEditing: false,
+    })
 
-//     // Reconstruct connections
-//     item.relationships.forEach((rel) => {
-//       // Create a unique key to prevent duplicate connections
-//       const connectionKey = [rel.connection[0], rel.connection[1]]
-//         .sort()
-//         .join("_")
+    // Reconstruct connections
+    item.relationships.forEach((rel) => {
+      // Create a unique key to prevent duplicate connections
+      const connectionKey = [rel.connection[0], rel.connection[1]]
+        .sort()
+        .join("_")
 
-//       if (!connectionsMap.has(connectionKey)) {
-//         connectionsMap.set(connectionKey, {
-//           start: rel.connection[0], // Only ID is used here
-//           end: rel.connection[1], // Only ID is used here
-//         })
-//       }
-//     })
-//   })
+      if (!connectionsMap.has(connectionKey)) {
+        connectionsMap.set(connectionKey, {
+          start: rel.connection[0], // Only ID is used here
+          end: rel.connection[1], // Only ID is used here
+        })
+      }
+    })
+  })
 
-//   const connections: IConnection[] = Array.from(
-//     connectionsMap.values()
-//   ).flatMap((con) => {
-//     const startNode = nodes.find((n) => n.id === con.start)
-//     const endNode = nodes.find((n) => n.id === con.end)
+  const connections: IConnection[] = Array.from(
+    connectionsMap.values()
+  ).flatMap((con) => {
+    const startNode = nodes.find((n) => n.id === con.start)
+    const endNode = nodes.find((n) => n.id === con.end)
 
-//     if (!startNode || !endNode) {
-//       return []
-//     }
+    if (!startNode || !endNode) {
+      return []
+    }
 
-//     return [
-//       {
-//         start: startNode,
-//         end: endNode,
-//         id: uuidv4().replaceAll("-", ""),
-//       },
-//     ]
-//   })
+    return [
+      {
+        start: startNode,
+        end: endNode,
+        id: uuidv4().replaceAll("-", ""),
+      },
+    ]
+  })
 
-//   return {
-//     nodes,
-//     connections,
-//   }
-// }
+  return {
+    nodes,
+    connections,
+  }
+}
 
 /**
  * Determine if a connection between two nodes is allowed.
@@ -282,11 +286,11 @@ export function isConnectionLegitimate(start: INode, end: INode): boolean {
   )
 }
 
-// export function saveWorkflow(nodes: INode[], connections: IConnection[]) {
-//   const workflow = convertToJSONFormat(nodes, connections, true)
-//   saveToHistory(workflow)
-//   // saveToFile(workflow, "json", "workflow.json")
-// }
+export function saveWorkflow(nodes: INode[], connections: IConnection[]) {
+  const workflow = convertToJSONFormat(nodes, connections, true)
+  saveToHistory(workflow)
+  // saveToFile(workflow, "json", "workflow.json")
+}
 
 export async function saveToHistory(workflow: string) {
   // create timestamp

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { INode, ValOpPair } from "../types/canvas.types"
+import { INode, ValOpPair } from "../../../types/canvas.types"
 import { isAttrDefined } from "../../../common/helpers"
 
 interface NodeLabelsProps {
