@@ -4,9 +4,8 @@ import {
   IConnection,
   IDConnection,
   ValOpPair,
-  ParsedValOpPair,
 } from "../types/canvas.types"
-import { ITempNode } from "../types/workflow.types"
+import { ITempNode, ParsedValOpPair } from "../types/workflow.types"
 import toast from "react-hot-toast"
 import client from "../client"
 import { v4 as uuidv4 } from "uuid"
@@ -109,7 +108,7 @@ export function isAttrDefined(attribute: string | ValOpPair | undefined): boolea
   return false;
 }
 
-export function parseAttr(attribute: string | ValOpPair | undefined): string | string[] | ParsedValOpPair {
+function parseAttrOut(attribute: string | ValOpPair | undefined): string | string[] | ParsedValOpPair {
   let stringToParse = "";
 
   // Determine the string to parse based on the type of attribute
@@ -132,6 +131,14 @@ export function parseAttr(attribute: string | ValOpPair | undefined): string | s
   }
 
   // Return a single string if there's only one, otherwise return the array
+}
+
+function parseAttrIn(attribute: string | string[] | ParsedValOpPair | undefined): string | ValOpPair | undefined {
+  if (typeof attribute === 'string') {
+    return attribute
+  } else if (Array.isArray(attribute)) {
+    return attribute.join(';')
+  }
 }
 
 export function convertToJSONFormat(
@@ -160,14 +167,22 @@ export function convertToJSONFormat(
     nodes.map((node) => {
       // Group all attributes under an attributes object
       const attributes: { [key: string]: any } = {};
-      attributes.name = parseAttr(node.name);
-      if (isAttrDefined(node.value)) attributes.value = parseAttr(node.value) 
-      if (isAttrDefined(node.batch_num)) attributes.batch_num = parseAttr(node.batch_num);
-      if (isAttrDefined(node.unit)) attributes.unit = parseAttr(node.unit);
-      if (isAttrDefined(node.ratio)) attributes.ratio = parseAttr(node.ratio);
-      if (isAttrDefined(node.concentration)) attributes.concentration = parseAttr(node.concentration);
-      if (isAttrDefined(node.std)) attributes.std = parseAttr(node.std);
-      if (isAttrDefined(node.error)) attributes.error = parseAttr(node.error);
+      if (isAttrDefined(node.name)) {
+        attributes.name = parseAttrOut(node.name)
+      } else {
+        attributes.name = "MISSING_NAME"
+      }
+      if (isAttrDefined(node.value)) {
+        attributes.value = parseAttrOut(node.value)
+      } else if (["property","parameter"].includes(node.type)) {
+        attributes.value = "MISSING_VALUE"
+      } 
+      if (isAttrDefined(node.batch_num)) attributes.batch_num = parseAttrOut(node.batch_num);
+      if (isAttrDefined(node.unit)) attributes.unit = parseAttrOut(node.unit);
+      if (isAttrDefined(node.ratio)) attributes.ratio = parseAttrOut(node.ratio);
+      if (isAttrDefined(node.concentration)) attributes.concentration = parseAttrOut(node.concentration);
+      if (isAttrDefined(node.std)) attributes.std = parseAttrOut(node.std);
+      if (isAttrDefined(node.error)) attributes.error = parseAttrOut(node.error);
 
       // Build relationships
       const relationships = (connectionMap[node.id] || []).map(
@@ -203,10 +218,11 @@ export function convertFromJSONFormat(workflow: string) {
   const connectionsMap: Map<string, IDConnection> = new Map()
 
   data.forEach((item) => {
+    console.log(typeof(item.attributes.name))
     nodes.push({
       id: item.id,
-      name: item.attributes.name,
-      value: item.attributes.value,
+      name: parseAttrIn(item.attributes.name),
+      value: item.attributes.value
       batch_num: item.attributes.batch_num,
       ratio: item.attributes.ratio,
       concentration: item.attributes.concentration,

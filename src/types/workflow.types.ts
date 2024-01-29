@@ -1,4 +1,9 @@
-import { ValOpPair } from "./canvas.types"
+import { Operator } from "./canvas.types"
+
+export type ParsedValOpPair = {
+  value: string | string[]
+  operator: Operator
+}
 
 export interface IWorkflow {
   workflow: string

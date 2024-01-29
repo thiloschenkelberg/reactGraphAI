@@ -34,11 +34,6 @@ export interface ValOpPair {
   operator?: Operator
 }
 
-export type ParsedValOpPair = {
-  value: string | string[]
-  operator: Operator
-}
-
 export interface INode {
   id: string
   name: string // obligatory in json for all nodes
