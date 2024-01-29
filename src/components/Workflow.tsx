@@ -13,7 +13,7 @@
   //   localStorage.setItem("viewSplitViewWidth", JSON.stringify(splitViewWidth))
   // }, [splitView, splitViewWidth])
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useSpring, animated } from 'react-spring';
 
 import Canvas from "./canvas/Canvas"
@@ -22,6 +22,9 @@ import WorkflowJson from "./WorkflowJson";
 import WorkflowHistory from "./WorkflowHistory";
 import WorkflowTable from "./WorkflowTable";
 import { IConnection, INode } from "../types/canvas.types";
+import { convertToJSONFormat } from "../common/helpers";
+
+const undoSteps = 200
 
 interface WorkflowProps {
   colorIndex: number
@@ -32,6 +35,16 @@ export default function Workflow(props: WorkflowProps) {
   const [nodes, setNodes] = useState<INode[]>([])
   const [connections, setConnections] = useState<IConnection[]>([])
   const [workflow, setWorkflow] = useState<string | null>(null)
+  const [needLayout, setNeedLayout] = useState(false)
+
+  const [history, setHistory] = useState<{
+    nodes: INode[][]
+    connections: IConnection[][]
+  }>({ nodes: [], connections: [] })
+  const [future, setFuture] = useState<{
+    nodes: INode[][]
+    connections: IConnection[][]
+  }>({ nodes: [], connections: [] })
 
   const [canvasWidth, setCanvasWidth] = useState(0)
   const [canvasHeight, setCanvasHeight] = useState(0)
@@ -45,22 +58,10 @@ export default function Workflow(props: WorkflowProps) {
   const [tableView, setTableView] = useState(false)
   const [tableViewHeight, setTableViewHeight] = useState(0)
 
-  const springProps = useSpring({
-    jsonViewWidth:
-      jsonView ? jsonViewWidth : 0,
-    historyViewWidth:
-      historyView ? historyViewWidth : 0,
-    tableViewHeight:
-      tableView ? tableViewHeight : 0,
-    canvasWidth:
-      canvasWidth,
-    canvasHeight:
-      canvasHeight,
-    config: {
-      tension: 1000,
-      friction: 100,
-    }
-  })
+    // pass workflow to parent (workflow component)
+    useEffect(() => {
+      setWorkflow(convertToJSONFormat(nodes, connections))
+    }, [nodes, connections])
 
   useEffect(() => {
     if (workflowWindowRect) {
@@ -123,6 +124,108 @@ export default function Workflow(props: WorkflowProps) {
     }
   }
 
+  const springProps = useSpring({
+    jsonViewWidth:
+      jsonView ? jsonViewWidth : 0,
+    historyViewWidth:
+      historyView ? historyViewWidth : 0,
+    tableViewHeight:
+      tableView ? tableViewHeight : 0,
+    canvasWidth:
+      canvasWidth,
+    canvasHeight:
+      canvasHeight,
+    config: {
+      tension: 1000,
+      friction: 100,
+    }
+  })
+
+  // Get nodes and connections from local storage
+  useEffect(() => {
+    const savedNodes = localStorage.getItem("nodes")
+    const savedConnections = localStorage.getItem("connections")
+
+    if (savedNodes) {
+      setNodes(JSON.parse(savedNodes))
+      if (savedConnections) setConnections(JSON.parse(savedConnections))
+    }
+  }, [setNodes, setConnections])
+
+  // Save nodes and connections to local storage
+  useEffect(() => {
+    localStorage.setItem("nodes", JSON.stringify(nodes))
+    localStorage.setItem("connections", JSON.stringify(connections))
+  }, [nodes, connections])
+
+  const updateHistory = () => {
+    setHistory((prev) => ({
+      nodes: [...prev.nodes, nodes].slice(-undoSteps),
+      connections: [...prev.connections, connections].slice(-undoSteps),
+    }))
+    setFuture({ nodes: [], connections: [] })
+  }
+
+  const updateHistoryWithCaution = () => {
+    setHistory((prev) => ({
+      nodes: [...prev.nodes, nodes].slice(-undoSteps),
+      connections: [...prev.connections, connections].slice(-undoSteps),
+    }))
+  }
+
+  const updateHistoryRevert = () => {
+    setHistory((prev) => ({
+      nodes: prev.nodes.slice(0, -1),
+      connections: prev.connections.slice(0, -1),
+    }))
+  }
+
+  const updateHistoryComplete = () => {
+    setFuture({ nodes: [], connections: [] })
+  }
+
+  const handleReset = () => {
+    if (!nodes.length) return
+    updateHistory()
+    setNodes([])
+    setConnections([])
+  }
+
+  const undo = useCallback(() => {
+    if (history.nodes.length) {
+      setFuture((prev) => ({
+        nodes: [nodes, ...prev.nodes].slice(-undoSteps),
+        connections: [connections, ...prev.connections].slice(-undoSteps),
+      }))
+      setNodes(
+        history.nodes[history.nodes.length - 1].map((node) => ({
+          ...node,
+          isEditing: false,
+        }))
+      )
+      setConnections(history.connections[history.connections.length - 1])
+      setHistory((prev) => ({
+        nodes: prev.nodes.slice(0, -1),
+        connections: prev.connections.slice(0, -1),
+      }))
+    }
+  }, [history, nodes, connections, setNodes, setConnections])
+
+  const redo = useCallback(() => {
+    if (future.nodes.length) {
+      setHistory((prev) => ({
+        nodes: [...prev.nodes, nodes].slice(-undoSteps),
+        connections: [...prev.connections, connections].slice(-undoSteps),
+      }))
+      setNodes(future.nodes[0].map((node) => ({ ...node, isEditing: false })))
+      setConnections(future.connections[0])
+      setFuture((prev) => ({
+        nodes: prev.nodes.slice(1),
+        connections: prev.connections.slice(1),
+      }))
+    }
+  }, [future, nodes, connections, setNodes, setConnections])
+
   return (
     <div className="workflow-window" ref={workflowWindowRef}>
       <animated.div
@@ -139,9 +242,17 @@ export default function Workflow(props: WorkflowProps) {
             nodes={nodes}
             connections={connections}
             colorIndex={colorIndex}
-            setWorkflow={setWorkflow}
             setNodes={setNodes}
             setConnections={setConnections}
+            updateHistory={updateHistory}
+            updateHistoryWithCaution={updateHistoryWithCaution}
+            updateHistoryRevert={updateHistoryRevert}
+            updateHistoryComplete={updateHistoryComplete}
+            handleReset={handleReset}
+            undo={undo}
+            redo={redo}
+            needLayout={needLayout}
+            setNeedLayout={setNeedLayout}
             style={{
               position: "relative",
               width: "100%",
@@ -162,6 +273,7 @@ export default function Workflow(props: WorkflowProps) {
           <WorkflowHistory
             setNodes={setNodes}
             setConnections={setConnections}
+            setNeedLayout={setNeedLayout}
           />
         }
       />

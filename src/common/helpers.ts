@@ -214,7 +214,7 @@ export function convertFromJSONFormat(workflow: string) {
       std: item.attributes.std,
       error: item.attributes.error,
       type: item.type,
-      position: { x: 0, y: 0 },
+      position: { x: -100, y: -100 },
       size: 100,
       layer: 0,
       isEditing: false,

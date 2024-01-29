@@ -8,10 +8,11 @@ import { convertFromJSONFormat } from "../common/helpers"
 interface WorkflowHistoryProps {
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
+  setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export default function WorkflowHistory(props: WorkflowHistoryProps) {
-  const {setNodes, setConnections} = props
+  const {setNodes, setConnections, setNeedLayout} = props
   const [workflows, setWorkflows] = useState<IWorkflow[]>([])
   const [hovered, setHovered] = useState<number | undefined>()
 
@@ -37,6 +38,7 @@ export default function WorkflowHistory(props: WorkflowHistoryProps) {
     const {nodes, connections} = convertFromJSONFormat(workflow)
     setNodes(nodes)
     setConnections(connections)
+    setNeedLayout(true)
   }
 
   return (

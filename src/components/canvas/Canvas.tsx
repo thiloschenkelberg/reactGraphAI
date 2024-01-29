@@ -23,9 +23,7 @@ import { graphLayouts } from "../../types/canvas.graphLayouts"
 import {
   isConnectableNode,
   isConnectionLegitimate,
-  convertToJSONFormat,
   saveWorkflow,
-  clamp,
 } from "../../common/helpers"
 import CanvasButtonGroup from "./CanvasButtons"
 
@@ -33,9 +31,17 @@ interface CanvasProps {
   nodes: INode[]
   connections: IConnection[]
   colorIndex: number
-  setWorkflow: React.Dispatch<React.SetStateAction<string | null>>
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
+  updateHistory: () => void
+  updateHistoryWithCaution: () => void
+  updateHistoryRevert: () => void
+  updateHistoryComplete: () => void
+  handleReset: () => void
+  undo: () => void
+  redo: () => void
+  needLayout: boolean
+  setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
   style?: React.CSSProperties
 }
 
@@ -44,9 +50,17 @@ export default function Canvas(props: CanvasProps) {
     nodes,
     connections,
     colorIndex,
-    setWorkflow,
     setNodes,
     setConnections,
+    updateHistory,
+    updateHistoryWithCaution,
+    updateHistoryRevert,
+    updateHistoryComplete,
+    handleReset,
+    undo,
+    redo,
+    needLayout,
+    setNeedLayout,
     style,
   } = props
 
@@ -54,18 +68,9 @@ export default function Canvas(props: CanvasProps) {
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
-
   const [selectedConnectionID, setSelectedConnectionID] = useState<
     IConnection["id"] | null
   >(null)
-  const [history, setHistory] = useState<{
-    nodes: INode[][]
-    connections: IConnection[][]
-  }>({ nodes: [], connections: [] })
-  const [future, setFuture] = useState<{
-    nodes: INode[][]
-    connections: IConnection[][]
-  }>({ nodes: [], connections: [] })
   const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 })
   const [navOpen, setNavOpen] = useState(false)
   const [clickPosition, setClickPosition] = useState<Position | null>(null)
@@ -76,24 +81,6 @@ export default function Canvas(props: CanvasProps) {
   const [ctrlPressed, setCtrlPressed] = useState(false)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
-  const undoSteps = 200
-
-  // Get nodes and connections from local storage
-  useEffect(() => {
-    const savedNodes = localStorage.getItem("nodes")
-    const savedConnections = localStorage.getItem("connections")
-
-    if (savedNodes) {
-      setNodes(JSON.parse(savedNodes))
-      if (savedConnections) setConnections(JSON.parse(savedConnections))
-    }
-  }, [setNodes, setConnections])
-
-  // Save nodes and connections to local storage
-  useEffect(() => {
-    localStorage.setItem("nodes", JSON.stringify(nodes))
-    localStorage.setItem("connections", JSON.stringify(connections))
-  }, [nodes, connections])
 
   // Resize Observer to get correct canvas bounds and
   // successively correct mouse positions
@@ -130,11 +117,6 @@ export default function Canvas(props: CanvasProps) {
       window.removeEventListener("mousemove", handleMouseMove)
     }
   })
-
-  // pass workflow to parent (workflow component)
-  useEffect(() => {
-    setWorkflow(convertToJSONFormat(nodes, connections))
-  }, [nodes, connections, setWorkflow])
 
   // addNode from canvas context menu
   // if created from connector, automatically
@@ -625,7 +607,7 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
-  const handleLayoutNodes = (iteration = 0, maxIterations = 10) => {
+    const handleLayoutNodes = useCallback((iteration = 0, maxIterations = 10) => {
     if (iteration >= maxIterations) {
       // do some warning and stop layout
       return
@@ -717,87 +699,14 @@ export default function Canvas(props: CanvasProps) {
       })
       setNodes(updatedNodes)
     }
-  }
+  }, [canvasRect, nodes, connections, setNodes])
 
-  const updateHistory = () => {
-    setHistory((prev) => ({
-      nodes: [...prev.nodes, nodes].slice(-undoSteps),
-      connections: [...prev.connections, connections].slice(-undoSteps),
-    }))
-    setFuture({ nodes: [], connections: [] })
-  }
-
-  const updateHistoryWithCaution = () => {
-    setHistory((prev) => ({
-      nodes: [...prev.nodes, nodes].slice(-undoSteps),
-      connections: [...prev.connections, connections].slice(-undoSteps),
-    }))
-  }
-
-  const updateHistoryRevert = () => {
-    setHistory((prev) => ({
-      nodes: prev.nodes.slice(0, -1),
-      connections: prev.connections.slice(0, -1),
-    }))
-  }
-
-  const updateHistoryComplete = () => {
-    setFuture({ nodes: [], connections: [] })
-  }
-
-  // const logHistory = () => {
-  //   history.nodes.forEach((nodesArray, index) => {
-  //     console.log(`History entry ${index}:`)
-
-  //     nodesArray.forEach((node, index) => {
-  //       console.log(
-  //         `Node ${index}: x = ${node.position.x}, y = ${node.position.y}`
-  //       )
-  //     })
-  //   })
-  // }
-
-  const handleReset = () => {
-    if (!nodes.length) return
-    updateHistory()
-    setNodes([])
-    setConnections([])
-  }
-
-  const undo = useCallback(() => {
-    if (history.nodes.length) {
-      setFuture((prev) => ({
-        nodes: [nodes, ...prev.nodes].slice(-undoSteps),
-        connections: [connections, ...prev.connections].slice(-undoSteps),
-      }))
-      setNodes(
-        history.nodes[history.nodes.length - 1].map((node) => ({
-          ...node,
-          isEditing: false,
-        }))
-      )
-      setConnections(history.connections[history.connections.length - 1])
-      setHistory((prev) => ({
-        nodes: prev.nodes.slice(0, -1),
-        connections: prev.connections.slice(0, -1),
-      }))
+  useEffect(() => {
+    if (needLayout) {
+      handleLayoutNodes()
+      setNeedLayout(false)
     }
-  }, [history, nodes, connections, setNodes, setConnections])
-
-  const redo = useCallback(() => {
-    if (future.nodes.length) {
-      setHistory((prev) => ({
-        nodes: [...prev.nodes, nodes].slice(-undoSteps),
-        connections: [...prev.connections, connections].slice(-undoSteps),
-      }))
-      setNodes(future.nodes[0].map((node) => ({ ...node, isEditing: false })))
-      setConnections(future.connections[0])
-      setFuture((prev) => ({
-        nodes: prev.nodes.slice(1),
-        connections: prev.connections.slice(1),
-      }))
-    }
-  }, [future, nodes, connections, setNodes, setConnections])
+  }, [needLayout, setNeedLayout, handleLayoutNodes])
 
   useEffect(() => {
     const handleCanvasKeyDown = (e: KeyboardEvent) => {
