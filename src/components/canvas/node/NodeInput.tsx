@@ -9,16 +9,7 @@ import { useAutoIncrementRefs } from "../../../common/helpers"
 interface NodeInputProps {
   isValueNode: boolean
   node: INode
-  handleNodeRename: (
-    name: string,
-    value?: ValOpPair,
-    batchNum?: string,
-    ratio?: ValOpPair,
-    concentration?: ValOpPair,
-    unit?: string,
-    std?: ValOpPair,
-    error?: ValOpPair
-  ) => void
+  handleNodeRename: (node: INode) => void
 }
 
 export default function NodeInput(props: NodeInputProps) {
@@ -29,13 +20,13 @@ export default function NodeInput(props: NodeInputProps) {
   } = props
 
   const [nodeName, setNodeName] = useState<string>(node.name)
-  const [nodeValue, setNodeValue] = useState<ValOpPair | undefined>(node.value)
-  const [nodeBatchNum, setNodeBatchNum] = useState<string | undefined>(node.batch_num)
-  const [nodeRatio, setNodeRatio] = useState<ValOpPair | undefined>(node.ratio)
-  const [nodeConcentration, setNodeConcentration] = useState<ValOpPair | undefined>(node.concentration)
-  const [nodeUnit, setNodeUnit] = useState<string | undefined>(node.unit)
-  const [nodeStd, setNodeStd] = useState<ValOpPair | undefined>(node.std)
-  const [nodeError, setNodeError] = useState<ValOpPair | undefined>(node.error)
+  const [nodeValue, setNodeValue] = useState<ValOpPair>(node.value)
+  const [nodeBatchNum, setNodeBatchNum] = useState<string>(node.batch_num)
+  const [nodeRatio, setNodeRatio] = useState<ValOpPair>(node.ratio)
+  const [nodeConcentration, setNodeConcentration] = useState<ValOpPair>(node.concentration)
+  const [nodeUnit, setNodeUnit] = useState<string>(node.unit)
+  const [nodeStd, setNodeStd] = useState<ValOpPair>(node.std)
+  const [nodeError, setNodeError] = useState<ValOpPair>(node.error)
 
   const { getNewRef, refs } = useAutoIncrementRefs()
 
@@ -45,16 +36,18 @@ export default function NodeInput(props: NodeInputProps) {
       if (refs.some(ref => document.activeElement === ref.current)) {
         return;
       }
-      handleNodeRename(
-        nodeName,
-        nodeValue,
-        nodeBatchNum,
-        nodeRatio,
-        nodeConcentration,
-        nodeUnit,
-        nodeStd,
-        nodeError
-      );
+      const updatedNode: INode = {
+        ...node,
+        name: nodeName,
+        value: nodeValue,
+        batch_num: nodeBatchNum,
+        ratio: nodeRatio,
+        concentration: nodeConcentration,
+        unit: nodeUnit,
+        std: nodeStd,
+        error: nodeError
+      }
+      handleNodeRename(updatedNode);
     }, 100);
   };
   
@@ -63,16 +56,18 @@ export default function NodeInput(props: NodeInputProps) {
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      handleNodeRename(
-        nodeName,
-        nodeValue,
-        nodeBatchNum,
-        nodeRatio,
-        nodeConcentration,
-        nodeUnit,
-        nodeStd,
-        nodeError
-      )
+      const updatedNode: INode = {
+        ...node,
+        name: nodeName,
+        value: nodeValue,
+        batch_num: nodeBatchNum,
+        ratio: nodeRatio,
+        concentration: nodeConcentration,
+        unit: nodeUnit,
+        std: nodeStd,
+        error: nodeError
+      }
+      handleNodeRename(updatedNode);
     }
   }
 
@@ -105,51 +100,51 @@ export default function NodeInput(props: NodeInputProps) {
 
     switch (id) {
       case "value":
-        const valOp = nodeValue?.operator
-        setNodeValue({ value: value, operator: valOp as Operator })
+        const valOp = nodeValue.operator
+        setNodeValue({ value: value, operator: valOp })
         break
       case "ratio":
-        const ratOp = nodeRatio?.operator
-        setNodeRatio({ value: value, operator: ratOp as Operator })
+        const ratOp = nodeRatio.operator
+        setNodeRatio({ value: value, operator: ratOp })
         break
       case "concentration":
-        const conOp = nodeConcentration?.operator
-        setNodeConcentration({ value: value, operator: conOp as Operator })
+        const conOp = nodeConcentration.operator
+        setNodeConcentration({ value: value, operator: conOp })
         break
       case "std":
-        const stdOp = nodeStd?.operator
-        setNodeStd({ value: value, operator: stdOp as Operator })
+        const stdOp = nodeStd.operator
+        setNodeStd({ value: value, operator: stdOp })
         break
       case "error":
-        const errOp = nodeError?.operator
-        setNodeError({ value: value, operator: errOp as Operator })
+        const errOp = nodeError.operator
+        setNodeError({ value: value, operator: errOp })
         break
       default:
         break
     }
   }
 
-  const handleOpChangeLocal = (id: string, operator: string | null) => {
+  const handleOpChangeLocal = (id: string, operator: string) => {
     switch (id) {
       case "value":
-        const val = nodeValue?.value
-        setNodeValue({ value: val, operator: operator as Operator })
+        const val = nodeValue.value
+        setNodeValue({ value: val, operator: operator })
         break
       case "ratio":
-        const rat = nodeRatio?.value
-        setNodeRatio({ value: rat, operator: operator as Operator })
+        const rat = nodeRatio.value
+        setNodeRatio({ value: rat, operator: operator })
         break
       case "concentration":
-        const con = nodeConcentration?.value
-        setNodeConcentration({ value: con, operator: operator as Operator })
+        const con = nodeConcentration.value
+        setNodeConcentration({ value: con, operator: operator })
         break
       case "std":
-        const std = nodeStd?.value
-        setNodeStd({ value: std, operator: operator as Operator })
+        const std = nodeStd.value
+        setNodeStd({ value: std, operator: operator })
         break
       case "error":
-        const err = nodeError?.value
-        setNodeError({ value: err, operator: operator as Operator })
+        const err = nodeError.value
+        setNodeError({ value: err, operator: operator })
         break
       default:
         break
@@ -212,8 +207,8 @@ export default function NodeInput(props: NodeInputProps) {
             id="ratio"
             opReference={getNewRef()}
             valReference={getNewRef()}
-            defaultOp={nodeRatio?.operator}
-            defaultVal={nodeRatio?.value}
+            defaultOp={nodeRatio.operator}
+            defaultVal={nodeRatio.value}
             autoFocus={false}
             zIndex={node.layer + 2}
           />
@@ -225,8 +220,8 @@ export default function NodeInput(props: NodeInputProps) {
             id="concentration"
             opReference={getNewRef()}
             valReference={getNewRef()}
-            defaultOp={nodeConcentration?.operator}
-            defaultVal={nodeConcentration?.value}
+            defaultOp={nodeConcentration.operator}
+            defaultVal={nodeConcentration.value}
             autoFocus={false}
             zIndex={node.layer + 1}
           />
@@ -243,9 +238,9 @@ export default function NodeInput(props: NodeInputProps) {
             id="value"
             opReference={getNewRef()}
             valReference={getNewRef()}
-            defaultOp={nodeValue?.operator}
-            defaultVal={nodeValue?.value}
-            autoFocus={!(!node.name || !isValueNode || node.value?.value)}
+            defaultOp={nodeValue.operator}
+            defaultVal={nodeValue.value}
+            autoFocus={(node.name !== '' && isValueNode && node.value.value === '')}
             zIndex={node.layer + 3}
           />
           <NodeInputStr
@@ -267,8 +262,8 @@ export default function NodeInput(props: NodeInputProps) {
             id="std"
             opReference={getNewRef()}
             valReference={getNewRef()}
-            defaultOp={nodeStd?.operator}
-            defaultVal={nodeStd?.value}
+            defaultOp={nodeStd.operator}
+            defaultVal={nodeStd.value}
             autoFocus={false}
             zIndex={node.layer + 2}
           />
@@ -280,8 +275,8 @@ export default function NodeInput(props: NodeInputProps) {
             id="error"
             opReference={getNewRef()}
             valReference={getNewRef()}
-            defaultOp={nodeError?.operator}
-            defaultVal={nodeError?.value}
+            defaultOp={nodeError.operator}
+            defaultVal={nodeError.value}
             autoFocus={false}
             zIndex={node.layer + 1}
           />

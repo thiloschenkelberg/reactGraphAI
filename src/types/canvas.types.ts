@@ -30,20 +30,20 @@ export interface NumOpPair {
 }
 
 export interface ValOpPair {
-  value?: string
-  operator?: Operator
+  value: string
+  operator: Operator | string
 }
 
 export interface INode {
   id: string
   name: string // obligatory in json for all nodes
-  value?: ValOpPair // obligatory in json for property/parameter nodes
-  batch_num?: string
-  ratio?: ValOpPair
-  concentration?: ValOpPair
-  unit?: string
-  std?: ValOpPair
-  error?: ValOpPair
+  value: ValOpPair // obligatory in json for property/parameter nodes
+  batch_num: string
+  ratio: ValOpPair
+  concentration: ValOpPair
+  unit: string
+  std: ValOpPair
+  error: ValOpPair
   type: "matter" | "manufacturing" | "measurement" | "parameter" | "property" | "metadata"
   position: {x: number, y: number}
   size: number

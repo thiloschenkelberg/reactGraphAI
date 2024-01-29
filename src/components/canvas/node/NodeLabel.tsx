@@ -11,7 +11,7 @@ interface NodeLabelsProps {
   hovered: boolean
   size: number
   name: string
-  value?: ValOpPair
+  value: ValOpPair
   type: INode["type"]
   layer: number
   // hasLabelOverflow: boolean

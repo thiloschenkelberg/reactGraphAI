@@ -128,6 +128,13 @@ export default function Canvas(props: CanvasProps) {
     const newNode = {
       id,
       name: "",
+      value: {value: "", operator: ""},
+      batch_num: "",
+      ratio: {value: "", operator: ""},
+      concentration: {value: "", operator: ""},
+      unit: "",
+      std: {value: "", operator: ""},
+      error: {value: "", operator: ""},
       type,
       position,
       size,
@@ -312,42 +319,24 @@ export default function Canvas(props: CanvasProps) {
   }
 
   // rename node -> resetting isEditing to false
-  const handleSetNodeVals = (
-    nodeID: INode["id"],
-    name: string,
-    value?: ValOpPair,
-    batchNum?: string,
-    ratio?: ValOpPair,
-    concentration?: ValOpPair,
-    unit?: string,
-    std?: ValOpPair,
-    error?: ValOpPair,
-  ) => {
+  const handleSetNodeVals = (node: INode) => {
     setNodes((prevNodes) =>
       prevNodes.map((n) => {
-        if (n.id === nodeID) {
-          const updatedNode: INode = {
-            ...n,
-            name: name,
-            value: value,
-            batch_num: batchNum,
-            ratio: ratio,
-            concentration: concentration,
-            unit: unit,
-            std: std,
-            error: error,
-            isEditing: false,
+        if (n.id === node.id) {
+          const updatedNode = {
+            ...node,
+            isEditing: false
           }
           // Check if any fields have changed
           if (
-            name !== n.name ||
-            value !== n.value ||
-            batchNum !== n.batch_num ||
-            ratio !== n.ratio ||
-            concentration !== n.concentration ||
-            unit !== n.unit ||
-            std !== n.std ||
-            error !== n.error
+            node.name !== n.name ||
+            node.value !== n.value ||
+            node.batch_num !== n.batch_num ||
+            node.ratio !== n.ratio ||
+            node.concentration !== n.concentration ||
+            node.unit !== n.unit ||
+            node.std !== n.std ||
+            node.error !== n.error
           ) {
             updateHistory() // Call updateHistory only if a change has occurred
           }
@@ -456,14 +445,6 @@ export default function Canvas(props: CanvasProps) {
     node: INode,
     action: string,
     conditional?: boolean,
-    name?: string,
-    value?: ValOpPair,
-    batchNum?: string,
-    ratio?: ValOpPair,
-    concentration?: ValOpPair,
-    unit?: string,
-    std?: ValOpPair,
-    error?: ValOpPair,
   ) => {
     switch (action) {
       case "click":
@@ -484,18 +465,7 @@ export default function Canvas(props: CanvasProps) {
         handleNodeConnect(node)
         break
       case "setNodeVals":
-        if (typeof name === 'string')
-        handleSetNodeVals(
-          node.id,
-          name,
-          value,
-          batchNum,
-          ratio,
-          concentration,
-          unit,
-          std,
-          error
-        )
+        handleSetNodeVals(node)
         break
       case "setIsEditing":
         initNodeNameChange(node.id, conditional)

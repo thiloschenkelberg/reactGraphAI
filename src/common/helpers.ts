@@ -4,6 +4,7 @@ import {
   IConnection,
   IDConnection,
   ValOpPair,
+  Operator,
 } from "../types/canvas.types"
 import { ITempNode, ParsedValOpPair } from "../types/workflow.types"
 import toast from "react-hot-toast"
@@ -92,29 +93,33 @@ export function isConnectableNode(nodeType: string | undefined): boolean {
   )
 }
 
-export function isAttrDefined(attribute: string | ValOpPair | undefined): boolean {
+function isValidOperator(operator: string): boolean {
+  return operator === "<" || operator === "<=" ||
+  operator === "=" || operator === "!=" ||
+  operator === ">=" || operator === ">"
+}
+
+export function isAttrDefined(attribute: string | ValOpPair): boolean {
   if (typeof attribute === 'string') {
     return attribute !== "";
   } else if (typeof attribute === 'object') {
     // Check if 'string' and 'operator' are defined and valid
     const isStringDefined = typeof attribute.value === 'string' && attribute.value !== "";
-    const isValidOperator = attribute.operator === "<" || attribute.operator === "<=" ||
-                            attribute.operator === "=" || attribute.operator === "!=" ||
-                            attribute.operator === ">=" || attribute.operator === ">";
+    const isOperatorValid = isValidOperator(attribute.operator)
 
     // StrOpPair is valid if both 'string' and 'operator' are valid
-    return isStringDefined && isValidOperator;
+    return isStringDefined && isOperatorValid;
   }  
   return false;
 }
 
-function parseAttrOut(attribute: string | ValOpPair | undefined): string | string[] | ParsedValOpPair {
+function parseAttrOut(attribute: string | ValOpPair): string | string[] | ParsedValOpPair {
   let stringToParse = "";
 
   // Determine the string to parse based on the type of attribute
   if (typeof attribute === 'string') {
     stringToParse = attribute;
-  } else if (typeof attribute?.value === 'string') {
+  } else if (typeof attribute.value === 'string') {
     stringToParse = attribute.value;
   }
 
@@ -125,20 +130,29 @@ function parseAttrOut(attribute: string | ValOpPair | undefined): string | strin
   if (typeof attribute === 'string') {
     return parsedString;
   } else {
-    if (!attribute?.operator) return "ERROR_WHILE_PARSING"
-    return {value: parsedString, operator: attribute?.operator}
-
+    return {value: parsedString, operator: attribute.operator as Operator}
   }
 
   // Return a single string if there's only one, otherwise return the array
 }
 
-function parseAttrIn(attribute: string | string[] | ParsedValOpPair | undefined): string | ValOpPair | undefined {
+function parseStrAttr(attribute: string | string[] | undefined): string {
   if (typeof attribute === 'string') {
     return attribute
   } else if (Array.isArray(attribute)) {
     return attribute.join(';')
   }
+  return ""
+}
+
+function parseValOpAttr(attribute: ParsedValOpPair | undefined): ValOpPair {
+  if (!attribute) return {value: "", operator: ""}
+  if (typeof attribute.value === 'string') {
+    return {value: attribute.value, operator: attribute.operator}
+  } else if (Array.isArray(attribute.value)) {
+    return {value: attribute.value.join(';'), operator: attribute.operator}
+  }
+  return {value: "", operator: ""}
 }
 
 export function convertToJSONFormat(
@@ -218,17 +232,16 @@ export function convertFromJSONFormat(workflow: string) {
   const connectionsMap: Map<string, IDConnection> = new Map()
 
   data.forEach((item) => {
-    console.log(typeof(item.attributes.name))
     nodes.push({
       id: item.id,
-      name: parseAttrIn(item.attributes.name),
-      value: item.attributes.value
-      batch_num: item.attributes.batch_num,
-      ratio: item.attributes.ratio,
-      concentration: item.attributes.concentration,
-      unit: item.attributes.unit,
-      std: item.attributes.std,
-      error: item.attributes.error,
+      name: parseStrAttr(item.attributes.name),
+      value: parseValOpAttr(item.attributes.value),
+      batch_num: parseStrAttr(item.attributes.batch_num),
+      ratio: parseValOpAttr(item.attributes.ratio),
+      concentration: parseValOpAttr(item.attributes.concentration),
+      unit: parseStrAttr(item.attributes.unit),
+      std: parseValOpAttr(item.attributes.std),
+      error: parseValOpAttr(item.attributes.error),
       type: item.type,
       position: { x: -100, y: -100 },
       size: 100,

@@ -3,15 +3,15 @@ import React, { RefObject, useEffect, useRef, useState } from "react"
 import { Operator } from "../../../types/canvas.types"
 
 interface NodeInputStrOpProps {
-  handleOpChange: (id: string, operator: string | null) => void
+  handleOpChange: (id: string, operator: string) => void
   handleValChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   handleKeyUp: (e: React.KeyboardEvent<HTMLInputElement>) => void
   handleBlur: () => void
   id: string
   opReference: RefObject<HTMLInputElement>
   valReference: RefObject<HTMLInputElement>
-  defaultOp: Operator | undefined
-  defaultVal: string | undefined
+  defaultOp: string
+  defaultVal: string
   autoFocus: boolean
   zIndex: number
 }
@@ -43,6 +43,14 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
       setSelectOpen(true)
     }
   }
+
+  const handleOpChangeLocal = (e: string | null) => {
+    if (e === null) {
+      handleOpChange(id, "")
+    } else if (typeof e === 'string') {
+      handleOpChange(id, e)
+    }
+  }
   
 
   return (
@@ -69,7 +77,7 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
       )} */}
       <Select
         ref={opReference}
-        onChange={(e) => handleOpChange(id, e)}
+        onChange={handleOpChangeLocal}
         onKeyUp={handleKeyUp}
         onBlur={handleBlur}
         placeholder="---"

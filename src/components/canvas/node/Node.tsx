@@ -24,15 +24,7 @@ interface NodeProps {
   handleNodeAction: (
     node: INode,
     action: string,
-    conditional?: boolean,
-    name?: string,
-    value?: ValOpPair,
-    batchNum?: string,
-    ratio?: ValOpPair,
-    concentration?: ValOpPair,
-    unit?: string,
-    std?: ValOpPair,
-    error?: ValOpPair,
+    conditional?: boolean
   ) => void
 }
 
@@ -147,7 +139,7 @@ export default React.memo(function Node(props: NodeProps) {
     const nameMinimumSize = node.name.length * 11
     let nodeMinimumSize = nameMinimumSize
 
-    if (isValueNode && isAttrDefined(node.value) && node.value?.value) {
+    if (isValueNode && isAttrDefined(node.value)) {
       const valueMinimumSize = node.value.value.length * 9 + 20
       nodeMinimumSize = Math.max(nodeMinimumSize, valueMinimumSize)
     }
@@ -266,17 +258,8 @@ export default React.memo(function Node(props: NodeProps) {
     handleNodeAction(node, ctxtAction)
   }
 
-  const handleNodeRename = (
-    name: string,
-    value?: ValOpPair,
-    batchNum?: string,
-    ratio?: ValOpPair,
-    concentration?: ValOpPair,
-    unit?: string,
-    std?: ValOpPair,
-    error?: ValOpPair,
-  ) => {
-    handleNodeAction(node, "setNodeVals", undefined, name, value, batchNum, ratio, concentration, unit, std, error)
+  const handleNodeRename = (updatedNode: INode) => {
+    handleNodeAction(updatedNode, "setNodeVals")
   }
 
   const handleNameMouseUp = (e: React.MouseEvent) => {
