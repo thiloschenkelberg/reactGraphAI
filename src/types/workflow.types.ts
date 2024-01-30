@@ -6,6 +6,7 @@ export type ParsedValOpPair = {
 }
 
 export interface IWorkflow {
+  _id: string
   workflow: string
   timestamp: Date
 }

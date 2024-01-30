@@ -84,6 +84,29 @@ export default function Workflow(props: WorkflowProps) {
     }
   }
 
+  async function deleteWorkflow(workflowId: string) {
+    try {
+      await deleteWorkflowFromHistory(workflowId)
+
+      fetchWorkflows()
+
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  async function deleteWorkflowFromHistory(workflowId: string) {
+    try {
+      const response = await client.deleteWorkflow(workflowId)
+
+      if (response) {
+        toast.success(response.data.message)
+      }
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
   async function saveWorkflowToHistory(workflow: string) {
     try {
       const response = await client.saveWorkflow(workflow)
@@ -320,6 +343,7 @@ export default function Workflow(props: WorkflowProps) {
         children={
           <WorkflowHistory
             workflows={workflows}
+            deleteWorkflow={deleteWorkflow}
             setNodes={setNodes}
             setConnections={setConnections}
             setNeedLayout={setNeedLayout}
