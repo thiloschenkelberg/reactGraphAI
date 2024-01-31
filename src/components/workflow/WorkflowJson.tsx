@@ -1,7 +1,7 @@
 import SearchIcon from "@mui/icons-material/Search"
 
-import client from "../client"
-import { saveBlobAsFile } from "../common/helpers"
+import client from "../../client"
+import { saveBlobAsFile } from "../../common/helpers"
 import toast from "react-hot-toast"
 
 interface WorkflowJsonProps {

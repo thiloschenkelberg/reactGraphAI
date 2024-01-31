@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { IWorkflow } from "../types/workflow.types"
-import { IConnection, INode } from "../types/canvas.types"
-import { convertFromJSONFormat } from "../common/helpers"
+import { IWorkflow } from "../../types/workflow.types"
+import { IConnection, INode } from "../../types/canvas.types"
+import { convertFromJSONFormat } from "../../common/helpers"
 import { RiDeleteBin2Line } from "react-icons/ri"
 
 interface WorkflowHistoryProps {
@@ -80,6 +80,7 @@ export default function WorkflowHistory(props: WorkflowHistoryProps) {
                 color: "inherit",
                 fontSize: 16,
                 fontWeight: "bold",
+                userSelect: "none",
               }}
             >
               Workflow {index + 1}
@@ -89,6 +90,7 @@ export default function WorkflowHistory(props: WorkflowHistoryProps) {
                 textAlign: "left",
                 color: "inherit",
                 fontSize: 14,
+                userSelect: "none",
               }}
             >
               {new Date(workflow.timestamp).toLocaleString()}

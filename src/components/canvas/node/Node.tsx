@@ -21,6 +21,7 @@ interface NodeProps {
   colorIndex: number
   canvasRect: DOMRect | null
   mousePosition: Position
+  isMoving: boolean
   handleNodeAction: (
     node: INode,
     action: string,
@@ -36,6 +37,7 @@ export default React.memo(function Node(props: NodeProps) {
     colorIndex,
     canvasRect,
     mousePosition,
+    isMoving,
     // handleNodeMove,
     handleNodeAction,
   } = props
@@ -285,6 +287,8 @@ export default React.memo(function Node(props: NodeProps) {
   }
 
   const springProps = useSpring({
+    positionTop: node.position.y,
+    positionLeft: node.position.x,
     size:
       nodeOptimalSize &&
       ((nodeHovered && mouseDist < 25) || isSelected === 1 || dragging)
@@ -302,8 +306,8 @@ export default React.memo(function Node(props: NodeProps) {
         position: "absolute",
         width: nodeActualSize + 20,
         height: nodeActualSize + 20,
-        top: node.position.y,
-        left: node.position.x,
+        top: isMoving ? node.position.y : springProps.positionTop,
+        left: isMoving ? node.position.x : springProps.positionLeft,
         transform: "translate(-50%,-50%)",
         zIndex: isSelected === 1 ? 1000 : node.layer,
       }}

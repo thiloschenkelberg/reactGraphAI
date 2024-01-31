@@ -10,7 +10,7 @@ import {MDB_IUser as IUser} from "./types/user.type"
 import client from "./client"
 
 import Home from "./components/Home"
-import Workflow from "./components/Workflow"
+import Workflow from "./components/workflow/Workflow"
 import Database from "./components/Database"
 import Profile from "./components/Profile"
 import AuthenticationForm from "./components/Authentication"

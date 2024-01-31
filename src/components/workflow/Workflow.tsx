@@ -16,16 +16,16 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useSpring, animated } from 'react-spring';
 
-import Canvas from "./canvas/Canvas"
+import Canvas from "../canvas/Canvas"
 import WorkflowButtons from "./WorkflowButtons"
 import WorkflowJson from "./WorkflowJson";
 import WorkflowHistory from "./WorkflowHistory";
 import WorkflowTable from "./WorkflowTable";
-import { IConnection, INode } from "../types/canvas.types";
-import { convertToJSONFormat } from "../common/helpers";
+import { IConnection, INode } from "../../types/canvas.types";
+import { convertToJSONFormat } from "../../common/helpers";
 import toast from "react-hot-toast";
-import client from "../client";
-import { IWorkflow } from "../types/workflow.types";
+import client from "../../client";
+import { IWorkflow } from "../../types/workflow.types";
 
 const undoSteps = 200
 
@@ -37,8 +37,10 @@ export default function Workflow(props: WorkflowProps) {
   const { colorIndex } = props
   const [nodes, setNodes] = useState<INode[]>([])
   const [connections, setConnections] = useState<IConnection[]>([])
+  const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [workflow, setWorkflow] = useState<string | null>(null)
   const [workflows, setWorkflows] = useState<IWorkflow[] | undefined>()
+  const [table, setTable] = useState<any[] | null>(null)
 
   const [needLayout, setNeedLayout] = useState(false)
 
@@ -311,9 +313,10 @@ export default function Workflow(props: WorkflowProps) {
           <Canvas
             nodes={nodes}
             connections={connections}
-            colorIndex={colorIndex}
             setNodes={setNodes}
             setConnections={setConnections}
+            selectedNodes={selectedNodes}
+            setSelectedNodes={setSelectedNodes}
             saveWorkflow={saveWorkflow}
             updateHistory={updateHistory}
             updateHistoryWithCaution={updateHistoryWithCaution}
@@ -329,6 +332,7 @@ export default function Workflow(props: WorkflowProps) {
               width: "100%",
               height: "100%",
             }}
+            colorIndex={colorIndex}
           />
         }
       />
@@ -368,7 +372,13 @@ export default function Workflow(props: WorkflowProps) {
           width: "100%",
           borderTop: tableView ? "1px solid #333" : "none"
         }}
-        children={<WorkflowTable/>}
+        children={
+          <WorkflowTable
+            tableView={tableView}
+            table={table}
+            setTable={setTable}
+          />
+        }
       />
 
       <div className="workflow-window-btn-wrap">

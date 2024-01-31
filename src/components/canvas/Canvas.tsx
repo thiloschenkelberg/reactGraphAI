@@ -27,11 +27,13 @@ import {
 import CanvasButtonGroup from "./CanvasButtons"
 
 interface CanvasProps {
+  
   nodes: INode[]
   connections: IConnection[]
-  colorIndex: number
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
+  selectedNodes: INode[]
+  setSelectedNodes: React.Dispatch<React.SetStateAction<INode[]>>
   saveWorkflow: () => void
   updateHistory: () => void
   updateHistoryWithCaution: () => void
@@ -43,15 +45,17 @@ interface CanvasProps {
   needLayout: boolean
   setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
   style?: React.CSSProperties
+  colorIndex: number
 }
 
 export default function Canvas(props: CanvasProps) {
   const {
     nodes,
     connections,
-    colorIndex,
     setNodes,
     setConnections,
+    selectedNodes,
+    setSelectedNodes,
     saveWorkflow,
     updateHistory,
     updateHistoryWithCaution,
@@ -63,10 +67,11 @@ export default function Canvas(props: CanvasProps) {
     needLayout,
     setNeedLayout,
     style,
+    colorIndex,
   } = props
 
   const [nodeEditing, setNodeEditing] = useState(false)
-  const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
+
   const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [selectedConnectionID, setSelectedConnectionID] = useState<
@@ -485,7 +490,7 @@ export default function Canvas(props: CanvasProps) {
 
   // set node selection status
   // 0 = node is not selected
-  // 1 = node is selected
+  // 1 = node is selected alone
   // 2 = node is selected among others
   const nodeSelectionStatus = (nodeID: string) => {
     const isSelected = selectedNodes.some(
@@ -722,7 +727,7 @@ export default function Canvas(props: CanvasProps) {
     return () => {
       window.removeEventListener("keydown", handleCanvasKeyDown)
     }
-  }, [undo, redo, nodes])
+  }, [undo, redo, nodes, setSelectedNodes])
 
   const handleCanvasKeyUp = (e: React.KeyboardEvent) => {
     if (e.key === "Alt") {
@@ -963,6 +968,7 @@ export default function Canvas(props: CanvasProps) {
           colorIndex={colorIndex}
           canvasRect={canvasRect}
           mousePosition={mousePosition}
+          isMoving={movingNodeIDs !== null && movingNodeIDs.has(node.id)}
           // handleNodeMove={handleNodeMove}
           handleNodeAction={handleNodeAction}
         />
