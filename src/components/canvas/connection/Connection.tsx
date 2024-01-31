@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 
-import { IConnection } from "../../../types/canvas.types"
+import { IConnection, Position } from "../../../types/canvas.types"
 import ConnectionContext from "./ConnectionContext"
 
 interface ConnectionProps {
@@ -79,6 +79,9 @@ export function TempConnection(props: TempConnectionProps) {
 
 export default function Connection(props: ConnectionProps) {
   const { connection, isSelected, handleConnectionAction } = props
+  const [start, setStart] = useState<Position>({x: 0, y: 0})
+  const [end, setEnd] = useState<Position>({x: 0, y: 0})
+  const [mid, setMid] = useState<Position>({x: 0, y: 0})
 
   const handleClickLocal = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -89,28 +92,33 @@ export default function Connection(props: ConnectionProps) {
     handleConnectionAction(connection.id, action)
   }
 
+  useEffect(() => {
+    const start = connection.start
+    const end = connection.end
+  
+    const dx = end.position.x - start.position.x
+    const dy = end.position.y - start.position.y
+    const len = Math.sqrt(dx * dx + dy * dy)
+    const normX = dx / len
+    const normY = dy / len
+  
+    const startX = start.position.x + normX * (start.size / 2 + 4)
+    const startY = start.position.y + normY * (start.size / 2 + 4)
+    const endX = end.position.x - normX * (end.size / 2 + 6)
+    const endY = end.position.y - normY * (end.size / 2 + 6)
 
-
-  const start = connection.start
-  const end = connection.end
-
-  const dx = end.position.x - start.position.x
-  const dy = end.position.y - start.position.y
-  const len = Math.sqrt(dx * dx + dy * dy)
-  const normX = dx / len
-  const normY = dy / len
-
-  const startX = start.position.x + normX * (start.size / 2 + 4)
-  const startY = start.position.y + normY * (start.size / 2 + 4)
-  const endX = end.position.x - normX * (end.size / 2 + 6)
-  const endY = end.position.y - normY * (end.size / 2 + 6)
-
-  // calc connectionPos for placement of connection ctxt menu
-  // should be exactly half way between both node borders
-  const connectionPos = {
-    x: (startX + endX + normX * 2) / 2,
-    y: (startY + endY + normY * 2) / 2,
-  }
+    setStart({x: startX, y: startY})
+    setEnd({x: endX, y: endY})
+  
+    // calc connectionPos for placement of connection ctxt menu
+    // should be exactly half way between both node borders
+    const connectionPos = {
+      x: (startX + endX + normX * 2) / 2,
+      y: (startY + endY + normY * 2) / 2,
+    }
+    setMid(connectionPos)
+  }, [connection])
+  
 
   return (
     <div>
@@ -155,7 +163,7 @@ export default function Connection(props: ConnectionProps) {
         </defs>
         {isSelected && (
             <path // connection outline on selection
-              d={`M ${startX},${startY} L ${endX},${endY}`}
+              d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
               stroke="#6f6f6f"
               strokeWidth="6"
               fill="none"
@@ -164,7 +172,8 @@ export default function Connection(props: ConnectionProps) {
             />
         )}
         <path // actual connection (always visible)
-          d={`M ${startX},${startY} L ${endX},${endY}`}
+          // d={`M ${isLayouting ? springProps.startX : start.x},${isLayouting ? springProps.startY : start.y} L ${isLayouting ? springProps.endX : end.x},${isLayouting ? springProps.endY : end.y}`}
+          d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
           stroke="#555"
           strokeWidth="2"
           fill="none"
@@ -172,7 +181,7 @@ export default function Connection(props: ConnectionProps) {
           pointerEvents="none"
         />
         <path // connection clickable area (for better ux)
-          d={`M ${startX},${startY} L ${endX},${endY}`}
+          d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
           fill="none"
           strokeWidth="20"
           stroke="transparent"
@@ -181,7 +190,7 @@ export default function Connection(props: ConnectionProps) {
         />
       </svg>
       {isSelected && ( // Connection context menu
-        <div style={{position: "relative", left: connectionPos.x, top: connectionPos.y}}>
+        <div style={{position: "relative", left: mid.x, top: mid.y}}>
           <ConnectionContext
             onSelect={handleConnectionActionLocal}
             isOpen={isSelected}

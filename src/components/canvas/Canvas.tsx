@@ -71,7 +71,7 @@ export default function Canvas(props: CanvasProps) {
   } = props
 
   const [nodeEditing, setNodeEditing] = useState(false)
-
+  const [isLayouting, setIsLayouting] = useState(false)
   const [movingNodeIDs, setMovingNodeIDs] = useState<Set<string> | null>(null)
   const [connectingNode, setConnectingNode] = useState<INode | null>(null)
   const [selectedConnectionID, setSelectedConnectionID] = useState<
@@ -87,6 +87,7 @@ export default function Canvas(props: CanvasProps) {
   const [ctrlPressed, setCtrlPressed] = useState(false)
   const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
+  const layoutingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Resize Observer to get correct canvas bounds and
   // successively correct mouse positions
@@ -583,11 +584,21 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
-    const handleLayoutNodes = useCallback((iteration = 0, maxIterations = 10) => {
+    const handleLayoutNodes = useCallback((setLayouting = true, iteration = 0, maxIterations = 10) => {
     if (iteration >= maxIterations) {
       // do some warning and stop layout
       return
     }
+
+    if (setLayouting) {
+      setIsLayouting(true)
+
+      if (layoutingTimeoutRef.current) {
+        clearTimeout(layoutingTimeoutRef.current);
+      }
+    }
+
+
 
     cytoscape.use(fcose)
     const cy = cytoscape({
@@ -675,11 +686,17 @@ export default function Canvas(props: CanvasProps) {
       })
       setNodes(updatedNodes)
     }
+
+    layoutingTimeoutRef.current = setTimeout(() => {
+      setIsLayouting(false);
+    }, 500);
+
+    //add timeout to set islayouting here
   }, [canvasRect, nodes, connections, setNodes])
 
   useEffect(() => {
     if (needLayout) {
-      handleLayoutNodes()
+      handleLayoutNodes(false)
       setNeedLayout(false)
     }
   }, [needLayout, setNeedLayout, handleLayoutNodes])
@@ -969,6 +986,7 @@ export default function Canvas(props: CanvasProps) {
           canvasRect={canvasRect}
           mousePosition={mousePosition}
           isMoving={movingNodeIDs !== null && movingNodeIDs.has(node.id)}
+          isLayouting={isLayouting}
           // handleNodeMove={handleNodeMove}
           handleNodeAction={handleNodeAction}
         />

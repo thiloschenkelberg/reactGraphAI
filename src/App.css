@@ -476,6 +476,15 @@ a:link {
   height: 100%;
 }
 
+.workflow-window input[type=text] {
+  outline: none;
+  border-radius: 3px;
+  border: 1px solid #333;
+  padding: 5px;
+  background-color: #25262b;
+  color: #c1c2c5;
+}
+
 .workflow-window-history {
   display: flex;
   flex-direction: column;

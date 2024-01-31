@@ -351,6 +351,8 @@ export default function Workflow(props: WorkflowProps) {
             setNodes={setNodes}
             setConnections={setConnections}
             setNeedLayout={setNeedLayout}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
           />
         }
       />

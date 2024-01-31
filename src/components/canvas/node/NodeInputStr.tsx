@@ -25,10 +25,6 @@ export default function NodeInputStr(props: NodeInputStrProps) {
     zIndex
   } = props
 
-  const handleBlur2 = () => {
-
-  }
-
   const placeholder = id.charAt(0).toUpperCase() + id.slice(1)
 
   return (

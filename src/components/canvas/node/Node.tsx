@@ -22,6 +22,7 @@ interface NodeProps {
   canvasRect: DOMRect | null
   mousePosition: Position
   isMoving: boolean
+  isLayouting: boolean
   handleNodeAction: (
     node: INode,
     action: string,
@@ -38,6 +39,7 @@ export default React.memo(function Node(props: NodeProps) {
     canvasRect,
     mousePosition,
     isMoving,
+    isLayouting,
     // handleNodeMove,
     handleNodeAction,
   } = props
@@ -306,8 +308,8 @@ export default React.memo(function Node(props: NodeProps) {
         position: "absolute",
         width: nodeActualSize + 20,
         height: nodeActualSize + 20,
-        top: isMoving ? node.position.y : springProps.positionTop,
-        left: isMoving ? node.position.x : springProps.positionLeft,
+        top: isLayouting ? springProps.positionTop : node.position.y,
+        left: isLayouting ? springProps.positionLeft : node.position.x,
         transform: "translate(-50%,-50%)",
         zIndex: isSelected === 1 ? 1000 : node.layer,
       }}

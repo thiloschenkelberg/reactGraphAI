@@ -10,10 +10,20 @@ interface WorkflowHistoryProps {
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
   setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
+  canvasWidth: number
+  canvasHeight: number
 }
 
 export default function WorkflowHistory(props: WorkflowHistoryProps) {
-  const { workflows, deleteWorkflow, setNodes, setConnections, setNeedLayout } = props
+  const {
+    workflows,
+    deleteWorkflow,
+    setNodes,
+    setConnections,
+    setNeedLayout,
+    canvasWidth,
+    canvasHeight,
+  } = props
   const [hovered, setHovered] = useState<number | undefined>()
   const [trashHovered, setTrashHovered] = useState(false)
 
