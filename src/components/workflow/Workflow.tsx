@@ -40,7 +40,6 @@ export default function Workflow(props: WorkflowProps) {
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
   const [workflow, setWorkflow] = useState<string | null>(null)
   const [workflows, setWorkflows] = useState<IWorkflow[] | undefined>()
-  const [table, setTable] = useState<any[] | null>(null)
 
   const [needLayout, setNeedLayout] = useState(false)
 
@@ -64,6 +63,8 @@ export default function Workflow(props: WorkflowProps) {
   const [historyViewWidth, setHistoryViewWidth] = useState(0)
   const [tableView, setTableView] = useState(false)
   const [tableViewHeight, setTableViewHeight] = useState(0)
+
+  const [progress, setProgress] = useState<number>(0)
 
   useEffect(() => {
     setWorkflow(convertToJSONFormat(nodes, connections))
@@ -299,9 +300,9 @@ export default function Workflow(props: WorkflowProps) {
   }, [future, nodes, connections, setNodes, setConnections])
 
   return (
-    <div className="workflow-window" ref={workflowWindowRef}>
+    <div className="workflow" ref={workflowWindowRef}>
       <animated.div
-        className="workflow-window-canvas"
+        className="workflow-canvas"
         style={{
           overflow: "hidden",
           position: "absolute",
@@ -338,7 +339,7 @@ export default function Workflow(props: WorkflowProps) {
       />
 
       <animated.div
-        className="workflow-window-history"
+        className="workflow-history"
         style={{
           height: springProps.canvasHeight,
           width: springProps.historyViewWidth,
@@ -358,32 +359,35 @@ export default function Workflow(props: WorkflowProps) {
       />
 
       <animated.div
-        className="workflow-window-json"
+        className="workflow-json"
         style={{
           height: springProps.canvasHeight,
           width: springProps.jsonViewWidth,
           borderLeft: jsonView ? "1px solid #333" : "none"
         }}
-        children={<WorkflowJson workflow={workflow}/>}
+        children={<WorkflowJson workflow={workflow} setWorkflow={setWorkflow} />}
       />
 
       <animated.div
-        className="workflow-window-table"
+        className="workflow-table"
         style={{
           height: springProps.tableViewHeight,
           width: "100%",
           borderTop: tableView ? "1px solid #333" : "none"
         }}
-        children={
-          <WorkflowTable
-            tableView={tableView}
-            table={table}
-            setTable={setTable}
-          />
-        }
-      />
+      >
+        
+        <WorkflowTable
+          tableView={tableView}
+          progress={progress}
+          setProgress={setProgress}
+          setNodes={setNodes}
+          setConnections={setConnections}
+          workflow={workflow}
+        />
+      </animated.div>
 
-      <div className="workflow-window-btn-wrap">
+      <div className="workflow-btn-wrap">
         <WorkflowButtons
           jsonView={jsonView}
           jsonViewWidth={jsonViewWidth}

@@ -68,9 +68,9 @@ export default function App() {
   const currentColorIndex = 0 // make colorPalette choosable in settings later
 
   return (
-    <div className="wrap-app">
+    <div className="app">
       <userContext.Provider value={currentUser}>
-        {currentUser &&(
+        {currentUser && (
           <div className="header">
             <Header handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout}/>
           </div>
@@ -78,7 +78,7 @@ export default function App() {
         {/* <div className="header">
           <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab}/>
         </div> */}
-        <div className="main-window">
+        <div className="main">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/workflow" element={<Workflow colorIndex={currentColorIndex} />} />

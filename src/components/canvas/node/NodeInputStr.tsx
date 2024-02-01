@@ -40,6 +40,13 @@ export default function NodeInputStr(props: NodeInputStrProps) {
       style={{
         marginTop: add ? 8 : 0,
         zIndex: zIndex,
+        // outline: "none",
+        // borderRadius: "3px",
+        // border: "1px solid #333333",
+        // padding: "5px",
+        // backgroundColor: "#25262b",
+        // color: "#c1c2c5",
+        // filter: "drop-shadow(1px 1px 1px #111)",
       }}
     />
   )

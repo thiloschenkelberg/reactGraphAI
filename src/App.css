@@ -12,6 +12,16 @@ a:link {
   text-decoration: none;
 }
 
+.app {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  /* position: relative; */
+}
+
 .app-base {
   background-color: #1a1b1e;
 }
@@ -206,7 +216,7 @@ a:link {
   transform: translate(5px,0);
 }
 
-.main-window {
+.main {
   width: 100vw;
   height: calc(100vh - 65px);
   position: fixed;
@@ -223,7 +233,7 @@ a:link {
   /* filter: drop-shadow(1px 1px 1px #111); */
 }
 
-.node-input input[type=text] {
+.workflow .node-input input[type=text] {
   outline: none;
   border-radius: 3px;
   border: 1px solid #333333;
@@ -231,6 +241,8 @@ a:link {
   background-color: #25262b;
   color: #c1c2c5;
   filter: drop-shadow(1px 1px 1px #111);
+  margin-bottom: 0px;
+  width: auto;
 }
 
 .node-input input[type=number] {
@@ -468,7 +480,7 @@ a:link {
   justify-content: right;
 }
 
-.workflow-window {
+.workflow {
   position: relative;
   display: flex;
   flex-direction: row;
@@ -476,7 +488,7 @@ a:link {
   height: 100%;
 }
 
-.workflow-window input[type=text] {
+.workflow input[type=text] {
   outline: none;
   border-radius: 3px;
   border: 1px solid #333;
@@ -487,7 +499,7 @@ a:link {
   width: 100%;
 }
 
-.workflow-window-history {
+.workflow-history {
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -496,7 +508,7 @@ a:link {
   background-color: #25262b;
 }
 
-.workflow-window-json {
+.workflow-json {
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -505,7 +517,7 @@ a:link {
   background-color: #25262b;
 }
 
-.workflow-window-json-btn-group {
+.workflow-json-btn-group {
   position: relative;
   display: flex;
   justify-content: center;
@@ -517,7 +529,7 @@ a:link {
   border: none;
 }
 
-.workflow-window-json-textarea textarea {
+.workflow-json-textarea textarea {
   background-color: inherit;
   position: relative;
   color: #a6a7ab;
@@ -526,36 +538,26 @@ a:link {
   top: 50px;
 }
 
-.workflow-window-btn {
+.workflow-btn {
   position: absolute;
   width: 35px;
   height: 35px;
 }
 
-.workflow-window-btn-wrap {
+.workflow-btn-wrap {
   pointer-events: none;
   position: absolute;
   width: 100%;
   height: 100%;
 }
 
-.workflow-window-table {
+.workflow-table {
   display: flex;
   flex-direction: column;
   position: absolute;
   bottom: 0%;
   overflow: hidden;
   background-color: #25262b;
-}
-
-.wrap-app {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  width: 100vw;
-  height: 100vh;
-  /* position: relative; */
 }
 
 .wrap-input {

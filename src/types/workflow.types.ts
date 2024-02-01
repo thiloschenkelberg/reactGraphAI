@@ -20,3 +20,7 @@ export interface ITempNode {
     connection: [string, string]
   }>
 }
+
+export interface IDictionary {
+  [key: string]: string | string[]
+}

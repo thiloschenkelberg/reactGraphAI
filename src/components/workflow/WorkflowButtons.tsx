@@ -67,7 +67,7 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
   const renderJsonIcon = () => {
     return (
       <animated.div
-        className="workflow-window-btn"
+        className="workflow-btn"
         style={{
           top: iconTopValue,
           right: springProps.jsonIconRight,
@@ -113,7 +113,7 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
   const renderHistoryIcon = () => {
     return (
       <animated.div
-        className="workflow-window-btn"
+        className="workflow-btn"
         style={{
           left: springProps.historyIconLeft,
           top: iconTopValue,
@@ -159,7 +159,7 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
   const renderTableIcon = () => {
     return (
       <animated.div
-        className="workflow-window-btn"
+        className="workflow-btn"
         style={{
           bottom: springProps.tableIconBottom,
           left: "50%",

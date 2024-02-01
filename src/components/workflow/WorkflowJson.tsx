@@ -1,4 +1,5 @@
 import SearchIcon from "@mui/icons-material/Search"
+import { GiSpiralLollipop } from "react-icons/gi";
 
 import client from "../../client"
 import { saveBlobAsFile } from "../../common/helpers"
@@ -6,11 +7,13 @@ import toast from "react-hot-toast"
 
 interface WorkflowJsonProps {
   workflow: string | null
+  setWorkflow: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export default function WorkflowJson(props: WorkflowJsonProps) {
   const {
-    workflow
+    workflow,
+    setWorkflow
   } = props
 
   async function workflowSearch() {
@@ -26,11 +29,11 @@ export default function WorkflowJson(props: WorkflowJsonProps) {
 
   return (
     <>
-      <div className="workflow-window-json-btn-group">
+      <div className="workflow-json-btn-group">
         <SearchIcon onClick={workflowSearch} />
       </div>
       <div
-        className="workflow-window-json-textarea"
+        className="workflow-json-textarea"
         style={{
           position: "relative",
           width: "100%",
