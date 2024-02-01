@@ -481,8 +481,10 @@ a:link {
   border-radius: 3px;
   border: 1px solid #333;
   padding: 5px;
-  background-color: #25262b;
-  color: #c1c2c5;
+  background-color: #373A40;
+  color: #C1C2C5;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .workflow-window-history {
