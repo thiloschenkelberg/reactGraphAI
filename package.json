@@ -1,7 +1,7 @@
 {
   "name": "reactgraphai",
   "version": "1.0.1",
-  "homepage": "https://thiloschenkelberg.github.io/reactGraphAI",
+  "homepage": "http://localhost:3000",
   "private": true,
   "dependencies": {
     "@cloudinary/react": "^1.11.2",
