@@ -7,7 +7,7 @@ import "react-virtualized/styles.css"
 import WorkflowTableDropzone from "./WorkflowTableDropzone"
 import { IconUpload } from "@tabler/icons-react"
 import { Button } from "@mantine/core"
-import { IDictionary, IWorkflow } from "../../types/workflow.types"
+import { IOuterDictionary, IWorkflow } from "../../types/workflow.types"
 import { IConnection, INode } from "../../types/canvas.types"
 import {
   convertFromJSONFormat,
@@ -25,17 +25,17 @@ interface WorkflowTableProps {
   workflows: IWorkflow[] | undefined
 }
 
-const exampleLabelDict: IDictionary = {
-  "Header1": "Label1",
-  "Header2": "Label2",
-  "Header3": "Label3",
+const exampleLabelDict: IOuterDictionary = {
+  Header1: {Label: "Label1"},
+  Header2: {Label: "Label2"},
+  Header3: {Label: "Label3"},
   // Add more key-value pairs as needed
 }
 
-const exampleAttrDict: IDictionary = {
-  "Header1": ["Label1", "Attribute1"],
-  "Header2": ["Label2", "Attribute2"],
-  "Header3": ["Label3", "Attribute3"],
+const exampleAttrDict: IOuterDictionary = {
+  Header1: {Label: "Label1", Attribute: "Attribute1"},
+  Header2: {Label: "Label2", Attribute: "Attribute2"},
+  Header3: {Label: "Label3", Attribute: "Attribute3"},
   // Add more key-value pairs as needed
 }
 
@@ -109,6 +109,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     if (!file) return
 
     try {
+
       const data = await client.requestExtractLabels(file, context)
 
       if (data.graph_json) {
@@ -242,58 +243,80 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     }
   }
 
-  function dictToArray(dict: IDictionary): string[][] {
-    // Get headers (keys of the dictionary)
-    const headers = Object.keys(dict)
-
+  function dictToArray(dict: IOuterDictionary): string[][] {
+    if (!dict || Object.keys(dict).length === 0) {
+      return [];
+    }
+  
+    // Extract headers from the outer dictionary keys
+    const headers = Object.keys(dict);
     
-
-    // Get values as an array of arrays
-    const values = Object.values(dict).map((value) =>
-      Array.isArray(value) ? value : [value]
-    )
-
-    // Determine the maximum number of rows based on the maximum value array length
-    const maxRows = Math.max(...values.map((value) => value.length))
-
-    // Create the rows with headers as the first row
-    const rows: string[][] = [headers]
+    // Prepare the first row of the table with these headers
+    const table: string[][] = [headers];
+  
+    // Determine the maximum number of rows needed by finding the longest inner dictionary
+    const maxRows = Math.max(...Object.values(dict).map(innerDict => Object.keys(innerDict).length));
+    
+    // Initialize each row with empty strings to accommodate all headers
     for (let i = 0; i < maxRows; i++) {
-      const row = values.map((value) => value[i] || "")
-      rows.push(row)
+      table.push(new Array(headers.length).fill(""));
     }
-
-    // console.log(rows)
-    return rows
+  
+    // Populate the table rows with values from each inner dictionary
+    headers.forEach((header, headerIndex) => {
+      const innerDict = dict[header];
+      const keys = Object.keys(innerDict);
+      keys.forEach((key, rowIndex) => {
+        table[rowIndex + 1][headerIndex] = innerDict[key]; // rowIndex + 1 to skip header row
+      });
+    });
+  
+    // Clean up any rows at the end that contain only undefined values
+    return table.filter(row => row.some(cell => cell !== undefined && cell !== ""));
   }
-
-  function arrayToDict(array: any[] | null): IDictionary | null {
-    if (!array || array.length === 0 || !Array.isArray(array[0])) {
-      return null // Return null if input is null, empty, or not structured properly
+  
+  function arrayToDict(array: string[][] | null): IOuterDictionary | null {
+    // Validate the input array
+    if (!array || array.length < 2 || !Array.isArray(array[0])) {
+      return null; // Return null if input is null, has less than 2 rows, or if the first row is not an array
     }
-
-    const dict: IDictionary = {}
-    const headers = array[0]
-
-    if (headers.every((header) => typeof header === "string")) {
+  
+    const dict: IOuterDictionary = {};
+    const headers = array[0]; // The first row contains headers
+  
+    // Initialize dict with headers
+    headers.forEach(header => {
+      if (typeof header === "string") {
+        dict[header] = {}; // Each header becomes a key to an empty inner dictionary
+      } else {
+        return null; // Return null if any header is not a string
+      }
+    });
+  
+    // Iterate over each row starting from the second row
+    array.slice(1).forEach((row, rowIndex) => {
       headers.forEach((header, columnIndex) => {
-        const columnValues = array
-          .slice(1)
-          .map((row) => row[columnIndex])
-          .filter((v) => v !== "" && v != null)
-          .map((v) => String(v)) // Ensuring values are strings
-
-        // If there's more than one value, store it as an array, otherwise store the single value
-        dict[header] =
-          columnValues.length > 1 ? columnValues : columnValues[0] || ""
-      })
-    } else {
-      return null // Return null if headers are not all strings
-    }
-
-    return dict
+        const value = row[columnIndex];
+        if (typeof header === "string" && value !== undefined && value !== null) {
+          // Determine the appropriate key based on rowIndex
+          let key;
+          if (rowIndex === 0) {
+            key = "Label";
+          } else if (rowIndex === 1) {
+            key = "Attribute";
+          } else {
+            key = `Row${rowIndex}`;
+          }
+  
+          // Assign or update the value in the inner dictionary
+          dict[header][key] = value;
+        }
+      });
+    });
+  
+    return dict;
   }
-
+  
   const cellRenderer: React.FC<GridCellProps> = ({
     columnIndex,
     key,

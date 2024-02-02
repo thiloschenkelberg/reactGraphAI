@@ -49,7 +49,7 @@ export interface INode {
   size: number
   layer: number
   isEditing: boolean
-  index?: Position
+  index?: number
 }
 
 export interface IConnection {

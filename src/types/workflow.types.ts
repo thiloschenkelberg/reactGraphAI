@@ -19,9 +19,13 @@ export interface ITempNode {
     rel_type: string
     connection: [string, string]
   }>
-  index?: Position
+  index?: number
 }
 
-export interface IDictionary {
-  [key: string]: string | string[]
+export interface IOuterDictionary {
+  [key: string]: IInnerDictionary
+}
+
+export interface IInnerDictionary {
+  [key: string]: string
 }
