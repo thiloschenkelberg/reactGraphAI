@@ -128,7 +128,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         return
       }
 
-      if (!data || !data.label_dict || !data.file_link || !data.file_name) {
+      if (!(data && data.label_dict && data.file_link && data.file_name)) {
         throw new Error("Error while extracting labels!")
       }
 
@@ -160,7 +160,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         fileName
       )
 
-      if (!data || !data.attribute_dict) {
+      if (!(data && data.attribute_dict)) {
         throw new Error("Error while extracting attributes!")
       }
 
@@ -189,7 +189,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         fileName
       )
 
-      if (!data || !data.node_json) {
+      if (!(data && data.node_json)) {
         throw new Error("Error while extracting nodes!")
       }
 
@@ -226,7 +226,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         fileName
       )
 
-      if (!data || !data.graph_json) {
+      if (!(data && data.graph_json)) {
         throw new Error("Error while extracting graph!")
       }
 
