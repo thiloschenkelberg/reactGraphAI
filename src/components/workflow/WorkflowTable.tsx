@@ -7,9 +7,12 @@ import "react-virtualized/styles.css"
 import WorkflowTableDropzone from "./WorkflowTableDropzone"
 import { IconUpload } from "@tabler/icons-react"
 import { Button } from "@mantine/core"
-import { IDictionary } from "../../types/workflow.types"
+import { IDictionary, IWorkflow } from "../../types/workflow.types"
 import { IConnection, INode } from "../../types/canvas.types"
-import { convertFromJSONFormat, convertToJSONFormat } from "../../common/helpers"
+import {
+  convertFromJSONFormat,
+  convertToJSONFormat,
+} from "../../common/helpers"
 
 interface WorkflowTableProps {
   tableView: boolean
@@ -18,14 +21,22 @@ interface WorkflowTableProps {
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
   workflow: string | null
+  workflows: IWorkflow[] | undefined
 }
 
-const exampleDictionary: IDictionary = {
-  "Column1-Row1": "C1-Row2",
-  "Column2-Row1": ["C2-Row2", "C2-Row3"],
-  "Column3-Row1": "C3-Row2",
+const exampleLabelDict: IDictionary = {
+  "Header1": "Label1",
+  "Header2": "Label2",
+  "Header3": "Label3",
   // Add more key-value pairs as needed
-};
+}
+
+const exampleAttrDict: IDictionary = {
+  "Header1": ["Label1", "Attribute1"],
+  "Header2": ["Label2", "Attribute2"],
+  "Header3": ["Label3", "Attribute3"],
+  // Add more key-value pairs as needed
+}
 
 export default function WorkflowTable(props: WorkflowTableProps) {
   const {
@@ -34,19 +45,22 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     setProgress,
     setNodes,
     setConnections,
-    workflow
+    workflow,
+    workflows,
   } = props
   const tableViewRef = useRef<HTMLDivElement>(null)
   const [tableViewRect, setTableViewRect] = useState<DOMRect | null>(null)
   const [hovered, setHovered] = useState(false)
 
   const [file, setFile] = useState<File | undefined>()
-  const [fileLink, setFileLink] = useState<string>("")
-  const [fileName, setFileName] = useState<string>("")
+  const [fileLink, setFileLink] = useState<string>("Link")
+  const [fileName, setFileName] = useState<string>("Name")
   const [context, setContext] = useState<string>("")
   const [csvTable, setCsvTable] = useState<any[] | null>(null)
   const [labelTable, setLabelTable] = useState<any[] | null>(null)
   const [attributeTable, setAttributeTable] = useState<any[] | null>(null)
+
+  const multiGridRef = useRef<any>(null)
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
@@ -90,21 +104,25 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     if (!file) return
 
     try {
-      const data = await client.requestExtractLabels(file, context)
+      // const data = await client.requestExtractLabels(file, context)
 
-      if (!data || !data.label_dict || !data.file_link || !data.file_name) {
-        throw new Error("Error while extracting labels!")
-      }
+      // if (!data || !data.label_dict || !data.file_link || !data.file_name) {
+      //   throw new Error("Error while extracting labels!")
+      // }
 
       // const dictArray = dictToArray(data.label_dict)
       // setLabelTable(dictArray)
       // setFileLink(data.file_link)
       // setFileName(data.file_name)
 
-      const dictArray = dictToArray(exampleDictionary)
+      const dictArray = dictToArray(exampleLabelDict)
+      console.log(dictArray)
       setLabelTable(dictArray)
-
       setProgress(2)
+      if (multiGridRef.current) {
+        multiGridRef.current.forceUpdateGrids()
+      }
+
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -117,16 +135,27 @@ export default function WorkflowTable(props: WorkflowTableProps) {
 
       if (!dict) return
 
-      const data = await client.requestExtractAttributes(dict, context, fileLink, fileName)
+      // const data = await client.requestExtractAttributes(
+      //   dict,
+      //   context,
+      //   fileLink,
+      //   fileName
+      // )
 
-      if (!data || !data.attribute_dict) {
-        throw new Error("Error while extracting attributes!")
-      }
+      // if (!data || !data.attribute_dict) {
+      //   throw new Error("Error while extracting attributes!")
+      // }
 
-      const dictArray = dictToArray(data.attribute_dict)
+      // const dictArray = dictToArray(data.attribute_dict)
+
+      const dictArray = dictToArray(exampleAttrDict)
+
       setAttributeTable(dictArray)
-
+      console.log(dictArray)
       setProgress(3)
+      if (multiGridRef.current) {
+        multiGridRef.current.forceUpdateGrids()
+      }
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -139,13 +168,22 @@ export default function WorkflowTable(props: WorkflowTableProps) {
 
       if (!dict) return
 
-      const data = await client.requestExtractNodes(dict, context, fileLink, fileName)
+      const data = await client.requestExtractNodes(
+        dict,
+        context,
+        fileLink,
+        fileName
+      )
 
-      if (!data || !data.node_json) {
-        throw new Error("Error while extracting nodes!")
-      }
+      // if (!data || !data.node_json) {
+      //   throw new Error("Error while extracting nodes!")
+      // }
 
-      const { nodes, connections } = convertFromJSONFormat(data.node_json)
+      // const { nodes, connections } = convertFromJSONFormat(data.node_json)
+      if (!workflows || !workflows[1]) return
+      const { nodes, connections } = convertFromJSONFormat(
+        workflows[1].workflow
+      )
 
       setConnections([])
       setNodes(nodes)
@@ -158,18 +196,28 @@ export default function WorkflowTable(props: WorkflowTableProps) {
 
   // (node_json, context, file_link, file_name) => graph_json
   async function requestExtractGraph() {
-    try{
+    try {
       const nodeJson = workflow
 
       if (!nodeJson) return
 
-      const data = await client.requestExtractGraph(nodeJson, context, fileLink, fileName)
+      const data = await client.requestExtractGraph(
+        nodeJson,
+        context,
+        fileLink,
+        fileName
+      )
 
       if (!data || !data.graph_json) {
         throw new Error("Error while extracting graph!")
       }
 
-      const { nodes, connections } = convertFromJSONFormat(data.graph_json)
+      // const { nodes, connections } = convertFromJSONFormat(data.graph_json)
+
+      if (!workflows || !workflows[2]) return
+      const { nodes, connections } = convertFromJSONFormat(
+        workflows[2].workflow
+      )
 
       setNodes(nodes)
       setConnections(connections)
@@ -180,55 +228,57 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     }
   }
 
-  
   function dictToArray(dict: IDictionary): string[][] {
     // Get headers (keys of the dictionary)
-    const headers = Object.keys(dict);
-  
+    const headers = Object.keys(dict)
+
+    
+
     // Get values as an array of arrays
-    const values = Object.values(dict).map(value =>
+    const values = Object.values(dict).map((value) =>
       Array.isArray(value) ? value : [value]
-    );
-  
+    )
+
     // Determine the maximum number of rows based on the maximum value array length
-    const maxRows = Math.max(...values.map(value => value.length));
-  
+    const maxRows = Math.max(...values.map((value) => value.length))
+
     // Create the rows with headers as the first row
-    const rows: string[][] = [headers];
+    const rows: string[][] = [headers]
     for (let i = 0; i < maxRows; i++) {
-      const row = values.map(value => value[i] || '');
-      rows.push(row);
+      const row = values.map((value) => value[i] || "")
+      rows.push(row)
     }
-  
-    console.log(rows)
-    return rows;
+
+    // console.log(rows)
+    return rows
   }
 
   function arrayToDict(array: any[] | null): IDictionary | null {
-  if (!array || array.length === 0 || !Array.isArray(array[0])) {
-    return null; // Return null if input is null, empty, or not structured properly
+    if (!array || array.length === 0 || !Array.isArray(array[0])) {
+      return null // Return null if input is null, empty, or not structured properly
+    }
+
+    const dict: IDictionary = {}
+    const headers = array[0]
+
+    if (headers.every((header) => typeof header === "string")) {
+      headers.forEach((header, columnIndex) => {
+        const columnValues = array
+          .slice(1)
+          .map((row) => row[columnIndex])
+          .filter((v) => v !== "" && v != null)
+          .map((v) => String(v)) // Ensuring values are strings
+
+        // If there's more than one value, store it as an array, otherwise store the single value
+        dict[header] =
+          columnValues.length > 1 ? columnValues : columnValues[0] || ""
+      })
+    } else {
+      return null // Return null if headers are not all strings
+    }
+
+    return dict
   }
-
-  const dict: IDictionary = {};
-  const headers = array[0];
-
-  if (headers.every(header => typeof header === 'string')) {
-    headers.forEach((header, columnIndex) => {
-      const columnValues = array.slice(1)
-                                .map(row => row[columnIndex])
-                                .filter(v => v !== '' && v != null)
-                                .map(v => String(v)); // Ensuring values are strings
-
-      // If there's more than one value, store it as an array, otherwise store the single value
-      dict[header] = columnValues.length > 1 ? columnValues : columnValues[0] || '';
-    });
-  } else {
-    return null; // Return null if headers are not all strings
-  }
-
-  return dict;
-}
-  
 
   const cellRenderer: React.FC<GridCellProps> = ({
     columnIndex,
@@ -236,16 +286,19 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     rowIndex,
     style,
   }) => {
-    let content: string | string[] = '';
-  
+    let content: string | string[] = ""
+
     if (progress === 1 && csvTable) {
-      content = rowIndex === 0
+      content =
+        rowIndex === 0
           ? Object.keys(csvTable[0])[columnIndex]
           : csvTable[rowIndex - 1][Object.keys(csvTable[0])[columnIndex]]
     } else if (progress === 2 && labelTable) {
-      content = labelTable[rowIndex][columnIndex] || ''
+      content = labelTable[rowIndex][columnIndex] || ""
+    } else if (progress === 3 && attributeTable) {
+      content = attributeTable[rowIndex][columnIndex] || ""
     }
-  
+
     const newStyle = {
       ...style,
       border: "1px solid #333",
@@ -257,13 +310,15 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         {content}
       </div>
     )
-  };
+  }
 
   const getColumnCount = (): number => {
     if (progress === 1 && csvTable) {
       return csvTable[0] ? Object.keys(csvTable[0]).length : 0
     } else if (progress === 2 && labelTable) {
       return labelTable[0] ? Object.keys(labelTable[0]).length : 0
+    } else if (progress === 3 && attributeTable) {
+      return attributeTable[0] ? Object.keys(attributeTable[0]).length : 0
     }
     return 0
   }
@@ -273,6 +328,8 @@ export default function WorkflowTable(props: WorkflowTableProps) {
       return csvTable.length + 1
     } else if (progress === 2 && labelTable) {
       return labelTable.length
+    } else if (progress === 3 && attributeTable) {
+      return attributeTable.length
     }
     return 0
   }
@@ -283,15 +340,25 @@ export default function WorkflowTable(props: WorkflowTableProps) {
       return Math.max(headerText.length * 10, 80)
     } else if (progress === 2 && labelTable) {
       const headerText = labelTable[0] ? labelTable[0][index] : ""
-      console.log(headerText)
-      return Math.max(headerText.length * 12, 80)
+      // console.log(Math.max(headerText.length * 15, 150))
+      // return Math.max(headerText.length * 15, 150)
+      // console.log(progress)
+      return 200
+    } else if (progress === 3 && attributeTable) {
+      const headerText = attributeTable[0] ? attributeTable[0][index] : ""
+      // return Math.max(headerText.length * 15, 150)
+      console.log(progress)
+      return 1000
     }
+    console.log(100)
     return 100
   }
 
   return (
     <>
-      {progress === 0 && <WorkflowTableDropzone handleFileView={handleFileView} />}
+      {progress === 0 && (
+        <WorkflowTableDropzone handleFileView={handleFileView} />
+      )}
       {progress > 0 && (
         <div
           className="workflow-table-upload"
@@ -303,7 +370,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
             flexDirection: "row",
           }}
         >
-          {progress === 1 && csvTable && (
+          {progress > 0 && csvTable && (
             <div
               className="workflow-table-specs"
               style={{
@@ -356,9 +423,31 @@ export default function WorkflowTable(props: WorkflowTableProps) {
                   onMouseEnter={() => setHovered(true)}
                   onMouseLeave={() => setHovered(false)}
                 >
-                  <IconUpload size="3rem" stroke={1.5} 
-                    onClick={requestExtractLabels}
-                  />
+                  {progress === 1 ? (
+                    <IconUpload
+                      size="3rem"
+                      stroke={1.5}
+                      onClick={requestExtractLabels}
+                    />
+                  ) : progress === 2 ? (
+                    <IconUpload
+                      size="3rem"
+                      stroke={1.5}
+                      onClick={requestExtractAttributes}
+                    />
+                  ) : progress === 3 ? (
+                    <IconUpload
+                      size="3rem"
+                      stroke={1.5}
+                      onClick={requestExtractLabels}
+                    />
+                  ) : (
+                    <IconUpload
+                      size="3rem"
+                      stroke={1.5}
+                      onClick={requestExtractGraph}
+                    />
+                  )}
                   {/* Upload */}
                 </div>
               </div>
@@ -371,10 +460,11 @@ export default function WorkflowTable(props: WorkflowTableProps) {
               position: "relative",
               height: `calc(100%)`,
               overflow: "hidden",
-              width: "100%"
+              width: "100%",
             }}
           >
             <MultiGrid
+              ref={multiGridRef}
               columnWidth={getColumnWidth} // Adjust as needed
               columnCount={getColumnCount()}
               fixedColumnCount={progress === 1 ? 1 : 0}

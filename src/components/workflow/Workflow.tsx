@@ -384,6 +384,7 @@ export default function Workflow(props: WorkflowProps) {
           setNodes={setNodes}
           setConnections={setConnections}
           workflow={workflow}
+          workflows={workflows}
         />
       </animated.div>
 
