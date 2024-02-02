@@ -383,6 +383,7 @@ export default function Workflow(props: WorkflowProps) {
           setProgress={setProgress}
           setNodes={setNodes}
           setConnections={setConnections}
+          setNeedLayout={setNeedLayout}
           workflow={workflow}
           workflows={workflows}
         />

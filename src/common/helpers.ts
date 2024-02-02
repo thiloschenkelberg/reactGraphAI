@@ -218,6 +218,7 @@ export function convertToJSONFormat(
         type: preventMapTypes ? node.type : mapNodeType(node.type),
         attributes,
         relationships,
+        ...(node.index && {index: node.index}),
       };
     }),
     null,
@@ -247,6 +248,7 @@ export function convertFromJSONFormat(workflow: string) {
       size: 100,
       layer: 0,
       isEditing: false,
+      index: item.index ? item.index : undefined
     })
 
     // Reconstruct connections

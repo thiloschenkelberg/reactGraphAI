@@ -1,4 +1,4 @@
-import { Operator } from "./canvas.types"
+import { Operator, Position } from "./canvas.types"
 
 export type ParsedValOpPair = {
   value: string | string[]
@@ -19,6 +19,7 @@ export interface ITempNode {
     rel_type: string
     connection: [string, string]
   }>
+  index?: Position
 }
 
 export interface IDictionary {

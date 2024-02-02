@@ -20,6 +20,7 @@ interface WorkflowTableProps {
   setProgress: React.Dispatch<React.SetStateAction<number>>
   setNodes: React.Dispatch<React.SetStateAction<INode[]>>
   setConnections: React.Dispatch<React.SetStateAction<IConnection[]>>
+  setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
   workflow: string | null
   workflows: IWorkflow[] | undefined
 }
@@ -45,6 +46,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     setProgress,
     setNodes,
     setConnections,
+    setNeedLayout,
     workflow,
     workflows,
   } = props
@@ -61,6 +63,9 @@ export default function WorkflowTable(props: WorkflowTableProps) {
   const [attributeTable, setAttributeTable] = useState<any[] | null>(null)
 
   const multiGridRef = useRef<any>(null)
+  // if (multiGridRef.current) {
+  //   multiGridRef.current.recomputeGridSize()
+  // }
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
@@ -104,25 +109,30 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     if (!file) return
 
     try {
-      // const data = await client.requestExtractLabels(file, context)
+      const data = await client.requestExtractLabels(file, context)
 
-      // if (!data || !data.label_dict || !data.file_link || !data.file_name) {
-      //   throw new Error("Error while extracting labels!")
-      // }
-
-      // const dictArray = dictToArray(data.label_dict)
-      // setLabelTable(dictArray)
-      // setFileLink(data.file_link)
-      // setFileName(data.file_name)
-
-      const dictArray = dictToArray(exampleLabelDict)
-      console.log(dictArray)
-      setLabelTable(dictArray)
-      setProgress(2)
-      if (multiGridRef.current) {
-        multiGridRef.current.forceUpdateGrids()
+      if (data.graph_json) {
+        const { nodes, connections } = convertFromJSONFormat(data.graph_json)
+        setNodes(nodes)
+        setConnections(connections)
+        setNeedLayout(true)
+        setProgress(5)
+        return
       }
 
+      if (!data || !data.label_dict || !data.file_link || !data.file_name) {
+        throw new Error("Error while extracting labels!")
+      }
+
+      const dictArray = dictToArray(data.label_dict)
+      setLabelTable(dictArray)
+      setFileLink(data.file_link)
+      setFileName(data.file_name)
+
+      // const dictArray = dictToArray(exampleLabelDict)
+      // setLabelTable(dictArray)
+
+      setProgress(2)
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -135,27 +145,23 @@ export default function WorkflowTable(props: WorkflowTableProps) {
 
       if (!dict) return
 
-      // const data = await client.requestExtractAttributes(
-      //   dict,
-      //   context,
-      //   fileLink,
-      //   fileName
-      // )
+      const data = await client.requestExtractAttributes(
+        dict,
+        context,
+        fileLink,
+        fileName
+      )
 
-      // if (!data || !data.attribute_dict) {
-      //   throw new Error("Error while extracting attributes!")
-      // }
+      if (!data || !data.attribute_dict) {
+        throw new Error("Error while extracting attributes!")
+      }
 
-      // const dictArray = dictToArray(data.attribute_dict)
+      const dictArray = dictToArray(data.attribute_dict)
 
-      const dictArray = dictToArray(exampleAttrDict)
+      // const dictArray = dictToArray(exampleAttrDict)
 
       setAttributeTable(dictArray)
-      console.log(dictArray)
       setProgress(3)
-      if (multiGridRef.current) {
-        multiGridRef.current.forceUpdateGrids()
-      }
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -175,18 +181,22 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         fileName
       )
 
-      // if (!data || !data.node_json) {
-      //   throw new Error("Error while extracting nodes!")
-      // }
+      if (!data || !data.node_json) {
+        throw new Error("Error while extracting nodes!")
+      }
 
-      // const { nodes, connections } = convertFromJSONFormat(data.node_json)
-      if (!workflows || !workflows[1]) return
-      const { nodes, connections } = convertFromJSONFormat(
-        workflows[1].workflow
-      )
+      const { nodes, connections } = convertFromJSONFormat(data.node_json)
+      // if (!workflows || !workflows[1]) {
+      //   console.log("workflow not found")
+      //   return
+      // }
+      // const { nodes, connections } = convertFromJSONFormat(
+      //   workflows[1].workflow
+      // )
 
       setConnections([])
       setNodes(nodes)
+      setNeedLayout(true)
 
       setProgress(4)
     } catch (err: any) {
@@ -212,15 +222,19 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         throw new Error("Error while extracting graph!")
       }
 
-      // const { nodes, connections } = convertFromJSONFormat(data.graph_json)
+      const { nodes, connections } = convertFromJSONFormat(data.graph_json)
 
-      if (!workflows || !workflows[2]) return
-      const { nodes, connections } = convertFromJSONFormat(
-        workflows[2].workflow
-      )
+      // if (!workflows || !workflows[2]) {
+      //   console.log("workflow not found")
+      //   return
+      // }
+      // const { nodes, connections } = convertFromJSONFormat(
+      //   workflows[2].workflow
+      // )
 
       setNodes(nodes)
       setConnections(connections)
+      setNeedLayout(true)
 
       setProgress(5)
     } catch (err: any) {
@@ -334,24 +348,18 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     return 0
   }
 
-  const getColumnWidth = ({ index }: Index): number => {
+  const getColumnWidth = ( {index} : Index): number => {
     if (progress === 1 && csvTable) {
       const headerText = csvTable[0] ? Object.keys(csvTable[0])[index] : ""
-      return Math.max(headerText.length * 10, 80)
+      return Math.max(headerText.length * 15, 90)
     } else if (progress === 2 && labelTable) {
       const headerText = labelTable[0] ? labelTable[0][index] : ""
-      // console.log(Math.max(headerText.length * 15, 150))
-      // return Math.max(headerText.length * 15, 150)
-      // console.log(progress)
-      return 200
+      return Math.max(headerText.length * 15, 90)
     } else if (progress === 3 && attributeTable) {
       const headerText = attributeTable[0] ? attributeTable[0][index] : ""
-      // return Math.max(headerText.length * 15, 150)
-      console.log(progress)
-      return 1000
+      return Math.max(headerText.length * 15, 90)
     }
-    console.log(100)
-    return 100
+    return 0
   }
 
   return (
@@ -439,7 +447,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
                     <IconUpload
                       size="3rem"
                       stroke={1.5}
-                      onClick={requestExtractLabels}
+                      onClick={requestExtractNodes}
                     />
                   ) : (
                     <IconUpload
@@ -474,7 +482,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
               rowCount={getRowCount()} // One header row and one data row
               cellRenderer={cellRenderer}
               width={tableViewRect ? tableViewRect.width - 5 : 0} // Adjust as needed
-              style={{ border: "1px solid #333" }}
+              // style={{ border: "1px solid #333" }}
             />
           </div>
         </div>
