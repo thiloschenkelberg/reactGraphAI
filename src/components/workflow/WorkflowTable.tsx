@@ -106,7 +106,14 @@ export default function WorkflowTable(props: WorkflowTableProps) {
 
   // (file,context) => label_dict, file_link, file_name
   async function requestExtractLabels() {
-    if (!file) return
+    if (!file) {
+      toast.error("File not found!")
+      return
+    }
+    if (!(context && context.length > 0)) {
+      toast.error("Pls enter context!")
+      return
+    }
 
     try {
 
