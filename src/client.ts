@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from "axios"
-import { IOuterDictionary } from "./types/workflow.types"
+import { IDictionary } from "./types/workflow.types"
 
 const USER_API_URL = "https://reactgraphai.ew.r.appspot.com" //google app engine
 const DATA_API_URL =  "http://localhost:8080"
@@ -391,7 +391,7 @@ class Client {
   }
 
   // (label_dict, context, file_link, file_name) => attribute_dict
-  async requestExtractAttributes(dict: IOuterDictionary, context: string, link: string, name: string) {
+  async requestExtractAttributes(dict: IDictionary, context: string, link: string, name: string) {
     try {
       const response = await this.dataClient.post("/api/label-retrieve", {
         params: {
@@ -413,7 +413,7 @@ class Client {
   }
 
   // (attribute_dict, context, file_link, file_name) => node_json
-  async requestExtractNodes(dict: IOuterDictionary, context: string, link: string, name: string) {
+  async requestExtractNodes(dict: IDictionary, context: string, link: string, name: string) {
     try {
       const response = await this.dataClient.post("/api/attribute-retrieve", {
         params: {

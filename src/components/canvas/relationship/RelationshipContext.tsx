@@ -7,7 +7,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 
 import { hoverColors } from "../../../types/colors"
 
-interface ConnectionContextProps {
+interface RelationshipContextProps {
   onSelect: (action: string) => void
   isOpen: boolean
 }
@@ -56,7 +56,7 @@ function ContextButton(props: ContextButtonProps) {
   )
 }
 
-export default function ConnectionContext(props: ConnectionContextProps) {
+export default function RelationshipContext(props: RelationshipContextProps) {
   const { onSelect, isOpen} = props
 
   return (

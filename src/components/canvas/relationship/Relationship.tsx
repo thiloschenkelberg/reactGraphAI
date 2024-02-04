@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react"
 
-import { IConnection, Position } from "../../../types/canvas.types"
-import ConnectionContext from "./ConnectionContext"
+import { IRelationship, Position } from "../../../types/canvas.types"
+import RelationshipContext from "./RelationshipContext"
 
-interface ConnectionProps {
-  connection: IConnection
+interface RelationshipProps {
+  relationship: IRelationship
   isSelected: boolean
-  handleConnectionAction: (connectionID: IConnection["id"], action: string) => void
+  handleRelationshipAction: (relationshipID: IRelationship["id"], action: string) => void
 }
 
-interface TempConnectionProps {
+interface TempRelationshipProps {
   startPosition: { x: number; y: number }
   endPosition: { x: number; y: number } | null
   canvasRect: DOMRect | null
 }
 
-// Temporary connection from connection start node to
+// Temporary relationship from relationship start node to
 // mouse cursor or the canvas nav menu onMouseUp.
-// Extinguished on completion of node connection
-export function TempConnection(props: TempConnectionProps) {
+// Extinguished on completion of node relationship
+export function TempRelationship(props: TempRelationshipProps) {
   const { startPosition, endPosition, canvasRect } = props
   const [end, setEnd] = useState({ x: startPosition.x, y: startPosition.y })
 
@@ -65,7 +65,7 @@ export function TempConnection(props: TempConnectionProps) {
           <path d="M 0 0 L 10 5 L 0 10 z" />
         </marker>
       </defs>
-      <path // temporary connection path
+      <path // temporary relationship path
         d={`M ${startPosition.x},${startPosition.y} L ${end.x},${end.y}`}
         stroke="#555"
         strokeWidth="2"
@@ -77,24 +77,24 @@ export function TempConnection(props: TempConnectionProps) {
   )
 }
 
-export default function Connection(props: ConnectionProps) {
-  const { connection, isSelected, handleConnectionAction } = props
+export default function Relationship(props: RelationshipProps) {
+  const { relationship, isSelected, handleRelationshipAction } = props
   const [start, setStart] = useState<Position>({x: 0, y: 0})
   const [end, setEnd] = useState<Position>({x: 0, y: 0})
   const [mid, setMid] = useState<Position>({x: 0, y: 0})
 
   const handleClickLocal = (e: React.MouseEvent) => {
     e.stopPropagation()
-    handleConnectionAction(connection.id, "click")
+    handleRelationshipAction(relationship.id, "click")
   }
 
-  const handleConnectionActionLocal = (action: string) => {
-    handleConnectionAction(connection.id, action)
+  const handleRelationshipActionLocal = (action: string) => {
+    handleRelationshipAction(relationship.id, action)
   }
 
   useEffect(() => {
-    const start = connection.start
-    const end = connection.end
+    const start = relationship.start
+    const end = relationship.end
   
     const dx = end.position.x - start.position.x
     const dy = end.position.y - start.position.y
@@ -110,14 +110,14 @@ export default function Connection(props: ConnectionProps) {
     setStart({x: startX, y: startY})
     setEnd({x: endX, y: endY})
   
-    // calc connectionPos for placement of connection ctxt menu
+    // calc relationshipPos for placement of relationship ctxt menu
     // should be exactly half way between both node borders
-    const connectionPos = {
+    const relationshipPos = {
       x: (startX + endX + normX * 2) / 2,
       y: (startY + endY + normY * 2) / 2,
     }
-    setMid(connectionPos)
-  }, [connection])
+    setMid(relationshipPos)
+  }, [relationship])
   
 
   return (
@@ -134,7 +134,7 @@ export default function Connection(props: ConnectionProps) {
       >
         <defs>
           {/* Bigger arrowhead for selection path
-          (outline to actual connection path) */}
+          (outline to actual relationship path) */}
           <marker
             id="arrowSelect"
             viewBox="0 0 10 10"
@@ -147,7 +147,7 @@ export default function Connection(props: ConnectionProps) {
           >
             <path d="M 0 0 L 10 5 L 0 10 z" />
           </marker>
-          {/* Arrowhead for actual connection path */}
+          {/* Arrowhead for actual relationship path */}
           <marker
             id="arrow"
             viewBox="0 0 10 10"
@@ -162,7 +162,7 @@ export default function Connection(props: ConnectionProps) {
           </marker>
         </defs>
         {isSelected && (
-            <path // connection outline on selection
+            <path // relationship outline on selection
               d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
               stroke="#6f6f6f"
               strokeWidth="6"
@@ -171,7 +171,7 @@ export default function Connection(props: ConnectionProps) {
               pointerEvents="none"
             />
         )}
-        <path // actual connection (always visible)
+        <path // actual relationship (always visible)
           // d={`M ${isLayouting ? springProps.startX : start.x},${isLayouting ? springProps.startY : start.y} L ${isLayouting ? springProps.endX : end.x},${isLayouting ? springProps.endY : end.y}`}
           d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
           stroke="#555"
@@ -180,7 +180,7 @@ export default function Connection(props: ConnectionProps) {
           markerEnd="url(#arrow)"
           pointerEvents="none"
         />
-        <path // connection clickable area (for better ux)
+        <path // relationship clickable area (for better ux)
           d={`M ${start.x},${start.y} L ${end.x},${end.y}`}
           fill="none"
           strokeWidth="20"
@@ -189,10 +189,10 @@ export default function Connection(props: ConnectionProps) {
           onClick={handleClickLocal}
         />
       </svg>
-      {isSelected && ( // Connection context menu
+      {isSelected && ( // relationship context menu
         <div style={{position: "relative", left: mid.x, top: mid.y}}>
-          <ConnectionContext
-            onSelect={handleConnectionActionLocal}
+          <RelationshipContext
+            onSelect={handleRelationshipActionLocal}
             isOpen={isSelected}
           />
         </div>
