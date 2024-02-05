@@ -1,10 +1,5 @@
 import { Operator, Position } from "./canvas.types"
 
-export type ParsedValOpPair = {
-  value: string | string[] | string[][]
-  operator: Operator
-}
-
 export interface IWorkflow {
   _id: string
   workflow: string
@@ -14,7 +9,7 @@ export interface IWorkflow {
 export interface ITempNode {
   id: string
   attributes: { [key: string]: any }
-  type: "matter" | "manufacturing" | "measurement" | "parameter" | "property" | "metadata"
+  label: "matter" | "manufacturing" | "measurement" | "parameter" | "property" | "metadata"
   relationships: Array<{
     rel_type: string
     connection: [string, string]
@@ -29,15 +24,31 @@ export interface IGraphData {
 export interface IGraphNode {
   id: string
   label: "matter" | "manufacturing" | "measurement" | "parameter" | "property" | "metadata"
-  name: string[]
-  attributes: { [key: string]: any }
+  name: any
+  attributes: { [key: string]: ParsableAttributes }
 }
 
 export interface IRelationship {
   rel_type: string
-  relationship: [string, string]
+  connection: [string, string]
 }
 
 export interface IDictionary {
   [key: string]: {[key: string]: string}
 }
+
+export type ExtractedAttribute = {
+  value: string
+  index: number | string
+}
+
+export type CustomAttribute = {
+  value: string | string[]
+  operator?: Operator
+}
+
+export type ParsableAttributes = 
+  ExtractedAttribute |
+  ExtractedAttribute[] |
+  CustomAttribute
+

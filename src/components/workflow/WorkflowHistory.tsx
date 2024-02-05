@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { IWorkflow } from "../../types/workflow.types"
 import { IRelationship, INode } from "../../types/canvas.types"
-import { convertFromJSONFormat } from "../../common/helpers"
+import { convertFromJsonFormat } from "../../common/helpers"
 import { RiDeleteBin2Line } from "react-icons/ri"
+
+import jsonData from './testGraph.json'
 
 interface WorkflowHistoryProps {
   workflows: IWorkflow[] | undefined
@@ -27,8 +29,12 @@ export default function WorkflowHistory(props: WorkflowHistoryProps) {
   const [hovered, setHovered] = useState<number | undefined>()
   const [trashHovered, setTrashHovered] = useState(false)
 
+  const loadJson = () => {
+    setNodesAndRelationships(JSON.stringify(jsonData))
+  }
+
   const setNodesAndRelationships = (workflow: string) => {
-    const { nodes, relationships } = convertFromJSONFormat(workflow)
+    const { nodes, relationships } = convertFromJsonFormat(workflow)
     setNodes(nodes)
     setRelationships(relationships)
     setNeedLayout(true)
@@ -49,6 +55,16 @@ export default function WorkflowHistory(props: WorkflowHistoryProps) {
         paddingRight: 10,
       }}
     >
+      <div
+        style={{
+          height: 50,
+          width: "100%",
+          backgroundColor: '#ff0000'
+        }}
+        onClick={loadJson}
+      >
+
+      </div>
       {workflows &&
         workflows.map((workflow, index) => (
           <div

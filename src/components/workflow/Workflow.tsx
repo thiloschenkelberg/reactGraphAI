@@ -67,7 +67,7 @@ export default function Workflow(props: WorkflowProps) {
   const [progress, setProgress] = useState<number>(0)
 
   useEffect(() => {
-    setWorkflow(convertToJSONFormat(nodes, relationships))
+    setWorkflow(convertToJSONFormat(nodes, relationships, true))
   }, [nodes, relationships])
 
   useEffect(() => {

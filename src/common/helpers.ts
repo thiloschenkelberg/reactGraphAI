@@ -5,8 +5,11 @@ import {
   IDRelationship,
   ValOpPair,
   Operator,
+  NodeAttribute,
+  NodeValOpAttribute,
+  NodeIndex,
 } from "../types/canvas.types"
-import { IGraphData, ITempNode, ParsedValOpPair } from "../types/workflow.types"
+import { IGraphData, ITempNode, ExtractedAttribute, CustomAttribute, ParsableAttributes } from "../types/workflow.types"
 import toast from "react-hot-toast"
 import client from "../client"
 import { v4 as uuidv4 } from "uuid"
@@ -102,7 +105,7 @@ function isValidOperator(operator: string): boolean {
 export function isAttrDefined(attribute: string | ValOpPair): boolean {
   if (typeof attribute === 'string') {
     return attribute !== "";
-  } else if (typeof attribute === 'object') {
+  } else if (typeof attribute === 'object' && 'value' in attribute) {
     // Check if 'string' and 'operator' are defined and valid
     const isStringDefined = typeof attribute.value === 'string' && attribute.value !== "";
     const isOperatorValid = isValidOperator(attribute.operator)
@@ -113,13 +116,14 @@ export function isAttrDefined(attribute: string | ValOpPair): boolean {
   return false;
 }
 
-function parseAttrOut(attribute: string | ValOpPair, index?: any): any {
+function parseAttrOut(attribute: string | ValOpPair, index?: NodeIndex | NodeIndex[]): ParsableAttributes {
+  // console.log(index)
   let stringToParse = "";
 
   // Determine the string to parse based on the type of attribute
   if (typeof attribute === 'string') {
     stringToParse = attribute;
-  } else if (typeof attribute.value === 'string') {
+  } else if ('value' in attribute && typeof attribute.value === 'string') {
     stringToParse = attribute.value;
   }
 
@@ -129,76 +133,131 @@ function parseAttrOut(attribute: string | ValOpPair, index?: any): any {
 
   if (index === undefined) {
     if (typeof attribute === 'string') {
-      return parsedString
+      return { value: parsedString } as CustomAttribute
     } else {
-      return {value: parsedString, operator: attribute.operator as Operator} 
+      return {value: parsedString, operator: attribute.operator as Operator} as CustomAttribute 
     }
-  }
-  else {
-    if (typeof attribute === 'string') {
-      if (typeof parsedString === 'string') {
-        return [parsedString, index]
-      } else {
-        return parsedString.map((s, i) => [s, index[i]])
-      }
-    } else {
-      if (typeof parsedString === 'string') {
-        return {value: [parsedString, index], operator: attribute.operator as Operator}
-      } else {
-        return {value: parsedString.map((s, i) => [s, index[i]]), operator: attribute.operator as Operator}
-      }
-    }
-  }
-}
-
-function parseAttr(attribute: any): { value: any, index?: any[] } {
-  // Function to process the attribute when it's not an {value, operator} object
-  const processAttributeValue = (attr: any) => {
-    if (typeof attr === 'string') {
-      return { value: attr };
-    } else if (Array.isArray(attr)) {
-      if (typeof attr[0] === 'string') {
-        return { value: attr.join(';') };
-      } else {
-        let values: string[] = [];
-        let indices: any[] = [];
-        attr.forEach(item => {
-          if (typeof item.value === 'string') {
-            values.push(item.value);
-            if (item.index !== undefined) {
-              indices.push(item.index);
-            }
-          }
-        });
-        return { value: values.join(';'), index: indices.length > 0 ? indices : undefined };
-      }
-    } else {
-      return { value: '', index: undefined };
-    }
-  };
-
-  // Check for the additional case where attribute is an object with {value, operator}
-  if (typeof attribute === 'object' && !Array.isArray(attribute) && attribute !== null && 'operator' in attribute) {
-    const processedValue = processAttributeValue(attribute.value);
-    return {
-      value: { value: processedValue.value, operator: attribute.operator },
-      index: processedValue.index
-    };
   } else {
-    // Process attribute using the previously defined logic
-    return processAttributeValue(attribute);
+    if (typeof parsedString === 'string' && !Array.isArray(index)) {
+      return { value: parsedString, index: index } as ExtractedAttribute
+    } else {
+      if (Array.isArray(parsedString) && Array.isArray(index)) {
+        return parsedString.map((s, i) => ({ value: s, index: index[i] })) as ExtractedAttribute[]
+      } else {
+        return { value: "ERROR_PARSING_EXTRACTED_ATTR" } as CustomAttribute
+      }
+    }
   }
 }
 
+// function parseAttr(attribute: any, valOp: boolean): { value: any, index?: any[] } {
+//   // Function to process the attribute when it's not an {value, operator} object
+//   const processAttributeValue = (attr: any) => {
+//     if (typeof attr === 'string') {
+//       return { value: attr };
+//     } else if (Array.isArray(attr)) {
+//       if (typeof attr[0] === 'string') {
+//         return { value: attr.join(';') };
+//       } else {
+//         let values: string[] = [];
+//         let indices: any[] = [];
+//         attr.forEach(item => {
+//           if (typeof item.value === 'string') {
+//             values.push(item.value);
+//             if (item.index !== undefined) {
+//               indices.push(item.index);
+//             }
+//           }
+//         });
+//         return { value: values.join(';'), index: indices.length > 0 ? indices : undefined };
+//       }
+//     } else {
+//       return { value: '', index: undefined };
+//     }
+//   };
 
-function parseValOpAttr(attribute: ParsedValOpPair | undefined): ValOpPair {
-  if (!attribute) return {value: "", operator: ""}
-  if (typeof attribute.value === 'string') {
-    return {value: attribute.value, operator: attribute.operator}
-  } else if (Array.isArray(attribute.value)) {
-    return {value: attribute.value.join(';'), operator: attribute.operator}
+//   // Check for the additional case where attribute is an object with {value, operator}
+//   if (typeof attribute === 'object' && !Array.isArray(attribute) && attribute !== null) {
+//     const processedValue = processAttributeValue(attribute.value);
+//     const op = attribute.operator ? attribute.operator : '='
+//     return {
+//       value: { value: processedValue.value, operator: op },
+//       index: processedValue.index
+//     }
+//   } else if (attribute !== undefined) {
+//     // Process attribute using the previously defined logic
+//     return processAttributeValue(attribute);
+//   }
+//   if (valOp) {
+//     return {value: {value: "", operator: ""}}
+//   }
+//   return {value: ""}
+// }
+
+function parseAttr(attribute: ParsableAttributes | undefined, isValOp: boolean): NodeAttribute | NodeValOpAttribute {
+  if (attribute === undefined) {
+    if (isValOp) {
+      return { value: {value: '', operator: ''} } as NodeValOpAttribute
+    } else {
+      return { value: '' } as NodeAttribute
+    }
   }
-  return {value: "", operator: ""}
+
+  if (Array.isArray(attribute) || 'index' in attribute) {
+    return parseExtractedAttribute(attribute, isValOp)
+  } else {
+    return parseCustomAttribute(attribute, isValOp)
+  }
+}
+
+function parseExtractedAttribute(attribute: ExtractedAttribute | ExtractedAttribute[], isValOp: boolean): NodeAttribute | NodeValOpAttribute {
+  // if (Array.isArray(attribute)) {
+  //   console.log("Array: ")
+  //   attribute.forEach(item => {
+  //     console.log(item.index)
+  //   })
+  //   console.log("ArrayEnd")
+  // } else {
+  //   console.log(attribute.index)
+  // }
+  if (Array.isArray(attribute)) {
+    let values: string[] = []
+    let indices: NodeIndex[] = []
+    attribute.forEach(item => {
+      values.push(item.value)
+      indices.push(item.index)
+    })
+    const finalIndex = indices.length > 1 ? indices : indices[0]
+    if (isValOp) {
+      return { value: {value: values.join(';'), operator: '=' as Operator}, index: finalIndex } as NodeValOpAttribute
+    } else {
+      return { value: values.join(';'), index: finalIndex} as NodeAttribute
+    }
+  } else {
+    if (isValOp) {
+      return { value: {value: attribute.value, operator: '=' as Operator}, index: attribute.index } as NodeValOpAttribute
+    } else {
+      return { value: attribute.value, index: attribute.index} as NodeAttribute
+    }
+  }
+}
+
+function parseCustomAttribute(attribute: CustomAttribute, isValOp: boolean): NodeAttribute | NodeValOpAttribute {
+  if (Array.isArray(attribute.value)) {
+    if (isValOp) {
+      const op = attribute.operator ? attribute.operator : '=' as Operator
+      return { value: {value: attribute.value.join(';'), operator: op} } as NodeValOpAttribute
+    } else {
+      return { value: attribute.value.join(';') } as NodeAttribute
+    }
+  } else {
+    if (isValOp) {
+      const op = attribute.operator ? attribute.operator : '=' as Operator
+      return { value: {value: attribute.value, operator: op} } as NodeValOpAttribute
+    } else {
+      return { value: attribute.value } as NodeAttribute
+    }
+  }
 }
 
 export function convertToJSONFormat(
@@ -223,19 +282,19 @@ export function convertToJSONFormat(
     return acc;
   }, {} as Record<string, IRelationship[]>);
 
-  return JSON.stringify(
+  const processedNodes =
     nodes.map((node) => {
       // Group all attributes under an attributes object
-      const attributes: { [key: string]: any } = {};
+      const attributes: { [key: string]: ParsableAttributes } = {};
       if (isAttrDefined(node.name.value)) {
         attributes.name = parseAttrOut(node.name.value, node.name.index)
       } else {
-        attributes.name = "MISSING_NAME"
+        attributes.name = { value: "MISSING_NAME" }
       }
       if (isAttrDefined(node.value.value)) {
         attributes.value = parseAttrOut(node.value.value, node.value.index)
       } else if (["property","parameter"].includes(node.type)) {
-        attributes.value = "MISSING_VALUE_OR_OPERATOR"
+        attributes.value = { value: "MISSING_VALUE_OR_OPERATOR" }
       } 
       if (isAttrDefined(node.batch_num.value)) attributes.batch_num = parseAttrOut(node.batch_num.value, node.batch_num.index);
       if (isAttrDefined(node.unit.value)) attributes.unit = parseAttrOut(node.unit.value, node.unit.index);
@@ -245,100 +304,29 @@ export function convertToJSONFormat(
       if (isAttrDefined(node.error.value)) attributes.error = parseAttrOut(node.error.value, node.error.index);
       if (isAttrDefined(node.identifier.value)) attributes.identifier = parseAttrOut(node.identifier.value, node.identifier.index)
 
-      // Build relationships
-      const relationships = (relationshipMap[node.id] || []).map(
-        (relationship) => ({
-          rel_type: determineRelationshipType(
-            relationship.start.type,
-            relationship.end.type
-          ),
-          connection: [relationship.start.id, relationship.end.id] as [
-            string,
-            string
-          ],
-        })
-      );
-
       // Return the node object with id, type, attributes, and relationships
       return {
         id: node.id,
-        type: preventMapTypes ? node.type : mapNodeType(node.type),
+        name: attributes.name,
+        label: preventMapTypes ? node.type : mapNodeType(node.type),
         attributes,
-        relationships
       };
-    }),
-    null,
-    2
-  );
-}
-
-
-export function convertFromJSONFormat(workflow: string) {
-  const data: ITempNode[] = JSON.parse(workflow)
-  const nodes: INode[] = []
-  const relationshipMap: Map<string, IDRelationship> = new Map()
-
-  data.forEach((item) => {
-    nodes.push({
-      id: item.id,
-      name: parseAttr(item.attributes.name),
-      value: parseAttr(item.attributes.value),
-      batch_num: parseAttr(item.attributes.batch_num),
-      ratio: parseAttr(item.attributes.ratio),
-      concentration: parseAttr(item.attributes.concentration),
-      unit: parseAttr(item.attributes.unit),
-      std: parseAttr(item.attributes.std),
-      error: parseAttr(item.attributes.error),
-      identifier: parseAttr(item.attributes.identifier),
-      type: item.type,
-      position: { x: -100, y: -100 },
-      size: 100,
-      layer: 0,
-      isEditing: false,
     })
 
-    // Reconstruct relationships
-    item.relationships.forEach((rel) => {
-      // Create a unique key to prevent duplicate relationships
-      const relationshipKey = [rel.connection[0], rel.connection[1]]
-        .sort()
-        .join("_")
+  const processedRelationships = relationships.map((relationship) => ({
+    rel_type: determineRelationshipType(relationship.start.type, relationship.end.type), // Assume this function is defined elsewhere
+    connection: [relationship.start.id, relationship.end.id],
+  }))
 
-      if (!relationshipMap.has(relationshipKey)) {
-        relationshipMap.set(relationshipKey, {
-          start: rel.connection[0], // Only ID is used here
-          end: rel.connection[1], // Only ID is used here
-        })
-      }
-    })
-  })
+  const finalStructure = {
+    nodes: processedNodes,
+    relationships: processedRelationships,
+  };
 
-  const relationships: IRelationship[] = Array.from(
-    relationshipMap.values()
-  ).flatMap((rel) => {
-    const startNode = nodes.find((n) => n.id === rel.start)
-    const endNode = nodes.find((n) => n.id === rel.end)
-
-    if (!startNode || !endNode) {
-      return []
-    }
-
-    return [
-      {
-        start: startNode,
-        end: endNode,
-        id: uuidv4().replaceAll("-", ""),
-      },
-    ]
-  })
-
-  return {
-    nodes,
-    relationships: relationships,
-  }
+  return JSON.stringify(finalStructure, null, 2);
 }
 
-export function convertFromNewJson(workflow: string) {
+export function convertFromJsonFormat(workflow: string) {
   const data: IGraphData = JSON.parse(workflow)
   const nodes: INode[] = []
   const relationships: IRelationship[] = []
@@ -346,15 +334,15 @@ export function convertFromNewJson(workflow: string) {
   data.nodes.forEach((item) => {
     nodes.push({
       id: item.id,
-      name: parseAttr(item.attributes.name),
-      value: parseAttr(item.attributes.value),
-      batch_num: parseAttr(item.attributes.batch_number),
-      ratio: parseAttr(item.attributes.ratio),
-      concentration: parseAttr(item.attributes.concentration),
-      unit: parseAttr(item.attributes.unit),
-      std: parseAttr(item.attributes.std),
-      error: parseAttr(item.attributes.error),
-      identifier: parseAttr(item.attributes.identifier),
+      name: parseAttr(item.attributes.name, false) as NodeAttribute,
+      value: parseAttr(item.attributes.value, true) as NodeValOpAttribute,
+      batch_num: parseAttr(item.attributes.batch_number, false) as NodeAttribute,
+      ratio: parseAttr(item.attributes.ratio, true) as NodeValOpAttribute,
+      concentration: parseAttr(item.attributes.concentration, true) as NodeValOpAttribute,
+      unit: parseAttr(item.attributes.unit, false) as NodeAttribute,
+      std: parseAttr(item.attributes.std, true) as NodeValOpAttribute,
+      error: parseAttr(item.attributes.error, true) as NodeValOpAttribute,
+      identifier: parseAttr(item.attributes.identifier, false) as NodeAttribute,
       type: item.label,
       position: { x: -100, y: -100 },
       size: 100,
@@ -363,8 +351,8 @@ export function convertFromNewJson(workflow: string) {
     })
   })
 
-  data.relationships.forEach((relationship) => {
-    const [sourceNodeId, targetNodeId] = relationship.relationship
+  data.relationships.forEach((rel) => {
+    const [sourceNodeId, targetNodeId] = [rel.connection[0], rel.connection[1]]
     const start = nodes.find((node) => node.id === sourceNodeId)
     const end = nodes.find((node) => node.id === targetNodeId)
 
