@@ -17,7 +17,6 @@ import {
   Position,
   Vector2D,
   ICanvasButton,
-  ValOpPair,
 } from "../../types/canvas.types"
 import { graphLayouts } from "../../types/canvas.graphLayouts"
 import {
@@ -865,6 +864,7 @@ export default function Canvas(props: CanvasProps) {
         }
         return {
           ...node,
+          size: node.size * (1 - (delta * 0.1)),
           position: newNodePosition,
         }
       })
@@ -978,7 +978,7 @@ export default function Canvas(props: CanvasProps) {
         />
       )}
       {/* Nodes */}
-      {nodes.map((node, i) => (
+      {nodes.map((node) => (
         <Node
           key={node.id}
           node={node}

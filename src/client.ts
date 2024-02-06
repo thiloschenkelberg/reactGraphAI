@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios"
 import { IDictionary } from "./types/workflow.types"
 
 const USER_API_URL = "https://reactgraphai.ew.r.appspot.com" //google app engine
-const DATA_API_URL = "http://localhost:8080"
+const DATA_API_URL = "http://localhost:8000"
 // const API_URL = "http://localhost:8080" // local
 
 function getCookie(name: string) {
@@ -501,7 +501,7 @@ class Client {
     name: string
   ) {
     try {
-      const response = await this.dataClient.post("/api/", {
+      const response = await this.dataClient.post("/api/node-retrieve", {
         params: {
           node_json: nodeJson,
           context: context,
