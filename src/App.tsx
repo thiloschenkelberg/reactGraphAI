@@ -10,8 +10,8 @@ import {MDB_IUser as IUser} from "./types/user.type"
 import client from "./client"
 
 import Home from "./components/Home"
-import Search from "./components/Search"
-import History from "./components/History"
+import Workflow from "./components/workflow/Workflow"
+import Database from "./components/Database"
 import Profile from "./components/Profile"
 import AuthenticationForm from "./components/Authentication"
 
@@ -68,9 +68,9 @@ export default function App() {
   const currentColorIndex = 0 // make colorPalette choosable in settings later
 
   return (
-    <div className="wrap-app">
+    <div className="app">
       <userContext.Provider value={currentUser}>
-        {currentUser &&(
+        {currentUser && (
           <div className="header">
             <Header handleHeaderLinkClick={handleHeaderLinkClick} handleLogout={handleLogout}/>
           </div>
@@ -78,11 +78,11 @@ export default function App() {
         {/* <div className="header">
           <HeaderTabs onHeaderLinkClick={handleHeaderLinkClick} onLogout={handleLogout} tab={activeTab} setTab={setTab}/>
         </div> */}
-        <div className="main-window">
+        <div className="main">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/search" element={<Search colorIndex={currentColorIndex} />} />
-            <Route path="/history" element={<History />} />
+            <Route path="/workflow" element={<Workflow colorIndex={currentColorIndex} />} />
+            <Route path="/database" element={<Database />} />
             <Route path="/login" element={<AuthenticationForm />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>

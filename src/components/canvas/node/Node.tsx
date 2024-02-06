@@ -10,8 +10,9 @@ import NodeLabel from "./NodeLabel"
 import NodeWarning from "./NodeWarning"
 // import { NodeLabelOutline } from "./node-label.component"
 import NodeConnector from "./NodeConnector"
-import { INode, Position, Vector2D } from "../types/canvas.types"
-import { colorPalette } from "../types/colors"
+import { INode, Position, ValOpPair, Vector2D } from "../../../types/canvas.types"
+import { colorPalette } from "../../../types/colors"
+import { isAttrDefined } from "../../../common/helpers"
 
 interface NodeProps {
   node: INode
@@ -20,13 +21,12 @@ interface NodeProps {
   colorIndex: number
   canvasRect: DOMRect | null
   mousePosition: Position
+  isMoving: boolean
+  isLayouting: boolean
   handleNodeAction: (
     node: INode,
     action: string,
-    name?: string,
-    value?: number,
-    operator?: INode["operator"],
-    condition?: boolean
+    conditional?: boolean
   ) => void
 }
 
@@ -38,6 +38,8 @@ export default React.memo(function Node(props: NodeProps) {
     colorIndex,
     canvasRect,
     mousePosition,
+    isMoving,
+    isLayouting,
     // handleNodeMove,
     handleNodeAction,
   } = props
@@ -54,9 +56,11 @@ export default React.memo(function Node(props: NodeProps) {
   const [isValueNode, setIsValueNode] = useState(false)
   const [nodeOptimalSize, setNodeOptimalSize] = useState<number | null>(null)
   const [nodeActualSize, setNodeActualSize] = useState(100)
+  const [labelFontSize, setLabelFontSize] = useState(16)
   const nodeRef = useRef<HTMLDivElement>(null)
   const nodeLabelRef = useRef<HTMLDivElement>(null)
 
+  // set nodeActualSize (current size of visible node)
   useEffect(() => {
     const observer = new ResizeObserver(() => {
       if (nodeRef.current) {
@@ -78,24 +82,6 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }, [nodeRef])
 
-  // scale node by mouse wheel
-  // useEffect(() => {
-  //   const nodeCpy = nodeRef.current
-  //   if (!nodeCpy) return
-
-  //   const scaleNode = (e: WheelEvent) => {
-  //     e.preventDefault()
-  //     if (node.isEditing) return
-  //     const delta = Math.sign(e.deltaY)
-  //     handleNodeAction(node, "scale", undefined, delta)
-  //   }
-
-  //   nodeCpy.addEventListener("wheel", scaleNode, { passive: false })
-  //   return () => {
-  //     nodeCpy.removeEventListener("wheel", scaleNode)
-  //   }
-  // }, [node, handleNodeAction])
-
   // setIsValueNode
   useEffect(() => {
     setIsValueNode(["property", "parameter"].includes(node.type))
@@ -104,11 +90,11 @@ export default React.memo(function Node(props: NodeProps) {
   // update missing fields
   useEffect(() => {
     if (isValueNode) {
-      setFieldsMissing(!node.name || node.value === undefined || !node.operator)
+      setFieldsMissing(!isAttrDefined(node.name.value) || !isAttrDefined(node.value.value))
     } else {
-      setFieldsMissing(!node.name)
+      setFieldsMissing(!isAttrDefined(node.name.value))
     }
-  }, [isValueNode, node.name, node.value, node.operator])
+  }, [isValueNode, node.name, node.value])
 
   /* set label overflow
    * 1. based on labelwidth */
@@ -120,31 +106,42 @@ export default React.memo(function Node(props: NodeProps) {
 
   /* set label overflow
    * 2. based on characters <-- seems better for now */
+  // useEffect(() => {
+  //   if (!node.name) return
+  //   if (node.name.length > node.size / 9.65) {
+  //     setHasLabelOverflow(true)
+  //     return
+  //   }
+  //   if (isValueNode && node.value !== undefined) {
+  //     setHasLabelOverflow(node.value.toString().length > (node.size - 20) / 8.2)
+  //   }
+  // }, [node.name, node.value, node.size, isValueNode])
+
+  // calculate nodeOptimalSize (nodesize when hovered)
   useEffect(() => {
-    if (!node.name) return
-    if (node.name.length > node.size / 9.65) {
-      setHasLabelOverflow(true)
+    if (!isAttrDefined(node.name.value)) {
+      setNodeOptimalSize(node.size)
       return
     }
-    if (isValueNode && node.value !== undefined) {
-      setHasLabelOverflow(node.value.toString().length > (node.size - 20) / 8.2)
-    }
-  }, [node.name, node.value, node.size, isValueNode])
 
-  // calculate nodeOptimalSize
-  useEffect(() => {
-    if (!node.name) return
+    const characterFactor = 16 - labelFontSize
 
-    const nameMinimumSize = node.name.length * 11
+    const nameMinimumSize = node.name.value.length * (11 - characterFactor)
     let nodeMinimumSize = nameMinimumSize
 
-    if (isValueNode && node.value !== undefined) {
-      const valueMinimumSize = node.value.toString().length * 9 + 20
+    if (isValueNode && isAttrDefined(node.value.value)) {
+      const valueMinimumSize = node.value.value.value.length * (9 - characterFactor) + 20
       nodeMinimumSize = Math.max(nodeMinimumSize, valueMinimumSize)
     }
 
-    setNodeOptimalSize(nodeMinimumSize > 100 ? nodeMinimumSize : null)
-  }, [node.name, node.value, isValueNode])
+    setNodeOptimalSize(nodeMinimumSize > node.size ? nodeMinimumSize : null)
+  }, [node.size, node.name, node.value, isValueNode, labelFontSize])
+
+  useEffect(() => {
+    const fontSize = 16 + Math.floor((node.size - 100) / 70)
+    setLabelFontSize(fontSize)
+    console.log(fontSize)
+  }, [node.size, setLabelFontSize])
 
   // setup color array
   useEffect(() => {
@@ -229,12 +226,12 @@ export default React.memo(function Node(props: NodeProps) {
     }
   }
 
-  // either complete connection between 2 nodes or
+  // either complete relationship between 2 nodes or
   // open node nav menu (if node hasnt been moved significantly)
   const handleMouseUp = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (connecting) {
-      // always carry out node click if a node is trying to connect (favour connection)
+      // always carry out node click if a node is trying to connect (favour relationship)
       handleNodeAction(node, "click")
     } else if (
       // carry out node click if node is not trying to connect
@@ -257,12 +254,8 @@ export default React.memo(function Node(props: NodeProps) {
     handleNodeAction(node, ctxtAction)
   }
 
-  const handleNodeRename = (
-    name?: string,
-    value?: number,
-    operator?: INode["operator"]
-  ) => {
-    handleNodeAction(node, "rename", name, value, operator)
+  const handleNodeRename = (updatedNode: INode) => {
+    handleNodeAction(updatedNode, "setNodeVals")
   }
 
   const handleNameMouseUp = (e: React.MouseEvent) => {
@@ -277,9 +270,6 @@ export default React.memo(function Node(props: NodeProps) {
       handleNodeAction(
         node,
         "setIsEditing",
-        undefined,
-        undefined,
-        undefined,
         true
       )
     }
@@ -291,6 +281,8 @@ export default React.memo(function Node(props: NodeProps) {
   }
 
   const springProps = useSpring({
+    positionTop: node.position.y,
+    positionLeft: node.position.x,
     size:
       nodeOptimalSize &&
       ((nodeHovered && mouseDist < 25) || isSelected === 1 || dragging)
@@ -308,8 +300,8 @@ export default React.memo(function Node(props: NodeProps) {
         position: "absolute",
         width: nodeActualSize + 20,
         height: nodeActualSize + 20,
-        top: node.position.y,
-        left: node.position.x,
+        top: isLayouting ? springProps.positionTop : node.position.y,
+        left: isLayouting ? springProps.positionLeft : node.position.x,
         transform: "translate(-50%,-50%)",
         zIndex: isSelected === 1 ? 1000 : node.layer,
       }}
@@ -327,6 +319,8 @@ export default React.memo(function Node(props: NodeProps) {
             onSelect={handleContextActionLocal}
             isOpen={isSelected === 1}
             nodeSize={nodeActualSize}
+            isEditing={node.isEditing}
+            type={node.type}
           />
         </div>
       )}
@@ -342,10 +336,14 @@ export default React.memo(function Node(props: NodeProps) {
             : "default",
         }}
         className="node-clickable"
-        onMouseDown={handleMouseDown} // init connection
-        onMouseUp={handleMouseUp} // handleNodeClick (complete connection || open node nav)
+        onMouseDown={handleMouseDown} // init relationship
+        onMouseUp={handleMouseUp} // handleNodeClick (complete relationship || open node nav)
         onMouseEnter={() => setNodeHovered(true)}
         onMouseLeave={() => setNodeHovered(false)}
+        onContextMenu={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+        }}
         tabIndex={0}
       >
         {/* visible node */}
@@ -374,12 +372,12 @@ export default React.memo(function Node(props: NodeProps) {
               labelRef={nodeLabelRef}
               hovered={nodeHovered}
               size={nodeActualSize}
-              name={node.name}
-              value={node.value}
-              operator={node.operator}
+              labelFontSize={labelFontSize}
+              name={node.name.value}
+              value={node.value.value}
               type={node.type}
               layer={node.layer}
-              hasLabelOverflow={hasLabelOverflow}
+              // hasLabelOverflow={hasLabelOverflow}
               color={colors[0]}
               onMouseUp={handleNameMouseUp}
             />
@@ -404,11 +402,7 @@ export default React.memo(function Node(props: NodeProps) {
         {node.isEditing && (
           <NodeInput
             isValueNode={isValueNode}
-            nodeLayer={node.layer}
-            nodeType={node.type}
-            nodeDotName={node.name}
-            nodeDotValue={node.value}
-            nodeDotOperator={node.operator}
+            node={node}
             handleNodeRename={handleNodeRename}
           />
         )}

@@ -158,7 +158,6 @@ export default function Profile(props: PaperProps) {
 
       if (formValues.username !== "") {
         if (formValues.username !== currentUser?.username) {
-          console.log(formValues.username, currentUser?.username)
           usernameMutation.mutate(formValues)
         }
       }
@@ -275,8 +274,6 @@ export default function Profile(props: PaperProps) {
       const { username } = credentials
 
       const response = await client.updateUsername(username)
-
-      console.log(currentUser?.imgurl)
 
       return response.data
     } catch (err: any) {

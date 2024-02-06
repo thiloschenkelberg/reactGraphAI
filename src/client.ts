@@ -1,6 +1,8 @@
 import axios, { AxiosInstance } from "axios"
+import { IDictionary } from "./types/workflow.types"
 
-const API_URL = "https://reactgraphai.ew.r.appspot.com" //google app engine
+const USER_API_URL = "https://reactgraphai.ew.r.appspot.com" //google app engine
+const DATA_API_URL = "http://localhost:8000"
 // const API_URL = "http://localhost:8080" // local
 
 function getCookie(name: string) {
@@ -13,11 +15,16 @@ function getCookie(name: string) {
 }
 
 class Client {
-  private client: AxiosInstance
+  private userClient: AxiosInstance
+  private dataClient: AxiosInstance
 
   constructor() {
-    this.client = axios.create({
-      baseURL: API_URL,
+    this.userClient = axios.create({
+      baseURL: USER_API_URL,
+    })
+
+    this.dataClient = axios.create({
+      baseURL: DATA_API_URL,
     })
 
     this.getCurrentUser = this.getCurrentUser.bind(this)
@@ -25,7 +32,7 @@ class Client {
 
   async login(email: string, password: string) {
     try {
-      const response = await this.client.post("/api/users/login", {
+      const response = await this.userClient.post("/api/users/login", {
         email,
         password,
       })
@@ -36,13 +43,13 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error while logging in!") 
+      throw new Error("Unexpected error while logging in!")
     }
   }
 
   async register(username: string, email: string, password: string) {
     try {
-      const response = await this.client.post("/api/users/register", {
+      const response = await this.userClient.post("/api/users/register", {
         username,
         email,
         password,
@@ -53,7 +60,7 @@ class Client {
         err.message = err.response.data.message
         throw err
       }
-      throw new Error("Unexpected error while registering!") 
+      throw new Error("Unexpected error while registering!")
     }
   }
 
@@ -64,7 +71,7 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.get("/api/users/current", {
+      const response = await this.userClient.get("/api/users/current", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,13 +97,17 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/api/users/update/name", {
-        name
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await this.userClient.patch(
+        "/api/users/update/name",
+        {
+          name,
         },
-      })
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
       return response
     } catch (err: any) {
@@ -115,13 +126,17 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/api/users/update/username", {
-        username
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await this.userClient.patch(
+        "/api/users/update/username",
+        {
+          username,
         },
-      })
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
       return response
     } catch (err: any) {
@@ -145,13 +160,17 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/api/users/update/institution", {
-        institution
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await this.userClient.patch(
+        "/api/users/update/institution",
+        {
+          institution,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
+      )
 
       return response
     } catch (err: any) {
@@ -172,19 +191,23 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/api/users/update/email", {
-        newMail
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await this.userClient.patch(
+        "/api/users/update/email",
+        {
+          newMail,
         },
-      })
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
       return response
     } catch (err: any) {
       if (err.response) {
         if (err.response.status === 409) {
-          throw new Error('Email is already in use!')
+          throw new Error("Email is already in use!")
         }
         if (err.response.data?.message) {
           err.message = err.response.data.message
@@ -202,14 +225,18 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.patch("/api/users/update/password", {
-        newPass,
-        oldPass
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await this.userClient.patch(
+        "/api/users/update/password",
+        {
+          newPass,
+          oldPass,
         },
-      })
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
       return response
     } catch (err: any) {
@@ -228,13 +255,17 @@ class Client {
         throw new Error("Token could not be retrieved!")
       }
 
-      const response = await this.client.post("/api/users/authpass", {
-        password
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await this.userClient.post(
+        "/api/users/authpass",
+        {
+          password,
         },
-      })
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
       return response
     } catch (err: any) {
@@ -254,13 +285,17 @@ class Client {
       }
 
       const formData = new FormData()
-      formData.append('image', img)
+      formData.append("image", img)
 
-      const response = await this.client.post("/api/users/update/img", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await this.userClient.post(
+        "/api/users/update/img",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
+      )
 
       return response
     } catch (err: any) {
@@ -274,14 +309,95 @@ class Client {
     }
   }
 
-  async workflowSearch(workflow: string | null) {
+  async saveWorkflow(workflow: string) {
     try {
-      const response = await this.client.get("/api/search/fabrication-workflow", {
-        params: {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.userClient.post(
+        "/api/users/workflows",
+        {
           workflow,
         },
-        responseType: 'blob'
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while saving workflow!")
+    }
+  }
+
+  async deleteWorkflow(workflowId: string) {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.userClient.delete(
+        `/api/users/workflows/${workflowId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while deleting workflow!")
+    }
+  }
+
+  async getWorkflows() {
+    try {
+      const token = getCookie("token")
+      if (!token) {
+        throw new Error("Token could not be retrieved!")
+      }
+
+      const response = await this.userClient.get(`/api/users/workflows`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
+
+      return response
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        err.message = err.response.data.message
+        throw err
+      }
+      throw new Error("Unexpected error while retrieving workflows!")
+    }
+  }
+
+  async workflowSearch(workflow: string | null) {
+    try {
+      const response = await this.dataClient.get(
+        "/api/search/fabrication-workflow",
+        {
+          params: {
+            workflow,
+          },
+          responseType: "blob",
+        }
+      )
       return response
     } catch (err: any) {
       if (err.response?.data?.message) {
@@ -289,6 +405,118 @@ class Client {
         throw err
       }
       throw new Error("Unexpected error in workflow query.")
+    }
+  }
+
+  // (file,context) => label_dict, file_link, file_name
+  async requestExtractLabels(file: File, context: string) {
+    try {
+      // Create an instance of FormData
+      let formData = new FormData()
+
+      // Append the file and context to formData
+      formData.append("file", file)
+      formData.append("context", context)
+
+      // Make the POST request with formData
+      const response = await this.dataClient.post(
+        "/api/file-retrieve",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      )
+
+      if (!response || !response.data) {
+        throw new Error()
+      }
+
+      return response.data
+    } catch (err) {
+      throw new Error("Unexpected error while extracting labels!")
+    }
+  }
+
+  // (label_dict, context, file_link, file_name) => attribute_dict
+  async requestExtractAttributes(
+    dict: IDictionary,
+    context: string,
+    link: string,
+    name: string
+  ) {
+    try {
+      const response = await this.dataClient.post("/api/label-retrieve", {
+        params: {
+          label_dict: dict,
+          context: context,
+          file_link: link,
+          file_name: name,
+        },
+      })
+
+      if (!response || !response.data) {
+        throw new Error()
+      }
+
+      return response.data
+    } catch (err: any) {
+      throw new Error("Unexpected error while extracting atributes!")
+    }
+  }
+
+  // (attribute_dict, context, file_link, file_name) => node_json
+  async requestExtractNodes(
+    dict: IDictionary,
+    context: string,
+    link: string,
+    name: string
+  ) {
+    try {
+      const response = await this.dataClient.post("/api/attribute-retrieve", {
+        params: {
+          attribute_dict: dict,
+          context: context,
+          file_link: link,
+          file_name: name,
+        },
+      })
+
+      if (!response || !response.data) {
+        throw new Error()
+      }
+
+      return response.data
+    } catch (err: any) {
+      throw new Error("Unexpected error while extracting nodes!")
+    }
+  }
+
+  // (node_json, context, file_link, file_name) => graph_json
+  async requestExtractGraph(
+    nodeJson: string,
+    context: string,
+    link: string,
+    name: string
+  ) {
+    try {
+      const response = await this.dataClient.post("/api/node-retrieve", {
+        params: {
+          node_json: nodeJson,
+          context: context,
+          file_link: link,
+          file_name: name,
+        },
+      })
+
+      if (!response || !response.data) {
+        throw new Error()
+      }
+
+      return response.data
+    } catch (err: any) {
+      throw new Error("Unexpected error while extracting graph!")
     }
   }
 }

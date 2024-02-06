@@ -9,12 +9,15 @@ import LayersIcon from "@mui/icons-material/Layers"
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove';
 
-import { hoverColors } from "../types/colors"
+import { hoverColors } from "../../../types/colors"
+import { INode } from "../../../types/canvas.types"
 
 interface NodeContextProps {
   onSelect: (action: string) => void
   isOpen: boolean
   nodeSize: number
+  isEditing: boolean
+  type: INode["type"]
 }
 
 interface ContextButtonProps {
@@ -66,12 +69,26 @@ function ContextButton(props: ContextButtonProps) {
 }
 
 export default function NodeContext(props: NodeContextProps) {
-  const { onSelect, isOpen, nodeSize } = props
+  const { onSelect, isOpen, nodeSize, isEditing, type } = props
   const [layerPlanetOpen, setLayerPlanetOpen] = useState(false)
 
   const planetClickLocal = (e: React.MouseEvent) => {
     e.stopPropagation()
     setLayerPlanetOpen(!layerPlanetOpen)
+  }
+
+
+
+  const getRadius = (type: INode["type"]) => {
+    switch (type) {
+      case "matter":
+        return nodeSize / 2 + 65
+      case "property":
+      case "parameter":
+        return nodeSize / 2 + 88
+      default:
+        return nodeSize / 2 + 40
+    }
   }
 
   return (
@@ -80,7 +97,7 @@ export default function NodeContext(props: NodeContextProps) {
       open={isOpen}
       // autoClose
       hideOrbit
-      orbitRadius={nodeSize / 2 + 40}
+      orbitRadius={isEditing ? getRadius(type) : nodeSize / 2 + 40}
       rotation={90}
     >
       {/* <div

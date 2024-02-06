@@ -12,6 +12,16 @@ a:link {
   text-decoration: none;
 }
 
+.app {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  /* position: relative; */
+}
+
 .app-base {
   background-color: #1a1b1e;
 }
@@ -34,11 +44,6 @@ a:link {
   display: flex;
   filter: blur(5px);
   z-index: 0;
-}
-
-.canvas {
-  background-color: #1a1b1e;
-  position: relative;
 }
 
 .canvas-btn {
@@ -107,16 +112,6 @@ a:link {
   padding: 5px;
   background-color: #25262b;
   justify-content: left;
-  /* border: 1px solid #ff0000; */
-  /* justify-content: left; */
-  /* transform: translate(-50%, 0) translate(-12px,0); */
-  /* height: 35px;
-  top: 3px; */
-  /* background-color: #25262b; */
-  /* padding-left: 10px;
-  padding-right: 10px;
-  filter: drop-shadow(1px 1px 1px #111);
-  border-radius: 0 0 3px 3px; */
 }
 
 .card-container.card {
@@ -188,9 +183,8 @@ a:link {
 
 .header {
   position: fixed;
-  width: 100%;
-  height: 60px;
-  z-index: 1001;
+  width: 100vw;
+  height: 65px;
 }
 
 .header-width {
@@ -222,8 +216,11 @@ a:link {
   transform: translate(5px,0);
 }
 
-.main-window {
-  padding-top: 60px;
+.main {
+  width: 100vw;
+  height: calc(100vh - 65px);
+  position: fixed;
+  top: 65px;
 }
 
 .node {
@@ -236,7 +233,7 @@ a:link {
   /* filter: drop-shadow(1px 1px 1px #111); */
 }
 
-.node-input input[type=text] {
+.workflow .node-input input[type=text] {
   outline: none;
   border-radius: 3px;
   border: 1px solid #333333;
@@ -244,6 +241,8 @@ a:link {
   background-color: #25262b;
   color: #c1c2c5;
   filter: drop-shadow(1px 1px 1px #111);
+  margin-bottom: 0px;
+  width: auto;
 }
 
 .node-input input[type=number] {
@@ -481,31 +480,84 @@ a:link {
   justify-content: right;
 }
 
-.wflow-buttons {
+.workflow {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+}
+
+.workflow input[type=text] {
+  outline: none;
+  border-radius: 3px;
+  border: 1px solid #333;
+  padding: 5px;
+  background-color: #373A40;
+  color: #C1C2C5;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.workflow-history {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 0%;
+  overflow: hidden;
+  background-color: #25262b;
+}
+
+.workflow-json {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  right: 0%;
+  overflow: hidden;
+  background-color: #25262b;
+}
+
+.workflow-json-btn-group {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #25262b;
-  height: 50px;
+  height: 72px;
+  width: 450px;
   color: #a6a7ab;
   outline: none;
   border: none;
-  border-left: 1px solid #333;
 }
 
-.wflow-text textarea {
-  background-color: #25262b;
+.workflow-json-textarea textarea {
+  background-color: inherit;
   position: relative;
   color: #a6a7ab;
   outline: none;
   border: none;
-  border-left: 1px solid #333;
+  top: 50px;
 }
 
-.wrap-app {
+.workflow-btn {
+  position: absolute;
+  width: 35px;
+  height: 35px;
+}
+
+.workflow-btn-wrap {
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.workflow-table {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0%;
   overflow: hidden;
-  /* position: relative; */
+  background-color: #25262b;
 }
 
 .wrap-input {
