@@ -52,3 +52,6 @@ export type ParsableAttributes =
   ExtractedAttribute[] |
   CustomAttribute
 
+export type CsvTableRow = {
+  [key: string]: string | number | boolean
+}
