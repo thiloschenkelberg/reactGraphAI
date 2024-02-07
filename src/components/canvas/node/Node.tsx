@@ -140,7 +140,6 @@ export default React.memo(function Node(props: NodeProps) {
   useEffect(() => {
     const fontSize = 16 + Math.floor((node.size - 100) / 70)
     setLabelFontSize(fontSize)
-    console.log(fontSize)
   }, [node.size, setLabelFontSize])
 
   // setup color array

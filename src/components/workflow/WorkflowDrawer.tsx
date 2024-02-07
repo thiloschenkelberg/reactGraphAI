@@ -8,7 +8,7 @@ import WorkflowTableDropzone from "./WorkflowTableDropzone"
 import WorkflowPipeline from "./WorkflowPipeline"
 import { IconUpload } from "@tabler/icons-react"
 import { Button } from "@mantine/core"
-import { CsvTableRow, IDictionary, IWorkflow } from "../../types/workflow.types"
+import { TableRow, IDictionary, IWorkflow } from "../../types/workflow.types"
 import { IRelationship, INode } from "../../types/canvas.types"
 import {
   convertFromJsonFormat,
@@ -35,9 +35,9 @@ const exampleLabelDict: IDictionary = {
 }
 
 const exampleAttrDict: IDictionary = {
-  Header1: { Label: "Label1", Attribute: "Attribute1" },
-  Header2: { Label: "Label2", Attribute: "Attribute2" },
-  Header3: { Label: "Label3", Attribute: "Attribute3" },
+  Header1: { Label: "matter", Attribute: "Attribute1" },
+  Header2: { Label: "manufacturing", Attribute: "Attribute2" },
+  Header3: { Label: "measurement", Attribute: "Attribute3" },
   // Add more key-value pairs as needed
 }
 
@@ -52,35 +52,32 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
     workflow,
     workflows,
   } = props
-  const tableViewRef = useRef<HTMLDivElement>(null)
-  const [tableViewRect, setTableViewRect] = useState<DOMRect | null>(null)
 
   const [file, setFile] = useState<File | undefined>()
   const [fileLink, setFileLink] = useState<string>("Link")
   const [fileName, setFileName] = useState<string>("Name")
   const [context, setContext] = useState<string>("")
-  const [csvTable, setCsvTable] = useState<CsvTableRow[]>([])
-  const [labelTable, setLabelTable] = useState<any[] | null>(null)
-  const [attributeTable, setAttributeTable] = useState<any[] | null>(null)
+  const [csvTable, setCsvTable] = useState<TableRow[]>([])
+  const [labelTable, setLabelTable] = useState<TableRow[]>([])
+  const [attributeTable, setAttributeTable] = useState<TableRow[]>([])
+  const [currentTable, setCurrentTable] = useState<TableRow[]>([])
+
+  const [drawerRect, setDrawerRect] = useState<DOMRect | null>(null)
+  const workflowDrawerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      if (tableViewRef.current) {
-        setTableViewRect(tableViewRef.current.getBoundingClientRect())
-      }
-    })
+    if (workflowDrawerRef.current && typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(entries => {
+        const [entry] = entries;
+        setDrawerRect(entry.contentRect);
+      });
 
-    const currentView = tableViewRef.current
-    if (currentView) {
-      resizeObserver.observe(currentView)
-    }
+      observer.observe(workflowDrawerRef.current);
 
-    return () => {
-      if (currentView) {
-        resizeObserver.unobserve(currentView)
-      }
+      return () => observer.disconnect();
     }
-  })
+  }, [workflowDrawerRef, currentTable]);
+
 
   const handleContextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const contextString = e.target.value
@@ -95,18 +92,24 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
         dynamicTyping: true,
         complete: (result) => {
           const safeData = result.data as { [key: string]: unknown}[]
-          const typedData: CsvTableRow[] = safeData.map(row => {
-            const typedRow: CsvTableRow = {}
+          const typedData: TableRow[] = safeData.map(row => {
+            const typedRow: TableRow = {}
             Object.entries(row).forEach(([key, value]) => {
               if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
                 typedRow[key] = value
               } else {
-                console.warn(`Unexpected value type for key "${key}":`, value);
-                typedRow[key] = String(value)
+                // console.warn(`Unexpected value type for key "${key}":`, value);
+                if (value !== null) {
+                  typedRow[key] = String(value)
+                } else {
+                  typedRow[key] = ''
+                }
+                // typedRow[key] = String(value)
               }
-            })
+            })  
             return typedRow
           })
+          setCurrentTable(typedData)
           setCsvTable(typedData)
         },
         skipEmptyLines: true,
@@ -117,35 +120,38 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
 
   // (file,context) => label_dict, file_link, file_name
   async function requestExtractLabels() {
-    if (!file) {
-      toast.error("File not found!")
-      return
-    }
-    if (!(context && context.length > 0)) {
-      toast.error("Pls enter context!")
-      return
-    }
+    // if (!file) {
+    //   toast.error("File not found!")
+    //   return
+    // }
+    // if (!(context && context.length > 0)) {
+    //   toast.error("Pls enter context!")
+    //   return
+    // }
 
     try {
-      const data = await client.requestExtractLabels(file, context)
-
-      if (data.graph_json) {
-        const { nodes, relationships } = convertFromJsonFormat(data.graph_json)
-        setNodes(nodes)
-        setRelationships(relationships)
-        setNeedLayout(true)
-        setProgress(5)
-        return
-      }
-
-      if (!(data && data.label_dict && data.file_link && data.file_name)) {
-        throw new Error("Error while extracting labels!")
-      }
-
-      const dictArray = dictToArray(data.label_dict)
+      const dictArray = dictToArray(exampleAttrDict)
       setLabelTable(dictArray)
-      setFileLink(data.file_link)
-      setFileName(data.file_name)
+      setCurrentTable(dictArray)
+      // const data = await client.requestExtractLabels(file, context)
+
+      // if (data.graph_json) {
+      //   const { nodes, relationships } = convertFromJsonFormat(data.graph_json)
+      //   setNodes(nodes)
+      //   setRelationships(relationships)
+      //   setNeedLayout(true)
+      //   setProgress(5)
+      //   return
+      // }
+
+      // if (!(data && data.label_dict && data.file_link && data.file_name)) {
+      //   throw new Error("Error while extracting labels!")
+      // }
+
+      // const dictArray = dictToArray(data.label_dict)
+      // setLabelTable(dictArray)
+      // setFileLink(data.file_link)
+      // setFileName(data.file_name)
 
       // const dictArray = dictToArray(exampleLabelDict)
       // setLabelTable(dictArray)
@@ -159,27 +165,30 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
   // (label_dict, context, file_link, file_name) => attribute_dict
   async function requestExtractAttributes() {
     try {
-      const dict = arrayToDict(labelTable)
+      setCurrentTable(csvTable)
+      setProgress(1)
 
-      if (!dict) return
+      // const dict = arrayToDict(labelTable)
 
-      const data = await client.requestExtractAttributes(
-        dict,
-        context,
-        fileLink,
-        fileName
-      )
+      // if (!dict) return
 
-      if (!(data && data.attribute_dict)) {
-        throw new Error("Error while extracting attributes!")
-      }
+      // const data = await client.requestExtractAttributes(
+      //   dict,
+      //   context,
+      //   fileLink,
+      //   fileName
+      // )
 
-      const dictArray = dictToArray(data.attribute_dict)
+      // if (!(data && data.attribute_dict)) {
+      //   throw new Error("Error while extracting attributes!")
+      // }
 
-      // const dictArray = dictToArray(exampleAttrDict)
+      // const dictArray = dictToArray(data.attribute_dict)
 
-      setAttributeTable(dictArray)
-      setProgress(3)
+      // // const dictArray = dictToArray(exampleAttrDict)
+
+      // setAttributeTable(dictArray)
+      // setProgress(3)
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -284,87 +293,63 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
     }
   }
 
-  function dictToArray(dict: IDictionary): string[][] {
-    if (!dict || Object.keys(dict).length === 0) {
-      return []
-    }
-
-    // Extract headers from the outer dictionary keys
-    const headers = Object.keys(dict)
-
-    // Prepare the first row of the table with these headers
-    const table: string[][] = [headers]
-
-    // Determine the maximum number of rows needed by finding the longest inner dictionary
-    const maxRows = Math.max(
-      ...Object.values(dict).map((innerDict) => Object.keys(innerDict).length)
-    )
-
-    // Initialize each row with empty strings to accommodate all headers
-    for (let i = 0; i < maxRows; i++) {
-      table.push(new Array(headers.length).fill(""))
-    }
-
-    // Populate the table rows with values from each inner dictionary
-    headers.forEach((header, headerIndex) => {
-      const innerDict = dict[header]
-      const keys = Object.keys(innerDict)
-      keys.forEach((key, rowIndex) => {
-        table[rowIndex + 1][headerIndex] = innerDict[key] // rowIndex + 1 to skip header row
-      })
-    })
-
-    // Clean up any rows at the end that contain only undefined values
-    return table.filter((row) =>
-      row.some((cell) => cell !== undefined && cell !== "")
-    )
-  }
-
-  function arrayToDict(array: string[][] | null): IDictionary | null {
-    // Validate the input array
-    if (!array || array.length < 2 || !Array.isArray(array[0])) {
-      return null // Return null if input is null, has less than 2 rows, or if the first row is not an array
-    }
-
-    const dict: IDictionary = {}
-    const headers = array[0] // The first row contains headers
-
-    // Initialize dict with headers
-    headers.forEach((header) => {
-      if (typeof header === "string") {
-        dict[header] = {} // Each header becomes a key to an empty inner dictionary
-      } else {
-        return null // Return null if any header is not a string
-      }
-    })
-
-    // Iterate over each row starting from the second row
-    array.slice(1).forEach((row, rowIndex) => {
-      headers.forEach((header, columnIndex) => {
-        const value = row[columnIndex]
-        if (
-          typeof header === "string" &&
-          value !== undefined &&
-          value !== null
-        ) {
-          // Determine the appropriate key based on rowIndex
-          let key
-          if (rowIndex === 0) {
-            key = "Label"
-          } else if (rowIndex === 1) {
-            key = "Attribute"
-          } else {
-            key = `Row${rowIndex}`
-          }
-
-          // Assign or update the value in the inner dictionary
-          dict[header][key] = value
+  function dictToArray(dict: IDictionary): TableRow[] {
+    // Initialize an object to hold the combined rows
+    const combinedRows: { [property: string]: TableRow } = {};
+  
+    // Iterate through each header in the dictionary
+    Object.entries(dict).forEach(([header, properties]) => {
+      // Then iterate through each property (Label, Attribute, etc.) under that header
+      Object.entries(properties).forEach(([property, value]) => {
+        // If a row for this property doesn't exist yet, create it
+        if (!combinedRows[property]) {
+          combinedRows[property] = {};
         }
-      })
-    })
-
-    return dict
+        // Add the current value to the appropriate property row under the correct header
+        combinedRows[property][header] = value;
+      });
+    });
+  
+    // Convert the combinedRows object into an array of TableRow objects
+    return Object.values(combinedRows);
   }
+
+  function arrayToDict(tableRows: TableRow[]): IDictionary {  
+    const dict: IDictionary = {};
+  
+    // Assume all rows have the same structure, use the first row to determine headers
+    const headers = Object.keys(tableRows[0]);
+  
+    // Initialize the dictionary with headers pointing to empty objects
+    headers.forEach(header => {
+      dict[header] = {};
+    });
+  
+    // Populate the dictionary by iterating over each row and then each cell in the row
+    tableRows.forEach((row, rowIndex) => {
+      Object.entries(row).forEach(([header, value]) => {
+        // Convert value to string, since IDictionary expects string values
+        const stringValue = String(value);
+
+        let key = "Default_Key"
+
+        if (rowIndex === 0) {
+          key = "Label"
+        } else if (rowIndex === 1) {
+          key = "Attribute"
+        } else {
+          key = `Row${rowIndex + 1}`
+        }
+  
+        // Use rowIndex to create a unique key for each row in the inner dictionary
+  
+        dict[header][key] = stringValue;
+      });
+    });
+  
+    return dict;
+  }
+  
 
   return (
     <>
@@ -373,13 +358,15 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
       )}
       {progress > 0 && (
         <div
-          className="workflow-table-upload"
+          ref={workflowDrawerRef}
+          className="workflow-drawer"
           style={{
             position: "relative",
             width: "100%",
             height: "100%",
             display: "flex",
             flexDirection: "column",
+            // justifyContent:"center",
           }}
         >
           {progress > 0 && csvTable && (
@@ -394,7 +381,9 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
             />
           )}
           <WorkflowTable
-            csvTable={csvTable}
+            tableRows={currentTable}
+            progress={progress}
+            drawerRect={drawerRect}
           />
         </div>
       )}

@@ -1,4 +1,6 @@
 import { Button } from "@mantine/core"
+import WorkflowPipelineArrow from "./WorkflowPipelineArrow"
+import { useEffect, useRef, useState } from "react"
 
 interface WorkflowPipelineProps {
   handleContextChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -20,12 +22,52 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
     requestImportGraph,
     progress,
   } = props
+  const workflowPipelineRef = useRef<HTMLDivElement>(null)
+  const [pipelineRect, setPipelineRect] = useState<DOMRect | null>(null)
+  const [spaceBetween, setSpaceBetween] = useState(0)
+  const [buttonWidth, setButtonWidth] = useState(155)
 
-  const spaceBetween = 200
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (workflowPipelineRef.current) {
+        setPipelineRect(workflowPipelineRef.current.getBoundingClientRect())
+      }
+    })
+
+    const currentCanvas = workflowPipelineRef.current
+    if (currentCanvas) {
+      resizeObserver.observe(currentCanvas)
+    }
+
+    return () => {
+      if (currentCanvas) {
+        resizeObserver.unobserve(currentCanvas)
+      }
+    }
+  }, [workflowPipelineRef])
+
+  // calculate space between
+  useEffect(() => {
+    if (!pipelineRect) {
+      setSpaceBetween(200)
+      setButtonWidth(155)
+    } else {
+      const availableWidth = pipelineRect.width - 250 - 90
+      if (availableWidth > 975) {
+        setButtonWidth(155)
+        setSpaceBetween((availableWidth - 775) / 4)
+      } else {
+        console.log((availableWidth - 200) / 5)
+        setButtonWidth((availableWidth - 200) / 5)
+        setSpaceBetween(50)
+      }
+    }
+  }, [pipelineRect])
 
   return (
     <div
-      className="workflow-table-specs"
+      ref={workflowPipelineRef}
+      className="workflow-pipeline"
       style={{
         width: "100%",
         height: 80,
@@ -71,55 +113,18 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
             alignSelf: "center",
             marginLeft: 15,
             marginBottom: 1,
-            width: 155,
+            width: buttonWidth,
+            padding: 0,
           }}
           onClick={requestExtractLabels}
           disabled={progress !== 1}
         >
-          Extract Labels
+          {buttonWidth < 100 ? "1" : "Extract Labels"}
         </Button>
       </div>
 
       {/* Arrow */}
-      <div
-        style={{
-          width: spaceBetween,
-        }}
-      >
-        <svg
-          style={{
-            position: "relative",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
-        >
-          <defs>
-            <marker
-              id="arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              fill="#555"
-              markerWidth="8"
-              markerHeight="8"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          </defs>
-          <path
-            d={`M ${15},${40} L ${200},${40}`}
-            stroke="#555"
-            strokeWidth="2"
-            fill="none"
-            markerEnd="url(#arrow)"
-            pointerEvents="none"
-          />
-        </svg>
-      </div>
+      <WorkflowPipelineArrow length={spaceBetween}/>
 
       {/* Step 2 - View extracted labels -> Request attribute extraction  */}
       <div
@@ -134,55 +139,18 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
             alignSelf: "center",
             marginLeft: 15,
             marginBottom: 1,
-            width: 155,
+            width: buttonWidth,
+            padding: 0,
           }}
           onClick={requestExtractAttributes}
           disabled={progress !== 2}
         >
-          Extract Attributes
+          {buttonWidth < 120 ? buttonWidth < 100 ? "2" : "Ext. Attributes" : "Extract Attributes"}
         </Button>
       </div>
 
       {/* Arrow */}
-      <div
-        style={{
-          width: spaceBetween,
-        }}
-      >
-        <svg
-          style={{
-            position: "relative",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
-        >
-          <defs>
-            <marker
-              id="arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              fill="#555"
-              markerWidth="8"
-              markerHeight="8"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          </defs>
-          <path
-            d={`M ${15},${40} L ${200},${40}`}
-            stroke="#555"
-            strokeWidth="2"
-            fill="none"
-            markerEnd="url(#arrow)"
-            pointerEvents="none"
-          />
-        </svg>
-      </div>
+      <WorkflowPipelineArrow length={spaceBetween}/>
 
       {/* Step 3 - View extracted attributes -> Request node extraction */}
       <div
@@ -197,55 +165,18 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
             alignSelf: "center",
             marginLeft: 15,
             marginBottom: 1,
-            width: 155,
+            width: buttonWidth,
+            padding: 0,
           }}
           onClick={requestExtractNodes}
-          disabled={progress !== 3}
+          disabled={progress !== 3} // 134
         >
-          Extract Nodes
+          {buttonWidth < 100 ? "3" : "Extract Nodes"}
         </Button>
       </div>
 
       {/* Arrow */}
-      <div
-        style={{
-          width: spaceBetween,
-        }}
-      >
-        <svg
-          style={{
-            position: "relative",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
-        >
-          <defs>
-            <marker
-              id="arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              fill="#555"
-              markerWidth="8"
-              markerHeight="8"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          </defs>
-          <path
-            d={`M ${15},${40} L ${200},${40}`}
-            stroke="#555"
-            strokeWidth="2"
-            fill="none"
-            markerEnd="url(#arrow)"
-            pointerEvents="none"
-          />
-        </svg>
-      </div>
+      <WorkflowPipelineArrow length={spaceBetween}/>
 
       {/* Step 4 - View extracted nodes (in canvas) -> Request graph extraction */}
       <div
@@ -260,55 +191,18 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
             alignSelf: "center",
             marginLeft: 15,
             marginBottom: 1,
-            width: 155,
+            width: buttonWidth,
+            padding: 0,
           }}
           onClick={requestExtractGraph}
-          disabled={progress !== 4}
+          disabled={progress !== 4} // 130
         >
-          Extract Graph
+          {buttonWidth < 100 ? "4" : "Extract Graph"}
         </Button>
       </div>
 
       {/* Arrow */}
-      <div
-        style={{
-          width: spaceBetween,
-        }}
-      >
-        <svg
-          style={{
-            position: "relative",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
-        >
-          <defs>
-            <marker
-              id="arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              fill="#555"
-              markerWidth="8"
-              markerHeight="8"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          </defs>
-          <path
-            d={`M ${15},${40} L ${200},${40}`}
-            stroke="#555"
-            strokeWidth="2"
-            fill="none"
-            markerEnd="url(#arrow)"
-            pointerEvents="none"
-          />
-        </svg>
-      </div>
+      <WorkflowPipelineArrow length={spaceBetween}/>
 
       {/* Step 5 - View extracted graph (in canvas) -> Request import of graph to database */}
       <div
@@ -323,12 +217,13 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
             alignSelf: "center",
             marginLeft: 15,
             marginBottom: 1,
-            width: 155,
+            width: buttonWidth,
+            padding: 0,
           }}
           onClick={requestImportGraph}
           disabled={progress !== 5}
         >
-          Save to Database
+          {buttonWidth < 120 ? buttonWidth < 100 ? "5" : "Save" : "Save to database"}
         </Button>
       </div>
     </div>
