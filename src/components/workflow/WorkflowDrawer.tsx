@@ -28,16 +28,16 @@ interface WorkflowDrawerProps {
 }
 
 const exampleLabelDict: IDictionary = {
-  Header1: { Label: "Label1" },
-  Header2: { Label: "Label2" },
-  Header3: { Label: "Label3" },
+  Header1: { Label: "matter" },
+  Header2: { Label: "manufacturing" },
+  Header3: { Label: "measurement" },
   // Add more key-value pairs as needed
 }
 
 const exampleAttrDict: IDictionary = {
-  Header1: { Label: "matter", Attribute: "Attribute1" },
-  Header2: { Label: "manufacturing", Attribute: "Attribute2" },
-  Header3: { Label: "measurement", Attribute: "Attribute3" },
+  Header1: { Label: "matter", Attribute: "name" },
+  Header2: { Label: "manufacturing", Attribute: "identifier" },
+  Header3: { Label: "measurement", Attribute: "name" },
   // Add more key-value pairs as needed
 }
 
@@ -130,7 +130,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
     // }
 
     try {
-      const dictArray = dictToArray(exampleAttrDict)
+      const dictArray = dictToArray(exampleLabelDict)
       setLabelTable(dictArray)
       setCurrentTable(dictArray)
       // const data = await client.requestExtractLabels(file, context)
@@ -165,8 +165,10 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
   // (label_dict, context, file_link, file_name) => attribute_dict
   async function requestExtractAttributes() {
     try {
-      setCurrentTable(csvTable)
-      setProgress(1)
+      const dictArray = dictToArray(exampleAttrDict)
+      setAttributeTable(dictArray)
+      setCurrentTable(dictArray)
+      setProgress(3)
 
       // const dict = arrayToDict(labelTable)
 
@@ -197,35 +199,37 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
   // (attribute_dict, context, file_link, file_name) => node_json
   async function requestExtractNodes() {
     try {
-      const dict = arrayToDict(attributeTable)
+      setCurrentTable(csvTable)
+      setProgress(1)
+      // const dict = arrayToDict(attributeTable)
 
-      if (!dict) return
+      // if (!dict) return
 
-      const data = await client.requestExtractNodes(
-        dict,
-        context,
-        fileLink,
-        fileName
-      )
-
-      if (!(data && data.node_json)) {
-        throw new Error("Error while extracting nodes!")
-      }
-
-      const { nodes, relationships } = convertFromJsonFormat(data.node_json)
-      // if (!workflows || !workflows[1]) {
-      //   console.log("workflow not found")
-      //   return
-      // }
-      // const { nodes, relationships } = convertFromJSONFormat(
-      //   workflows[1].workflow
+      // const data = await client.requestExtractNodes(
+      //   dict,
+      //   context,
+      //   fileLink,
+      //   fileName
       // )
 
-      setRelationships([])
-      setNodes(nodes)
-      setNeedLayout(true)
+      // if (!(data && data.node_json)) {
+      //   throw new Error("Error while extracting nodes!")
+      // }
 
-      setProgress(4)
+      // const { nodes, relationships } = convertFromJsonFormat(data.node_json)
+      // // if (!workflows || !workflows[1]) {
+      // //   console.log("workflow not found")
+      // //   return
+      // // }
+      // // const { nodes, relationships } = convertFromJSONFormat(
+      // //   workflows[1].workflow
+      // // )
+
+      // setRelationships([])
+      // setNodes(nodes)
+      // setNeedLayout(true)
+
+      // setProgress(4)
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -381,6 +385,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
             />
           )}
           <WorkflowTable
+            setTableRows={setCurrentTable}
             tableRows={currentTable}
             progress={progress}
             drawerRect={drawerRect}

@@ -8,24 +8,26 @@ import {
 import { TableRow } from "../../types/workflow.types"
 import { Label } from "../../types/workflow.types"
 import { Select } from "@mantine/core"
+import { getAttributesByLabel } from "../../common/helpers"
 
 interface WorkflowTableProps {
+  setTableRows: React.Dispatch<React.SetStateAction<TableRow[]>>
   tableRows: TableRow[]
   progress: number
   drawerRect: DOMRect | null
 }
 
 const labelOptions = [
-  {value: "matter", label: "Matter"},
-  {value: "manufacturing", label: "Manufacturing"},
-  {value: "measurement", label: "Measurement"},
-  {value: "parameter", label: "Parameter"},
-  {value: "property", label: "Property"},
-  {value: "metadata", label: "Metadata"},
+  { value: "matter", label: "Matter" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "measurement", label: "Measurement" },
+  { value: "parameter", label: "Parameter" },
+  { value: "property", label: "Property" },
+  { value: "metadata", label: "Metadata" },
 ]
 
 export default function WorkflowTable(props: WorkflowTableProps) {
-  const { tableRows, progress, drawerRect } = props
+  const { setTableRows, tableRows, progress, drawerRect } = props
   const [select, setSelect] = useState<{ row: number; column: string } | null>(
     null
   )
@@ -33,6 +35,10 @@ export default function WorkflowTable(props: WorkflowTableProps) {
   const tableRef = useRef<HTMLDivElement>(null)
   const [tableRect, setTableRect] = useState<DOMRect | null>(null)
   const [tableDivHeight, setTableDivHeight] = useState<number | null>(null)
+
+  const [selectData, setSelectData] = useState<
+    { value: string; label: string }[]
+  >([])
 
   useEffect(() => {
     if (tableRef.current && typeof ResizeObserver === "function") {
@@ -63,12 +69,46 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     row: number,
     columnId: string
   ): void => {
-    if (
-      typeof cellData === "string" &&
-      labelOptions.some(option => option.value === cellData as Label)
-    ) {
-      setSelect({ row: row, column: columnId })
+    if (progress === 2 && row === 0) {
+      if (
+        typeof cellData === "string" &&
+        labelOptions.some((option) => option.value === (cellData as Label))
+      ) {
+        setSelectData(labelOptions)
+        setSelect({ row: row, column: columnId })
+      }
+    } else if (progress === 3 && row === 1) {
+      const labelKey = tableRows[0][columnId]
+      if (
+        typeof labelKey === "string" &&
+        labelOptions.some((option) => option.value === (labelKey as Label))
+      ) {
+        const attributes = getAttributesByLabel(labelKey as Label)
+        if (typeof cellData === "string" && attributes.includes(cellData)) {
+          const newAttributeOptions = attributes.map((attr) => ({
+            value: attr,
+            label: capitalizeFirstLetter(attr).toString(),
+          }))
+          setSelectData(newAttributeOptions)
+          setSelect({ row: row, column: columnId })
+        }
+      }
     }
+  }
+
+  const handleSelectChange = (
+    value: string | null,
+    rowIndex: number,
+    columnId: string
+  ) => {
+    if (!value) return
+    const updatedTableRows = tableRows.map((row, index) => {
+      if (index === rowIndex) {
+        return { ...row, [columnId]: value }
+      }
+      return { ...row }
+    })
+    setTableRows(updatedTableRows)
   }
 
   // Define columns
@@ -111,12 +151,17 @@ export default function WorkflowTable(props: WorkflowTableProps) {
     estimateSize: (index) => {
       const key = columns[index].id
       if (key) {
-        return Math.max(key.length * 10, 150)
+        return Math.max(key.length * 10, 160)
       }
-      return 150
+      return 160
     },
     overscan: 1,
   })
+
+  function capitalizeFirstLetter(item: string | number | boolean) {
+    if (!(typeof item === "string")) return item
+    return item.charAt(0).toUpperCase() + item.slice(1)
+  }
 
   // Render your table
   return (
@@ -128,13 +173,10 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        // justifyContent: "center",
         height: tableDivHeight ? tableDivHeight : `calc(100% - 90px)`,
         width: `calc(100% - 20px)`,
         left: 10,
         overflow: "auto",
-        // paddingLeft: 10,
-        // paddingRight: 10,
         border: "1px solid #333",
         backgroundColor: "#212226",
       }}
@@ -143,7 +185,6 @@ export default function WorkflowTable(props: WorkflowTableProps) {
       <div
         style={{
           position: "sticky",
-          // height: 10,
           width: `${columnVirtualizer.getTotalSize()}px`,
           top: 0,
           zIndex: 2,
@@ -164,9 +205,8 @@ export default function WorkflowTable(props: WorkflowTableProps) {
                 borderBottom: "1px solid #333",
                 textAlign: "left",
                 lineHeight: "50px",
-                backgroundColor: "#212226",
+                backgroundColor: "#25262b",
                 color: "#a6a7ab",
-                // borderRight: columnVirtual.index + 1 === Object.keys(tableRows[0]).length ? "none" : "1px solid #333",
                 borderRight: "1px solid #333",
                 paddingLeft: ".5rem",
               }}
@@ -188,6 +228,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         }}
       >
         {rowVirtualizer.getVirtualItems().map((rowVirtual) => (
+          <>
           <div
             key={rowVirtual.key}
             style={{
@@ -195,6 +236,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
               top: `${rowVirtual.start}px`,
               height: `${rowVirtual.size}px`,
               width: "100%",
+              cursor: "pointer",
             }}
           >
             {columnVirtualizer.getVirtualItems().map((columnVirtual) => {
@@ -241,12 +283,43 @@ export default function WorkflowTable(props: WorkflowTableProps) {
                     >
                       {select?.row === rowVirtual.index &&
                       select?.column === columnId ? (
-                        <Select 
-                          defaultValue={cellData as Label}
-                          data={labelOptions}
+                        <Select
+                          defaultValue={cellData.toString()}
+                          data={selectData}
+                          withinPortal={true}
+                          initiallyOpened={true}
+                          onChange={(value) =>
+                            handleSelectChange(
+                              value,
+                              rowVirtual.index,
+                              columnId
+                            )
+                          }
+                          onDropdownClose={() => setSelect(null)}
+                          onBlur={() => setSelect(null)}
+                          autoFocus={true}
+                          maxDropdownHeight={800}
+                          styles={{
+                            input: {
+                              borderWidth: 0,
+                              "&:focus": {
+                                outline: "none",
+                                boxShadow: "none",
+                              },
+                              backgroundColor: "transparent",
+                              fontFamily: "inherit",
+                              fontSize: "inherit",
+                              transform: "translate(-4px,0)",
+                            },
+                          }}
+                          style={{
+                            transform: "translate(calc(-0.5rem), -6px)",
+                            width: "calc(100% + 8px)",
+                            height: 200,
+                          }}
                         />
                       ) : (
-                        cellData
+                        capitalizeFirstLetter(cellData)
                       )}
                     </div>
                   </div>
@@ -255,6 +328,20 @@ export default function WorkflowTable(props: WorkflowTableProps) {
               return null // Or handle the undefined case appropriately
             })}
           </div>
+          {progress > 1 && rowVirtual.index === tableRows.length - 1 && (
+            <div
+              style={{
+                position: "absolute",
+                width: "100%",
+                top: `${rowVirtual.start}px`,
+                height: `${rowVirtual.size}px`,
+                outline: progress > 1 && rowVirtual.index === tableRows.length -1 ? "1px solid #1971c2" : "none",
+                outlineOffset: -2,
+                pointerEvents: "none",
+              }}
+            />
+          )}
+          </>
         ))}
       </div>
 
@@ -264,7 +351,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
           position: "fixed",
           width: `calc(100% - 22px)`,
           height: tableRect ? `${tableRect.height}px` : "100%",
-          boxShadow: "inset 0px 0px 3px rgba(0, 0, 0, 0.3)",
+          boxShadow: "inset 0px 0px 4px rgba(0, 0, 0, 0.3)",
           zIndex: 3,
           pointerEvents: "none",
           // backgroundColor: "rgba(240,100,0,0.5)",
