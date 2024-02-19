@@ -16,7 +16,7 @@ import {
 } from "../../common/helpers"
 import WorkflowTable from "./WorkflowTable"
 
-const USE_MOCK_DATA = true
+const USE_MOCK_DATA = false
 
 const exampleLabelDict: IDictionary = {
   Header1: { Label: "matter" },
@@ -196,6 +196,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
         const attrArray = dictToArray(data.attribute_dict)
   
         setAttributeTable(attrArray)
+        setCurrentTable(attrArray)
       }
 
       setProgress(3)
