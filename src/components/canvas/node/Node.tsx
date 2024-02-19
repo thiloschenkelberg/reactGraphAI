@@ -284,7 +284,7 @@ export default React.memo(function Node(props: NodeProps) {
     positionLeft: node.position.x,
     size:
       nodeOptimalSize &&
-      ((nodeHovered && mouseDist < 25) || isSelected === 1 || dragging)
+      ((nodeHovered && mouseDist < 25) || isSelected === 1)
         ? nodeOptimalSize
         : node.size,
     config: {

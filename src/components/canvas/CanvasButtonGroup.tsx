@@ -83,10 +83,10 @@ function CanvasButton(props: CanvasButtonProps) {
 export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
   const { canvasRect, onSelect } = props
   const [initialized, setInitialized] = useState(false)
-  const [positioned, setPositioned] = useState(false)
+  const [positioned, setPositioned] = useState(true)
   const [position, setPosition] = useState<Position>({ x: 12, y: 12 })
-  const [vertical, setVertical] = useState(false)
-  const [left, setLeft] = useState(false)
+  const [vertical, setVertical] = useState(true)
+  const [left, setLeft] = useState(true)
   const [moveable, setMoveable] = useState(false)
   const [handleHovered, setHandleHovered] = useState(false)
   const buttonsRef = useRef<HTMLDivElement>(null)
@@ -166,7 +166,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
     } else if (mouseX <= (canvasRect.width - 90)) { // top
       setVertical(false)
       setLeft(false)
-      btnX = clamp(mouseX - 15, 91, canvasRect.width - 290)
+      btnX = clamp(mouseX - 15, 91, canvasRect.width - 350)
       btnY = 12
     } else { // right
       setVertical(true)
@@ -181,7 +181,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
 
   // manual positioning automatic fixes
   useEffect(() => {
-    if (!canvasRect || !buttonsRef.current || !positioned || moveable) return
+    if (!(canvasRect && buttonsRef.current && positioned) || moveable) return
 
     if (vertical && left) {
       setPosition({
@@ -195,7 +195,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
       })
     } else {
       setPosition({
-        x: clamp(position.x, 91, canvasRect.right - 290),
+        x: clamp(position.x, 91, (canvasRect.right - canvasRect.left) - 350),
         y: position.y
       })
     }
@@ -247,6 +247,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
             top: position.y,
             left: position.x,
             flexDirection: vertical ? "column" : "row",
+            // visibility: initialized ? "visible" : "hidden"
           }}
           ref={buttonsRef}
         >

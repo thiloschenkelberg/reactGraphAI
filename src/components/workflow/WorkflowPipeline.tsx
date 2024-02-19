@@ -1,8 +1,10 @@
 import { Button } from "@mantine/core"
 import WorkflowPipelineArrow from "./WorkflowPipelineArrow"
 import { useEffect, useRef, useState } from "react"
+import { RxCross2 } from "react-icons/rx";
 
 interface WorkflowPipelineProps {
+  handlePipelineReset: () => void
   handleContextChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   requestExtractLabels: () => Promise<void>
   requestExtractAttributes: () => Promise<void>
@@ -14,6 +16,7 @@ interface WorkflowPipelineProps {
 
 export default function WorkflowPipeline(props: WorkflowPipelineProps) {
   const {
+    handlePipelineReset,
     handleContextChange,
     requestExtractLabels,
     requestExtractAttributes,
@@ -26,6 +29,7 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
   const [pipelineRect, setPipelineRect] = useState<DOMRect | null>(null)
   const [spaceBetween, setSpaceBetween] = useState(0)
   const [buttonWidth, setButtonWidth] = useState(155)
+  const [cancelHovered, setCancelHovered] = useState(false)
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
@@ -52,8 +56,8 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
       setSpaceBetween(200)
       setButtonWidth(155)
     } else {
-      const availableWidth = pipelineRect.width - 250 - 90
-      if (availableWidth > 975) {
+      const availableWidth = pipelineRect.width - 250 - 90 - 40
+      if (availableWidth > 935) {
         setButtonWidth(155)
         setSpaceBetween((availableWidth - 775) / 4)
       } else {
@@ -75,6 +79,22 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
         flexDirection: "row",
       }}
     >
+      {/* Cancel */}
+      <RxCross2
+        onClick={handlePipelineReset}
+        onMouseEnter={() => setCancelHovered(true)}
+        onMouseLeave={() => setCancelHovered(false)}
+        style={{
+          alignSelf: "center",
+          justifySelf: "center",
+          width: 30,
+          height: 30,
+          marginLeft: 10,
+          color: cancelHovered ? "red" : "inherit",
+          cursor: "pointer"
+        }}
+      />
+
       {/* Step 1 - Upload CSV -> Request label extraction */}
       <div
         style={{

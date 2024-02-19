@@ -11,6 +11,8 @@ import { Select } from "@mantine/core"
 import { getAttributesByLabel } from "../../common/helpers"
 
 interface WorkflowTableProps {
+  setLabelTable: React.Dispatch<React.SetStateAction<TableRow[]>>
+  setAttributeTable: React.Dispatch<React.SetStateAction<TableRow[]>>
   setTableRows: React.Dispatch<React.SetStateAction<TableRow[]>>
   tableRows: TableRow[]
   progress: number
@@ -27,12 +29,25 @@ const labelOptions = [
 ]
 
 export default function WorkflowTable(props: WorkflowTableProps) {
-  const { setTableRows, tableRows, progress, drawerRect } = props
-  const [select, setSelect] = useState<{ row: number; column: string } | null>(
-    null
-  )
+  const {
+    setLabelTable,
+    setAttributeTable,
+    setTableRows,
+    tableRows,
+    progress,
+    drawerRect,
+  } = props
+  const [selected, setSelected] = useState<{
+    row: number
+    column: string
+  } | null>(null)
+  const [hovered, setHovered] = useState<{
+    row: number
+    column: number
+  } | null>(null)
 
   const tableRef = useRef<HTMLDivElement>(null)
+  const tableRowsRef = useRef<HTMLDivElement>(null)
   const [tableRect, setTableRect] = useState<DOMRect | null>(null)
   const [tableDivHeight, setTableDivHeight] = useState<number | null>(null)
 
@@ -56,7 +71,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
   useEffect(() => {
     // 50 + 45 * tableRows
     if (drawerRect) {
-      const rowHeight = 50 + 46 * tableRows.length
+      const rowHeight = 52 + 45 * tableRows.length
       const divHeight = drawerRect.height - 90
       setTableDivHeight(Math.min(rowHeight, divHeight))
       return
@@ -75,7 +90,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
         labelOptions.some((option) => option.value === (cellData as Label))
       ) {
         setSelectData(labelOptions)
-        setSelect({ row: row, column: columnId })
+        setSelected({ row: row, column: columnId })
       }
     } else if (progress === 3 && row === 1) {
       const labelKey = tableRows[0][columnId]
@@ -90,7 +105,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
             label: capitalizeFirstLetter(attr).toString(),
           }))
           setSelectData(newAttributeOptions)
-          setSelect({ row: row, column: columnId })
+          setSelected({ row: row, column: columnId })
         }
       }
     }
@@ -109,6 +124,11 @@ export default function WorkflowTable(props: WorkflowTableProps) {
       return { ...row }
     })
     setTableRows(updatedTableRows)
+    if (rowIndex === 0) {
+      setLabelTable(updatedTableRows)
+    } else {
+      setAttributeTable(updatedTableRows)
+    }
   }
 
   // Define columns
@@ -219,6 +239,7 @@ export default function WorkflowTable(props: WorkflowTableProps) {
 
       {/* Rows */}
       <div
+        ref={tableRowsRef}
         style={{
           position: "relative",
           height: `${rowVirtualizer.getTotalSize()}px`,
@@ -229,118 +250,139 @@ export default function WorkflowTable(props: WorkflowTableProps) {
       >
         {rowVirtualizer.getVirtualItems().map((rowVirtual) => (
           <>
-          <div
-            key={rowVirtual.key}
-            style={{
-              position: "absolute",
-              top: `${rowVirtual.start}px`,
-              height: `${rowVirtual.size}px`,
-              width: "100%",
-              cursor: "pointer",
-            }}
-          >
-            {columnVirtualizer.getVirtualItems().map((columnVirtual) => {
-              const column = columns[columnVirtual.index]
-              const columnId = column.id // Assuming columnId is always defined based on your column setup
-              if (typeof columnId !== "undefined") {
-                const cellData = tableRows[rowVirtual.index][columnId] // Safely access cell data using columnId
-                return (
-                  <div
-                    key={columnVirtual.key}
-                    style={{
-                      display: "inline-block",
-                      position: "absolute",
-                      left: `${columnVirtual.start}px`,
-                      width: `${columnVirtual.size}px`,
-                      height: "100%",
-                      backgroundColor: "#212226",
-                      color: "#a6a7ab",
-                      // borderRight: columnVirtual.index + 1 === Object.keys(tableRows[0]).length ? "none" : "1px solid #333",
-                      borderRight: "1px solid #333",
-                      borderBottom:
-                        rowVirtual.index + 1 === tableRows.length
-                          ? "none"
-                          : "1px solid #333",
-                      // borderBottom: "1px solid #333",
-                      paddingTop: 10,
-                      paddingLeft: ".5rem",
-                    }}
-                  >
+            <div
+              key={rowVirtual.key}
+              style={{
+                position: "absolute",
+                top: `${rowVirtual.start}px`,
+                height: `${rowVirtual.size}px`,
+                width: "100%",
+                cursor:
+                  progress > 1 && rowVirtual.index === tableRows.length - 1
+                    ? "pointer"
+                    : "default",
+              }}
+            >
+              {columnVirtualizer.getVirtualItems().map((columnVirtual) => {
+                const column = columns[columnVirtual.index]
+                const columnId = column.id // Assuming columnId is always defined based on your column setup
+                if (typeof columnId !== "undefined") {
+                  const cellData = tableRows[rowVirtual.index][columnId] // Safely access cell data using columnId
+                  return (
                     <div
-                      onClick={
-                        progress > 1
-                          ? () =>
-                              handleCellClick(
-                                cellData,
+                      key={columnVirtual.key}
+                      onMouseEnter={() =>
+                        setHovered({
+                          row: rowVirtual.index,
+                          column: columnVirtual.index,
+                        })
+                      }
+                      onMouseLeave={() => setHovered(null)}
+                      style={{
+                        display: "inline-block",
+                        position: "absolute",
+                        left: `${columnVirtual.start}px`,
+                        width: `${columnVirtual.size}px`,
+                        height: "100%",
+                        backgroundColor:
+                          progress > 1 &&
+                          rowVirtual.index === tableRows.length - 1 &&
+                          hovered &&
+                          hovered.row === rowVirtual.index &&
+                          hovered.column === columnVirtual.index &&
+                          !selected
+                            ? "rgba(24,100,171,0.2)"
+                            : "#212226",
+                        color: "#a6a7ab",
+                        // borderRight: columnVirtual.index + 1 === Object.keys(tableRows[0]).length ? "none" : "1px solid #333",
+                        borderRight: "1px solid #333",
+                        borderBottom:
+                          rowVirtual.index + 1 === tableRows.length
+                            ? "none"
+                            : "1px solid #333",
+                        // borderBottom: "1px solid #333",
+                        paddingTop: 10,
+                        paddingLeft: ".5rem",
+                      }}
+                    >
+                      <div
+                        onClick={
+                          progress > 1
+                            ? () =>
+                                handleCellClick(
+                                  cellData,
+                                  rowVirtual.index,
+                                  columnId
+                                )
+                            : undefined
+                        }
+                        style={{
+                          position: "relative",
+                        }}
+                      >
+                        {selected?.row === rowVirtual.index &&
+                        selected?.column === columnId ? (
+                          <Select
+                            defaultValue={cellData.toString()}
+                            data={selectData}
+                            withinPortal={true}
+                            initiallyOpened={true}
+                            onChange={(value) =>
+                              handleSelectChange(
+                                value,
                                 rowVirtual.index,
                                 columnId
                               )
-                          : undefined
-                      }
-                      style={{
-                        position: "relative",
-                      }}
-                    >
-                      {select?.row === rowVirtual.index &&
-                      select?.column === columnId ? (
-                        <Select
-                          defaultValue={cellData.toString()}
-                          data={selectData}
-                          withinPortal={true}
-                          initiallyOpened={true}
-                          onChange={(value) =>
-                            handleSelectChange(
-                              value,
-                              rowVirtual.index,
-                              columnId
-                            )
-                          }
-                          onDropdownClose={() => setSelect(null)}
-                          onBlur={() => setSelect(null)}
-                          autoFocus={true}
-                          maxDropdownHeight={800}
-                          styles={{
-                            input: {
-                              borderWidth: 0,
-                              "&:focus": {
-                                outline: "none",
-                                boxShadow: "none",
+                            }
+                            onDropdownClose={() => setSelected(null)}
+                            onBlur={() => setSelected(null)}
+                            autoFocus={true}
+                            maxDropdownHeight={800}
+                            styles={{
+                              input: {
+                                borderWidth: 0,
+                                "&:focus": {
+                                  outline: "none",
+                                  boxShadow: "none",
+                                },
+                                backgroundColor: "transparent",
+                                fontFamily: "inherit",
+                                fontSize: "inherit",
+                                transform: "translate(-4px,0)",
                               },
-                              backgroundColor: "transparent",
-                              fontFamily: "inherit",
-                              fontSize: "inherit",
-                              transform: "translate(-4px,0)",
-                            },
-                          }}
-                          style={{
-                            transform: "translate(calc(-0.5rem), -6px)",
-                            width: "calc(100% + 8px)",
-                            height: 200,
-                          }}
-                        />
-                      ) : (
-                        capitalizeFirstLetter(cellData)
-                      )}
+                            }}
+                            style={{
+                              transform: "translate(calc(-0.5rem), -6px)",
+                              width: "calc(100% + 8px)",
+                              height: 200,
+                            }}
+                          />
+                        ) : (
+                          capitalizeFirstLetter(cellData)
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )
-              }
-              return null // Or handle the undefined case appropriately
-            })}
-          </div>
-          {progress > 1 && rowVirtual.index === tableRows.length - 1 && (
-            <div
-              style={{
-                position: "absolute",
-                width: "100%",
-                top: `${rowVirtual.start}px`,
-                height: `${rowVirtual.size}px`,
-                outline: progress > 1 && rowVirtual.index === tableRows.length -1 ? "1px solid #1971c2" : "none",
-                outlineOffset: -2,
-                pointerEvents: "none",
-              }}
-            />
-          )}
+                  )
+                }
+                return null // Or handle the undefined case appropriately
+              })}
+            </div>
+            {progress > 1 && rowVirtual.index === tableRows.length - 1 && (
+              <div
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  top: `${rowVirtual.start}px`,
+                  height: `${rowVirtual.size}px`,
+                  outline:
+                    progress > 1 && rowVirtual.index === tableRows.length - 1
+                      ? "1px dashed #1971c2"
+                      : "none",
+                  outlineOffset: -1,
+                  pointerEvents: "none",
+                }}
+              />
+            )}
           </>
         ))}
       </div>
