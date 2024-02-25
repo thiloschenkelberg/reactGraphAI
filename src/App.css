@@ -241,7 +241,7 @@ a:link {
   background-color: #25262b;
   color: #c1c2c5;
   filter: drop-shadow(1px 1px 1px #111);
-  margin-bottom: 0px;
+  height: 40px;
 }
 
 /* .node-input input[type=number] {

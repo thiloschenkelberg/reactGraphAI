@@ -214,6 +214,7 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
     >
       <NodeInputStr
         handleStrChange={handleStrChangeLocal}
+        handleIndexChange={handleIndexChangeLocal}
         handleKeyUp={handleKeyUp}
         handleBlur={handleBlur}
         getNewRef={getNewRef}
@@ -229,6 +230,7 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
       {["manufacturing", "measurement", "metadata"].includes(node.type) && (
         <NodeInputStr
           handleStrChange={handleStrChangeLocal}
+          handleIndexChange={handleIndexChangeLocal}
           handleKeyUp={handleKeyUp}
           handleBlur={handleBlur}
           getNewRef={getNewRef}
@@ -246,6 +248,7 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
         <>
           <NodeInputStr
             handleStrChange={handleStrChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
             getNewRef={getNewRef}
@@ -259,6 +262,7 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
           />
           <NodeInputStr
             handleStrChange={handleStrChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
             getNewRef={getNewRef}
@@ -273,26 +277,30 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
           <NodeInputStrOp
             handleOpChange={handleOpChangeLocal}
             handleValChange={handleValChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
+            getNewRef={getNewRef}
             id="ratio"
-            opReference={getNewRef()}
-            valReference={getNewRef()}
             defaultOp={nodeRatio.valOp.operator}
             defaultVal={nodeRatio.valOp.value}
+            showIndices
+            index={nodeRatio.index}
             autoFocus={false}
             zIndex={node.layer + 2}
           />
           <NodeInputStrOp
             handleOpChange={handleOpChangeLocal}
             handleValChange={handleValChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
+            getNewRef={getNewRef}
             id="concentration"
-            opReference={getNewRef()}
-            valReference={getNewRef()}
             defaultOp={nodeConcentration.valOp.operator}
             defaultVal={nodeConcentration.valOp.value}
+            showIndices
+            index={nodeConcentration.index}
             autoFocus={false}
             zIndex={node.layer + 1}
           />
@@ -304,13 +312,15 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
           <NodeInputStrOp
             handleOpChange={handleOpChangeLocal}
             handleValChange={handleValChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
+            getNewRef={getNewRef}
             id="value"
-            opReference={getNewRef()}
-            valReference={getNewRef()}
             defaultOp={nodeValue.valOp.operator}
             defaultVal={nodeValue.valOp.value}
+            showIndices
+            index={nodeValue.index}
             autoFocus={
               node.name.value !== "" &&
               isValueNode &&
@@ -320,6 +330,7 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
           />
           <NodeInputStr
             handleStrChange={handleStrChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
             getNewRef={getNewRef}
@@ -334,26 +345,30 @@ export default React.memo(function NodeInput(props: NodeInputProps) {
           <NodeInputStrOp
             handleOpChange={handleOpChangeLocal}
             handleValChange={handleValChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
+            getNewRef={getNewRef}
             id="std"
-            opReference={getNewRef()}
-            valReference={getNewRef()}
             defaultOp={nodeStd.valOp.operator}
             defaultVal={nodeStd.valOp.value}
+            showIndices
+            index={nodeStd.index}
             autoFocus={false}
             zIndex={node.layer + 2}
           />
           <NodeInputStrOp
             handleOpChange={handleOpChangeLocal}
             handleValChange={handleValChangeLocal}
+            handleIndexChange={handleIndexChangeLocal}
             handleKeyUp={handleKeyUp}
             handleBlur={handleBlur}
+            getNewRef={getNewRef}
             id="error"
-            opReference={getNewRef()}
-            valReference={getNewRef()}
             defaultOp={nodeError.valOp.operator}
             defaultVal={nodeError.valOp.value}
+            showIndices
+            index={nodeError.index}
             autoFocus={false}
             zIndex={node.layer + 1}
           />

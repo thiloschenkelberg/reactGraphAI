@@ -1,6 +1,6 @@
 import { Select } from "@mantine/core"
 import React, { RefObject, useEffect, useRef, useState } from "react"
-import { Operator } from "../../../types/canvas.types"
+import { AttributeIndex, Operator } from "../../../types/canvas.types"
 
 interface NodeInputStrOpProps {
   handleOpChange: (id: string, operator: string) => void
@@ -8,11 +8,12 @@ interface NodeInputStrOpProps {
   handleIndexChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   handleKeyUp: (e: React.KeyboardEvent<HTMLInputElement>) => void
   handleBlur: () => void
+  getNewRef: () => RefObject<HTMLInputElement>
   id: string
-  opReference: RefObject<HTMLInputElement>
-  valReference: RefObject<HTMLInputElement>
   defaultOp: string
   defaultVal: string
+  showIndices: boolean
+  index?: AttributeIndex | AttributeIndex[]
   autoFocus: boolean
   zIndex: number
 }
@@ -24,11 +25,12 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
     handleIndexChange,
     handleKeyUp,
     handleBlur,
+    getNewRef,
     id,
-    opReference,
-    valReference,
     defaultOp,
     defaultVal,
+    showIndices,
+    index,
     autoFocus,
     zIndex
   } = props
@@ -78,7 +80,7 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
         />
       )} */}
       <Select
-        ref={opReference}
+        ref={getNewRef()}
         onChange={handleOpChangeLocal}
         onKeyUp={handleKeyUp}
         onBlur={handleBlur}
@@ -89,15 +91,20 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
         onDropdownOpen={toggleSelectOpen}
         onDropdownClose={toggleSelectOpen}
         maxDropdownHeight={Infinity}
+        styles={{
+          input: {
+            height: 40,
+          }
+        }}
         style={{
-          width: "25%",
+          width:60,
           borderRight: "none",
           zIndex: selectOpen ? zIndex + 10 : zIndex,
           filter: "drop-shadow(1px 1px 1px #111",
         }}
       />
       <input
-        ref={valReference}
+        ref={getNewRef()}
         type="text"
         placeholder={placeholder}
         defaultValue={defaultVal}
@@ -106,11 +113,27 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
         onBlur={handleBlur}
         autoFocus={autoFocus}
         style={{
-          width: "calc(75% - 8px)",
+          width: 157,
           marginLeft: 8,
           zIndex: zIndex,
         }}
       />
+      {showIndices && (
+        <input
+          ref={getNewRef()}
+          type="text"
+          placeholder="Idx"
+          defaultValue={index ? index.toString() : ""}
+          onChange={(e) => handleIndexChange(id, e)}
+          onKeyUp={handleKeyUp}
+          onBlur={handleBlur}
+          style={{
+            marginLeft: 8,
+            zIndex: zIndex,
+            width: 80,
+          }}
+        />
+      )}
     </div>
 
     </>
