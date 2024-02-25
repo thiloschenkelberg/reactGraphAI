@@ -5,6 +5,7 @@ import { Operator } from "../../../types/canvas.types"
 interface NodeInputStrOpProps {
   handleOpChange: (id: string, operator: string) => void
   handleValChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
+  handleIndexChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   handleKeyUp: (e: React.KeyboardEvent<HTMLInputElement>) => void
   handleBlur: () => void
   id: string
@@ -20,6 +21,7 @@ export default function NodeInputStrOp(props: NodeInputStrOpProps) {
   const {
     handleOpChange,
     handleValChange,
+    handleIndexChange,
     handleKeyUp,
     handleBlur,
     id,
