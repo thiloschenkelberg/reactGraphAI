@@ -6,6 +6,7 @@ import cytoscape from "cytoscape"
 import fcose from "cytoscape-fcose"
 import _ from "lodash"
 import { toast } from "react-hot-toast"
+import { useMantineColorScheme } from "@mantine/core"
 
 import ContextCanvas from "./CanvasContext"
 import Node from "./node/Node"
@@ -24,6 +25,7 @@ import {
   isRelationshipLegitimate
 } from "../../common/helpers"
 import CanvasButtonGroup from "./CanvasButtonGroup"
+import CanvasGrid from "./CanvasGrid"
 
 interface CanvasProps {
   uploadMode: boolean
@@ -45,6 +47,7 @@ interface CanvasProps {
   setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
   style?: React.CSSProperties
   colorIndex: number
+  canvasRect: DOMRect
 }
 
 export default function Canvas(props: CanvasProps) {
@@ -68,6 +71,7 @@ export default function Canvas(props: CanvasProps) {
     setNeedLayout,
     style,
     colorIndex,
+    canvasRect,
   } = props
 
   const [nodeEditing, setNodeEditing] = useState(false)
@@ -85,30 +89,30 @@ export default function Canvas(props: CanvasProps) {
   const [dragCurrentPos, setDragCurrentPos] = useState<Position | null>(null)
   const [altPressed, setAltPressed] = useState(false)
   const [ctrlPressed, setCtrlPressed] = useState(false)
-  const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
+  // const [canvasRect, setCanvasRect] = useState<DOMRect | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const layoutingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Resize Observer to get correct canvas bounds and
   // successively correct mouse positions
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      if (canvasRef.current) {
-        setCanvasRect(canvasRef.current.getBoundingClientRect())
-      }
-    })
+  // useEffect(() => {
+  //   const resizeObserver = new ResizeObserver(() => {
+  //     if (canvasRef.current) {
+  //       setCanvasRect(canvasRef.current.getBoundingClientRect())
+  //     }
+  //   })
 
-    const currentCanvas = canvasRef.current
-    if (currentCanvas) {
-      resizeObserver.observe(currentCanvas)
-    }
+  //   const currentCanvas = canvasRef.current
+  //   if (currentCanvas) {
+  //     resizeObserver.observe(currentCanvas)
+  //   }
 
-    return () => {
-      if (currentCanvas) {
-        resizeObserver.unobserve(currentCanvas)
-      }
-    }
-  }, [canvasRef])
+  //   return () => {
+  //     if (currentCanvas) {
+  //       resizeObserver.unobserve(currentCanvas)
+  //     }
+  //   }
+  // }, [canvasRef])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -679,7 +683,7 @@ export default function Canvas(props: CanvasProps) {
         }
 
         newNode.position = {
-          x: xPrime + canvasWidth / 2 + 100,
+          x: xPrime + canvasWidth / 2 + 100 + canvasRect.left,
           y: yPrime + canvasHeight / 2 + nodeSize / 2 + 25,
         }
 
@@ -945,13 +949,16 @@ export default function Canvas(props: CanvasProps) {
     }
   }
 
+  const { colorScheme } = useMantineColorScheme()
+  const darkTheme = colorScheme === 'dark'
+
   return (
     <div
       className="canvas"
       style={{
         ...style,
         cursor: (dragging && dragCurrentPos) ? "grabbing" : "default",
-        backgroundColor: "#1a1b1e",
+        backgroundColor: darkTheme ? "#1a1b1e" : "#f8f9fa",
       }}
       // Selection rectangle
       onMouseDown={handleCanvasMouseDown}
@@ -964,6 +971,11 @@ export default function Canvas(props: CanvasProps) {
       ref={canvasRef}
       tabIndex={0}
     >
+      {/* Grid */}
+      {/* <CanvasGrid
+        canvasRect={canvasRect}
+      /> */}
+
       {/* Relationships */}
       {relationships.map((relationship, i) => {
         const startNode = nodes.find((node) => node.id === relationship.start.id)

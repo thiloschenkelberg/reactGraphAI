@@ -4,22 +4,23 @@ import { Planet } from "react-planet"
 import CloseIcon from "@mui/icons-material/Close"
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 
-
 import { hoverColors } from "../../../types/colors"
 
 interface RelationshipContextProps {
   onSelect: (action: string) => void
   isOpen: boolean
+  darkTheme: boolean
 }
 
 interface ContextButtonProps {
   onSelect: (action: string) => void
   children: React.ReactNode
   action: string
+  darkTheme: boolean
 }
 
 function ContextButton(props: ContextButtonProps) {
-  const { onSelect, children, action } = props
+  const { onSelect, children, action, darkTheme } = props
   const [hovered, setHovered] = useState(false)
 
   const handleSelect = (e: React.MouseEvent) => {
@@ -47,7 +48,7 @@ function ContextButton(props: ContextButtonProps) {
       style={{
         width: 40,
         height: 40,
-        backgroundColor: "#666666",
+        backgroundColor: darkTheme ? "#666666" : "#f1f3f5",
         cursor: hovered ? "pointer" : "inherit"
       }}
     >
@@ -57,7 +58,7 @@ function ContextButton(props: ContextButtonProps) {
 }
 
 export default function RelationshipContext(props: RelationshipContextProps) {
-  const { onSelect, isOpen} = props
+  const { onSelect, isOpen, darkTheme} = props
 
   return (
     <Planet
@@ -72,11 +73,13 @@ export default function RelationshipContext(props: RelationshipContextProps) {
         onSelect={onSelect}
         children={<SwapHorizIcon />}
         action="reverse"
+        darkTheme={darkTheme}
       />
       <ContextButton
         onSelect={onSelect}
         children={<CloseIcon />}
         action="delete"
+        darkTheme={darkTheme}
       />
     </Planet>
   )

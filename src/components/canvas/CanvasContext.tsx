@@ -7,6 +7,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "re
 import { Planet } from "react-planet"
 import chroma, { hsl } from "chroma-js"
 import { useSpring, animated } from "react-spring"
+import { useMantineColorScheme } from "@mantine/core"
 
 import ManufacturingIcon from "@mui/icons-material/PrecisionManufacturing"
 import PropertyIcon from "@mui/icons-material/Description"
@@ -176,6 +177,9 @@ function ContextButton(props: ContextButtonProps) {
   )
   const outlineColor = hovered === nodeType ? brightenedColor : darkenedColor;
 
+  const { colorScheme } = useMantineColorScheme()
+  const darkTheme = colorScheme === 'dark'
+
   return (
     <div style={{position: "relative", zIndex: hovered === nodeType ? 5 : 3}}>
     <animated.div 
@@ -191,6 +195,7 @@ function ContextButton(props: ContextButtonProps) {
         width: 80,
         height: 80,
         backgroundColor,
+        filter: `drop-shadow(2px 2px 2px ${(darkTheme ? "#111" : "#ddd")})`,
         outline: `${outlineWidth}px solid ${outlineColor}`,
         outlineOffset: `-${outlineWidth}px`,
         zIndex: hovered === nodeType ? 5 : 3,

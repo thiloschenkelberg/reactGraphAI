@@ -30,7 +30,7 @@ import client from "../client"
 //     terms: boolean,
 // }
 
-export default function AuthenticationForm() {
+export default function Authentication() {
   const queryClient = useQueryClient()
   const currentUser = useContext(userContext)
   const navigate = useNavigate()

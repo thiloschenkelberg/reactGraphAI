@@ -65,7 +65,6 @@ a:link {
 .canvas-btn2 {
   position: relative;
   border-radius: 0.25rem;
-  background-color: #25262b;
   align-self: center;
   justify-content: center;
   display: flex;
@@ -73,10 +72,6 @@ a:link {
   /* width: 60px;
   height: 40px; */
   /* color: #222327 */
-}
-
-.canvas-btn-divider {
-  background-color: #333333;
 }
 
 .canvas-btn-handle {
@@ -88,7 +83,6 @@ a:link {
 .canvas-btn-handle-icon {
   position: relative;
   font-size: 26px;
-  color: #a6a7ab;
 }
 
 .canvas-btn-icon {
@@ -97,20 +91,19 @@ a:link {
   color: #a6a7ab;
 }
 
-.canvas-btn-ttip {
+/* .canvas-btn-ttip {
   background-color: #2c2e33 !important;
   color: #c1c2c5 !important;
-}
+} */
 
 .canvas-btn-wrap {
   position: fixed;
   display: flex;
   width: auto;
   height: auto;
-  border: 1px solid #333333;
+  
   border-radius: 0.25rem;
   padding: 5px;
-  background-color: #25262b;
   justify-content: left;
 }
 
@@ -153,7 +146,7 @@ a:link {
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(2px 2px 2px #111);
+  /* filter: drop-shadow(2px 2px 2px #111); */
 }
 
 .ctxt-label {
@@ -205,7 +198,6 @@ a:link {
   position: "absolute";
   width: 36px;
   height: auto;
-  filter: drop-shadow(1px 1px 0px #222);
 }
 
 .logo-sm-container {
@@ -568,9 +560,9 @@ a:link {
 .wrap-login {
   width: 400px;
   position: absolute;
-  top: 200px;
+  top: calc(-45px + 50%);
   left: 50%;
-  transform: translate(-50%, 0);
+  transform: translate(-50%, -50%);
 }
 
 .wrap-navbar {

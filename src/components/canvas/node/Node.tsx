@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import chroma from "chroma-js"
 import { useSpring, animated } from "react-spring"
+import { useMantineColorScheme } from "@mantine/core"
 
 import NodeContext from "./NodeContext"
 import NodeInput from "./NodeInput"
@@ -13,6 +14,7 @@ import NodeConnector from "./NodeConnector"
 import { INode, Position, ValOpPair, Vector2D } from "../../../types/canvas.types"
 import { colorPalette } from "../../../types/colors"
 import { isAttrDefined } from "../../../common/helpers"
+
 
 interface NodeProps {
   node: INode
@@ -293,6 +295,9 @@ export default React.memo(function Node(props: NodeProps) {
     },
   })
 
+  const { colorScheme } = useMantineColorScheme()
+  const darkTheme = colorScheme === 'dark'
+
   return (
     <animated.div
       style={{
@@ -321,6 +326,7 @@ export default React.memo(function Node(props: NodeProps) {
             nodeActualSize={nodeActualSize}
             isEditing={node.isEditing}
             type={node.type}
+            darkTheme={darkTheme}
           />
         </div>
       )}
