@@ -37,7 +37,7 @@ export default function WorkflowButtons(props: WorkflowButtonProps) {
   const [btnHoverColor, setBtnHoverColor] = useState("")
 
   useEffect(() => {
-    const color = darkTheme ? "#373A40" : "#343a40"
+    const color = darkTheme ? "#373A40" : "#adb5bd"
     const hoverColor = darkTheme ? "#909296" : "#343a40"
 
     setBtnColor(color)

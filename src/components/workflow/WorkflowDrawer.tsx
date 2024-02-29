@@ -39,6 +39,7 @@ interface WorkflowDrawerProps {
   setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
   workflow: string | null
   workflows: IWorkflow[] | undefined
+  darkTheme: boolean
 }
 
 export default function WorkflowDrawer(props: WorkflowDrawerProps) {
@@ -51,6 +52,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
     setNeedLayout,
     workflow,
     workflows,
+    darkTheme,
   } = props
 
   const [file, setFile] = useState<File | undefined>()
@@ -410,6 +412,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
               requestExtractGraph={requestExtractGraph}
               requestImportGraph={requestImportGraph}
               progress={progress}
+              darkTheme={darkTheme}
             />
           )}
           <WorkflowTable

@@ -159,6 +159,16 @@ a:link {
   border-radius: 50%;
 }
 
+.header {
+  position: fixed;
+  width: 100vw;
+  height: 65px;
+}
+
+.header-width {
+  max-width: 100%;
+}
+
 .input {
   border: none;
   font-family: Poppins-Medium;
@@ -174,14 +184,14 @@ a:link {
   padding: 0 30px 0 68px;
 }
 
-.header {
-  position: fixed;
-  width: 100vw;
-  height: 65px;
+.input-dark-1 {
+  background-color: #25262b;
+  color: #c1c2c5;
 }
 
-.header-width {
-  max-width: 100%;
+.input-dark-2 {
+  background-color: #373a40;
+  color: #c1c2c5;
 }
 
 .login-logo {
@@ -223,17 +233,6 @@ a:link {
   align-items: center;
   justify-content: center;
   /* filter: drop-shadow(1px 1px 1px #111); */
-}
-
-.workflow .node-input input[type=text] {
-  outline: none;
-  border-radius: 3px;
-  border: 1px solid #333333;
-  padding: 5px;
-  background-color: #25262b;
-  color: #c1c2c5;
-  filter: drop-shadow(1px 1px 1px #111);
-  height: 40px;
 }
 
 /* .node-input input[type=number] {
@@ -484,9 +483,16 @@ a:link {
   border-radius: 3px;
   border: 1px solid #333;
   padding: 5px;
-  background-color: #373A40;
-  color: #C1C2C5;
   width: 100%;
+}
+
+.workflow .node-input input[type=text] {
+  outline: none;
+  border-radius: 3px;
+  border: 1px solid #333333;
+  padding: 5px;
+  filter: drop-shadow(1px 1px 1px #111);
+  height: 40px;
 }
 
 .workflow-history {
@@ -495,7 +501,6 @@ a:link {
   position: absolute;
   left: 0%;
   overflow: hidden;
-  background-color: #25262b;
 }
 
 .workflow-json {
@@ -504,7 +509,6 @@ a:link {
   position: absolute;
   right: 0%;
   overflow: hidden;
-  background-color: #25262b;
 }
 
 .workflow-json-btn-group {
@@ -522,7 +526,6 @@ a:link {
 .workflow-json-textarea textarea {
   background-color: inherit;
   position: relative;
-  color: #a6a7ab;
   outline: none;
   border: none;
   top: 50px;
@@ -547,7 +550,6 @@ a:link {
   position: absolute;
   bottom: 0%;
   overflow: hidden;
-  background-color: #25262b;
 }
 
 .wrap-input {

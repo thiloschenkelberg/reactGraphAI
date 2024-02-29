@@ -12,7 +12,8 @@ interface WorkflowPipelineProps {
   requestExtractNodes: () => Promise<void>
   requestExtractGraph: () => Promise<void>
   requestImportGraph: () => Promise<void>
-  progress: number
+  progress: number,
+  darkTheme: boolean
 }
 
 export default function WorkflowPipeline(props: WorkflowPipelineProps) {
@@ -26,6 +27,7 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
     requestExtractGraph,
     requestImportGraph,
     progress,
+    darkTheme,
   } = props
   const workflowPipelineRef = useRef<HTMLDivElement>(null)
   const [pipelineRect, setPipelineRect] = useState<DOMRect | null>(null)
@@ -69,6 +71,8 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
       }
     }
   }, [pipelineRect])
+
+  const inputClass = darkTheme ? "input-dark" : "input-dark"
 
   return (
     <div
@@ -116,6 +120,7 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
           }}
         >
           <input
+            className={`${inputClass}`}
             type="text"
             id="contextInput"
             placeholder={"Enter table context..."}

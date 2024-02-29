@@ -84,8 +84,8 @@ function CanvasButton(props: CanvasButtonProps) {
     />
     <Tooltip id="canvas-btn-tooltip" className="canvas-btn-ttip"
       style={{
-        backgroundColor: darkTheme ? "#2c2e33 !important" : "#fff",
-        color: darkTheme ? "#c1c2c5 !important" : "#343a40",
+        backgroundColor: darkTheme ? "#2c2e33" : "#f1f3f5",
+        color: darkTheme ? "#c1c2c5" : "#343a40",
       }}
     />
     </>

@@ -118,7 +118,7 @@ export default function Canvas(props: CanvasProps) {
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvasRect) return
       setMousePosition({
-        x: e.clientX - canvasRect.left,
+        x: e.clientX,
         y: e.clientY - canvasRect.top,
       })
     }

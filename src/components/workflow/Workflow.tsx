@@ -1,33 +1,32 @@
-  // useEffect(() => {
-  //   const splitView = localStorage.getItem("viewSplitView")
-  //   const splitViewWidth = localStorage.getItem("viewSplitViewWidth")
+// useEffect(() => {
+//   const splitView = localStorage.getItem("viewSplitView")
+//   const splitViewWidth = localStorage.getItem("viewSplitViewWidth")
 
-  //   if (!splitView || !splitViewWidth) return
+//   if (!splitView || !splitViewWidth) return
 
-  //   setSplitView(JSON.parse(splitView))
-  //   setSplitViewWidth(JSON.parse(splitViewWidth))
-  // }, [])
+//   setSplitView(JSON.parse(splitView))
+//   setSplitViewWidth(JSON.parse(splitViewWidth))
+// }, [])
 
-  // useEffect(() => {
-  //   localStorage.setItem("viewSplitView", JSON.stringify(splitView))
-  //   localStorage.setItem("viewSplitViewWidth", JSON.stringify(splitViewWidth))
-  // }, [splitView, splitViewWidth])
+// useEffect(() => {
+//   localStorage.setItem("viewSplitView", JSON.stringify(splitView))
+//   localStorage.setItem("viewSplitViewWidth", JSON.stringify(splitViewWidth))
+// }, [splitView, splitViewWidth])
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useSpring, animated } from 'react-spring';
-import { useMantineColorScheme } from "@mantine/core";
+import { useSpring, animated } from "react-spring"
+import { useMantineColorScheme } from "@mantine/core"
 
 import Canvas from "../canvas/Canvas"
 import WorkflowButtons from "./WorkflowButtons"
-import WorkflowJson from "./WorkflowJson";
-import WorkflowHistory from "./WorkflowHistory";
-import WorkflowDrawer from "./WorkflowDrawer";
-import { IRelationship, INode } from "../../types/canvas.types";
-import { convertToJSONFormat } from "../../common/helpers";
-import toast from "react-hot-toast";
-import client from "../../client";
-import { IWorkflow } from "../../types/workflow.types";
-
+import WorkflowJson from "./WorkflowJson"
+import WorkflowHistory from "./WorkflowHistory"
+import WorkflowDrawer from "./WorkflowDrawer"
+import { IRelationship, INode } from "../../types/canvas.types"
+import { convertToJSONFormat } from "../../common/helpers"
+import toast from "react-hot-toast"
+import client from "../../client"
+import { IWorkflow } from "../../types/workflow.types"
 
 const undoSteps = 200
 
@@ -59,7 +58,9 @@ export default function Workflow(props: WorkflowProps) {
   // const [canvasHeight, setCanvasHeight] = useState(0)
   const [canvasRect, setCanvasRect] = useState<DOMRect>(new DOMRect())
   const workflowWindowRef = useRef<HTMLDivElement>(null)
-  const [workflowWindowRect, setWorkflowWindowRect] = useState<DOMRect | null>(null)
+  const [workflowWindowRect, setWorkflowWindowRect] = useState<DOMRect | null>(
+    null
+  )
 
   const [jsonView, setJsonView] = useState(false)
   const [jsonViewWidth, setJsonViewWidth] = useState(0)
@@ -77,7 +78,7 @@ export default function Workflow(props: WorkflowProps) {
     setWorkflow(convertToJSONFormat(nodes, relationships, true))
   }, [nodes, relationships])
 
-  // fetch workflows 
+  // fetch workflows
   useEffect(() => {
     fetchWorkflows()
   }, [])
@@ -89,7 +90,6 @@ export default function Workflow(props: WorkflowProps) {
       await saveWorkflowToHistory(workflow)
 
       fetchWorkflows()
-
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -100,7 +100,6 @@ export default function Workflow(props: WorkflowProps) {
       await deleteWorkflowFromHistory(workflowId)
 
       fetchWorkflows()
-
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -151,11 +150,13 @@ export default function Workflow(props: WorkflowProps) {
       const width = workflowWindowRect.width - jsonViewWidth - historyViewWidth
       const height = workflowWindowRect.height - tableViewHeight
 
-      setCanvasRect(new DOMRect(historyViewWidth,workflowWindowRect.top,width,height))
+      setCanvasRect(
+        new DOMRect(historyViewWidth, workflowWindowRect.top, width, height)
+      )
 
       // setCanvasWidth(width)
       // setCanvasHeight(height)
-    }  
+    }
   }, [workflowWindowRect, jsonViewWidth, historyViewWidth, tableViewHeight])
 
   // Resize Observer for workflow window
@@ -186,44 +187,39 @@ export default function Workflow(props: WorkflowProps) {
         } else {
           setJsonViewWidth(450)
         }
-        setJsonView(!jsonView);
-        break;
+        setJsonView(!jsonView)
+        break
       case "history":
         if (historyView) {
           setHistoryViewWidth(0)
         } else {
           setHistoryViewWidth(300)
         }
-        setHistoryView(!historyView);
-        break;
+        setHistoryView(!historyView)
+        break
       case "table":
         if (tableView) {
           setTableViewHeight(0)
         } else {
           setTableViewHeight(400)
         }
-        setTableView(!tableView);
-        break;
+        setTableView(!tableView)
+        break
       default:
-        break;
+        break
     }
   }
 
   const springProps = useSpring({
-    jsonViewWidth:
-      jsonView ? jsonViewWidth : 0,
-    historyViewWidth:
-      historyView ? historyViewWidth : 0,
-    tableViewHeight:
-      tableView ? tableViewHeight : 0,
-    canvasWidth:
-      canvasRect.width,
-    canvasHeight:
-      canvasRect.height,
+    jsonViewWidth: jsonView ? jsonViewWidth : 0,
+    historyViewWidth: historyView ? historyViewWidth : 0,
+    tableViewHeight: tableView ? tableViewHeight : 0,
+    canvasWidth: canvasRect.width,
+    canvasHeight: canvasRect.height,
     config: {
       tension: 1000,
       friction: 100,
-    }
+    },
   })
 
   // CANVAS STUFF ########################################################
@@ -315,7 +311,7 @@ export default function Workflow(props: WorkflowProps) {
   }, [future, nodes, relationships, setNodes, setRelationships])
 
   const { colorScheme } = useMantineColorScheme()
-  const darkTheme = colorScheme === 'dark'
+  const darkTheme = colorScheme === "dark"
 
   return (
     <div className="workflow" ref={workflowWindowRef}>
@@ -363,7 +359,12 @@ export default function Workflow(props: WorkflowProps) {
         style={{
           height: springProps.canvasHeight,
           width: springProps.historyViewWidth,
-          borderRight: historyView ? "1px solid #333" : "none"
+          borderRight: historyView
+            ? darkTheme
+              ? "1px solid #333"
+              : "1px solid #e9ecef"
+            : "none",
+          backgroundColor: darkTheme ? "#25262b" : "#fff",
         }}
         children={
           <WorkflowHistory
@@ -375,6 +376,7 @@ export default function Workflow(props: WorkflowProps) {
             setNeedLayout={setNeedLayout}
             canvasWidth={canvasRect.width}
             canvasHeight={canvasRect.height}
+            darkTheme={darkTheme}
           />
         }
       />
@@ -384,9 +386,20 @@ export default function Workflow(props: WorkflowProps) {
         style={{
           height: springProps.canvasHeight,
           width: springProps.jsonViewWidth,
-          borderLeft: jsonView ? "1px solid #333" : "none"
+          borderLeft: jsonView
+            ? darkTheme
+              ? "1px solid #333"
+              : "1px solid #e9ecef"
+            : "none",
+          backgroundColor: darkTheme ? "#25262b" : "#fff",
         }}
-        children={<WorkflowJson workflow={workflow} setWorkflow={setWorkflow} />}
+        children={
+          <WorkflowJson
+            workflow={workflow}
+            setWorkflow={setWorkflow}
+            darkTheme={darkTheme}
+          />
+        }
       />
 
       <animated.div
@@ -394,10 +407,14 @@ export default function Workflow(props: WorkflowProps) {
         style={{
           height: springProps.tableViewHeight,
           width: "100%",
-          borderTop: tableView ? "1px solid #333" : "none"
+          borderTop: tableView
+            ? darkTheme
+              ? "1px solid #333"
+              : "1px solid #e9ecef"
+            : "none",
+          backgroundColor: darkTheme ? "#25262b" : "#fff",
         }}
       >
-        
         <WorkflowDrawer
           tableView={tableView}
           progress={progress}
@@ -407,6 +424,7 @@ export default function Workflow(props: WorkflowProps) {
           setNeedLayout={setNeedLayout}
           workflow={workflow}
           workflows={workflows}
+          darkTheme={darkTheme}
         />
       </animated.div>
 
