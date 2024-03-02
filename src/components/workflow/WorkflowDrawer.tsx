@@ -17,7 +17,7 @@ import {
 import WorkflowTable from "./WorkflowTable"
 // import testNodes from '../../alt/testNodesN.json'
 
-const USE_MOCK_DATA = false
+const USE_MOCK_DATA = true
 
 const exampleLabelDict: IDictionary = {
   Header1: { Label: "matter" },
@@ -66,6 +66,38 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
 
   const [drawerRect, setDrawerRect] = useState<DOMRect | null>(null)
   const workflowDrawerRef = useRef<HTMLDivElement>(null)
+
+  // Load tables and progress from local storage
+  // useEffect(() => {
+  //   const storedProgress = localStorage.getItem("upload-progress")
+  //   const storedCsvTable = localStorage.getItem("upload-input-table")
+  //   const storedLabelTable = localStorage.getItem("upload-label-table")
+  //   const storedAttributeTable = localStorage.getItem("upload-attribute-table")
+
+  //   if (storedCsvTable) setCsvTable(JSON.parse(storedCsvTable))
+  //   if (storedLabelTable) setLabelTable(JSON.parse(storedLabelTable))
+  //   if (storedAttributeTable) setAttributeTable(JSON.parse(storedAttributeTable))
+  //   if (storedProgress) {
+  //     setProgress(JSON.parse(storedProgress))
+  //     switch (JSON.parse(storedProgress)) {
+  //       case 1:
+  //         if (storedCsvTable)
+  //         setCurrentTable(JSON.parse(storedCsvTable))
+  //         break
+  //       case 2:
+  //         if (storedLabelTable)
+  //         setCurrentTable(JSON.parse(storedLa))
+  //     }
+  //   }
+  // }, [progress, setProgress, csvTable, labelTable, attributeTable])
+
+  // Save tables and progress to local storage
+  useEffect(() => {
+    localStorage.setItem("upload-progress", JSON.stringify(progress))
+    localStorage.setItem("upload-input-table", JSON.stringify(csvTable))
+    localStorage.setItem("upload-label-table", JSON.stringify(labelTable))
+    localStorage.setItem("upload-attribute-table", JSON.stringify(attributeTable))
+  })
 
   useEffect(() => {
     if (workflowDrawerRef.current && typeof ResizeObserver === 'function') {
@@ -152,6 +184,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
 
     try {
       if (USE_MOCK_DATA) {
+        console.log('test')
         const dictArray = dictToArray(exampleLabelDict)
         setLabelTable(dictArray)
         setCurrentTable(dictArray)
@@ -422,6 +455,7 @@ export default function WorkflowDrawer(props: WorkflowDrawerProps) {
             tableRows={currentTable}
             progress={progress}
             drawerRect={drawerRect}
+            darkTheme={darkTheme}
           />
         </div>
       )}

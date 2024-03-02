@@ -50,7 +50,8 @@ function ContextButton(props: ContextButtonProps) {
         height: 40,
         backgroundColor: darkTheme ? "#666666" : "#fff",
         cursor: hovered ? "pointer" : "inherit",
-        border: darkTheme ? "none" : "1px solid #ced4da"
+        border: darkTheme ? "none" : "1px solid #ced4da",
+        filter: `drop-shadow(1px 1px 1px ${(darkTheme ? "#111" : "#ddd")})`,
       }}
     >
       {styledChild}

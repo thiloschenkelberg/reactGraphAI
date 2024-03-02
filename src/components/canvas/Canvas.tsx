@@ -46,7 +46,6 @@ interface CanvasProps {
   needLayout: boolean
   setNeedLayout: React.Dispatch<React.SetStateAction<boolean>>
   style?: React.CSSProperties
-  colorIndex: number
   canvasRect: DOMRect
 }
 
@@ -70,7 +69,6 @@ export default function Canvas(props: CanvasProps) {
     needLayout,
     setNeedLayout,
     style,
-    colorIndex,
     canvasRect,
   } = props
 
@@ -1005,11 +1003,11 @@ export default function Canvas(props: CanvasProps) {
           node={node}
           isSelected={nodeSelectionStatus(node.id)}
           connecting={Boolean(connectingNode)}
-          colorIndex={colorIndex}
           canvasRect={canvasRect}
           mousePosition={mousePosition}
           isMoving={movingNodeIDs !== null && movingNodeIDs.has(node.id)}
           isLayouting={isLayouting}
+          darkTheme={darkTheme}
           // handleNodeMove={handleNodeMove}
           handleNodeAction={handleNodeAction}
         />
@@ -1045,7 +1043,6 @@ export default function Canvas(props: CanvasProps) {
           <ContextCanvas
             onSelect={handleContextSelect}
             open={navOpen}
-            colorIndex={colorIndex}
             contextRestrict={connectingNode?.type}
             position={clickPosition}
           />

@@ -184,15 +184,35 @@ a:link {
   padding: 0 30px 0 68px;
 }
 
-.input-dark-1 {
+/* 1 - Canvas */
+/* 2 - Workflow -> Drawer -> Pipeline */
+
+.input-dark-1 { 
   background-color: #25262b;
   color: #c1c2c5;
+  filter: drop-shadow(1px 1px 1px #111);
+  border: 1px solid #333333;
 }
 
 .input-dark-2 {
   background-color: #373a40;
   color: #c1c2c5;
+  border: 1px solid #333333;
 }
+
+.input-light-1 {
+  background-color: #fff;
+  color: #040404;
+  filter: drop-shadow(1px 1px 1px #ddd);
+  border: 1px solid #ced4da;
+}
+
+.input-light-2 {
+  background-color: #f1f3f5;
+  color: #040404;
+  border: 1px solid #ced4da;
+}
+
 
 .login-logo {
   display: flex;
@@ -201,7 +221,6 @@ a:link {
   margin-left: 17%;
   width: 66%;
   height: auto;
-  filter: drop-shadow(2px 2px 2px #111);
 }
 
 .logo-sm {
@@ -481,7 +500,6 @@ a:link {
 .workflow input[type=text] {
   outline: none;
   border-radius: 3px;
-  border: 1px solid #333;
   padding: 5px;
   width: 100%;
 }
@@ -489,9 +507,7 @@ a:link {
 .workflow .node-input input[type=text] {
   outline: none;
   border-radius: 3px;
-  border: 1px solid #333333;
   padding: 5px;
-  filter: drop-shadow(1px 1px 1px #111);
   height: 40px;
 }
 

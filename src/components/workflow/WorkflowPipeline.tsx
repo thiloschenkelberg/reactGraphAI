@@ -72,7 +72,7 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
     }
   }, [pipelineRect])
 
-  const inputClass = darkTheme ? "input-dark" : "input-dark"
+  const inputClass = darkTheme ? "input-dark-2" : "input-light-2"
 
   return (
     <div
@@ -143,7 +143,7 @@ export default function WorkflowPipeline(props: WorkflowPipelineProps) {
             width: buttonWidth,
             padding: 0,
           }}
-          onClick={loadNodes}
+          onClick={requestExtractLabels}
           disabled={progress !== 1}
         >
           {buttonWidth < 100 ? "1" : "Extract Labels"}

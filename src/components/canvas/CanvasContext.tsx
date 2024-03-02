@@ -24,7 +24,6 @@ import { possibleRelationships } from "../../common/helpers"
 interface CanvasContextProps {
   onSelect: (nodeType: INode["type"]) => void
   open: boolean
-  colorIndex: number
   contextRestrict?: INode["type"]
   position: Position
 }
@@ -35,7 +34,6 @@ interface ContextButtonProps {
   children: React.ReactNode
   fontColor: string
   fontSize: number
-  colorIndex: number
   centerPosition: Position
   hovered: INode["type"] | null
   setHovered: React.Dispatch<React.SetStateAction<INode["type"] | null>>
@@ -51,7 +49,6 @@ function ContextButton(props: ContextButtonProps) {
     children,
     fontColor,
     fontSize,
-    colorIndex,
     centerPosition,
     hovered,
     setHovered,
@@ -167,6 +164,9 @@ function ContextButton(props: ContextButtonProps) {
   }
 
   // color stuff
+  const { colorScheme } = useMantineColorScheme()
+  const darkTheme = colorScheme === 'dark'
+  const colorIndex = darkTheme ? 0 : 1
   const colors = colorPalette[colorIndex]
   const backgroundColor = colors[nodeType]
   const brightenedColor = useMemo(() =>
@@ -176,9 +176,6 @@ function ContextButton(props: ContextButtonProps) {
     chroma(backgroundColor).darken(0.5).hex(), [backgroundColor]
   )
   const outlineColor = hovered === nodeType ? brightenedColor : darkenedColor;
-
-  const { colorScheme } = useMantineColorScheme()
-  const darkTheme = colorScheme === 'dark'
 
   return (
     <div style={{position: "relative", zIndex: hovered === nodeType ? 5 : 3}}>
@@ -226,7 +223,7 @@ function ContextButton(props: ContextButtonProps) {
 }
 
 export default function CanvasContext(props: CanvasContextProps) {
-  const { onSelect, open, colorIndex, contextRestrict, position } = props
+  const { onSelect, open, contextRestrict, position } = props
   const [hovered, setHovered] = useState<INode["type"] | null>(null)
   const [extendedHover, setExtendedHover] = useState<INode["type"] | null>(null)
 
@@ -266,7 +263,6 @@ export default function CanvasContext(props: CanvasContextProps) {
             children={button.icon}
             fontColor={button.fColor}
             fontSize={button.fSize}
-            colorIndex={colorIndex}
             centerPosition={position}
             hovered={hovered}
             setHovered={setHovered}

@@ -13,6 +13,7 @@ import {
 } from "@mantine/core";
 import { IconLogout, IconSettings, IconChevronDown, IconUser } from "@tabler/icons-react";
 import logo_sm from "../img/logo_nodes.png";
+import logo_sm_light from "../img/logo_nodes_light.png"
 import { userContext } from "../common/userContext";
 import { useLocation } from "react-router-dom";
 import {
@@ -31,7 +32,7 @@ const useStyles = createStyles((theme) => ({
         ? theme.colors.dark[6]
         : theme.colors.gray[0],
     borderBottom: `${rem(1)} solid ${
-      theme.colorScheme === "dark" ? "#333" : theme.colors.gray[2]
+      theme.colorScheme === "dark" ? "#333" : theme.colors.gray[4]
     }`,
     marginBottom: rem(0),
   },
@@ -93,7 +94,7 @@ const useStyles = createStyles((theme) => ({
       borderColor:
         theme.colorScheme === "dark"
           ? theme.colors.dark[7]
-          : theme.colors.gray[2],
+          : theme.colors.gray[1],
     },
   },
 
@@ -152,7 +153,7 @@ export default function Header(props: HeaderProps) {
           <div className="logo-sm-container">
             <Link to="/" onClick={() => setActiveTab("")}>
               <img
-                src={logo_sm}
+                src={darkTheme ? logo_sm : logo_sm_light}
                 alt="mgai"
                 className="logo-sm"
               />
@@ -209,7 +210,13 @@ export default function Header(props: HeaderProps) {
                     </Group>
                   </UnstyledButton>
                 </Menu.Target>
-                <Menu.Dropdown>
+                <Menu.Dropdown
+                  style={{
+                    border: darkTheme
+                      ? "1px solid #333"
+                      : "1px solid #ced4da",
+                  }}
+                >
                   <Link to="/profile" onClick={() => setActiveTab("")}>
                     <Menu.Item
                       icon={<IconUser size="0.9rem" stroke={1.5} />}

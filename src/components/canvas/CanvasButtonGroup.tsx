@@ -287,7 +287,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
           className="canvas-btn-wrap"
           style={{
             backgroundColor: darkTheme ? "#25262b" : "#fff",
-            border: `1px solid ${(darkTheme ? "#333333" : "#e9ecef")}`,
+            border: `1px solid ${(darkTheme ? "#333333" : "#ced4da")}`,
             pointerEvents: "all",
             // transform: `translate(${position.x}px,${position.y}px)`,
             top: btnAnimated ? springProps.top : position.y,
@@ -295,7 +295,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
             // top: position.y,
             // left: position.x,
             flexDirection: vertical ? "column" : "row",
-            // visibility: initialized ? "visible" : "hidden"
+            // visibility: initialized ? "visible" : "hidden",
           }}
           ref={buttonsRef}
         >
@@ -332,7 +332,7 @@ export default function CanvasButtonGroup(props: CanvasButtonGroupProps) {
               margin: vertical ? "0 -5px 5px -5px" : "-5px 5px -5px 0",
               width: vertical ? 55 : 1,
               height: vertical ? 1 : 50,
-              backgroundColor: darkTheme ? "#333" : "#e9ecef"
+              backgroundColor: darkTheme ? "#333" : "#ced4da"
             }}
           />
           {BUTTON_TYPES.map((button) => (

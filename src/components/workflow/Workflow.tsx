@@ -31,12 +31,11 @@ import { IWorkflow } from "../../types/workflow.types"
 const undoSteps = 200
 
 interface WorkflowProps {
-  colorIndex: number
   uploadMode: boolean
 }
 
 export default function Workflow(props: WorkflowProps) {
-  const { colorIndex, uploadMode } = props
+  const { uploadMode } = props
   const [nodes, setNodes] = useState<INode[]>([])
   const [relationships, setRelationships] = useState<IRelationship[]>([])
   const [selectedNodes, setSelectedNodes] = useState<INode[]>([])
@@ -210,10 +209,17 @@ export default function Workflow(props: WorkflowProps) {
     }
   }
 
+  useEffect(() => {
+    if (!uploadMode) {
+      setTableViewHeight(0)
+      setTableView(false)
+    }
+  }, [uploadMode])
+
   const springProps = useSpring({
-    jsonViewWidth: jsonView ? jsonViewWidth : 0,
-    historyViewWidth: historyView ? historyViewWidth : 0,
-    tableViewHeight: tableView ? tableViewHeight : 0,
+    jsonViewWidth: jsonViewWidth,
+    historyViewWidth: historyViewWidth,
+    tableViewHeight: tableViewHeight,
     canvasWidth: canvasRect.width,
     canvasHeight: canvasRect.height,
     config: {
@@ -227,21 +233,37 @@ export default function Workflow(props: WorkflowProps) {
 
   // Get nodes and relationships from local storage
   useEffect(() => {
-    const savedNodes = localStorage.getItem("nodes")
-    const savedRelationships = localStorage.getItem("relationships")
+    let savedNodes: any = null
+    let savedRelationships: any = null
+
+    if (uploadMode) {
+      savedNodes = localStorage.getItem("upload-nodes")
+      savedRelationships = localStorage.getItem("upload-relationships")
+    } else {
+      savedNodes = localStorage.getItem("search-nodes")
+      savedRelationships = localStorage.getItem("search-relationships")
+    }
+    
 
     if (savedNodes) {
       setNodes(JSON.parse(savedNodes))
       if (savedRelationships) setRelationships(JSON.parse(savedRelationships))
     }
-  }, [setNodes, setRelationships])
+  }, [uploadMode])
 
   // Save nodes and relationships to local storage
   useEffect(() => {
-    localStorage.setItem("nodes", JSON.stringify(nodes))
-    localStorage.setItem("relationships", JSON.stringify(relationships))
-  }, [nodes, relationships])
+    if (uploadMode) {
+      localStorage.setItem("upload-nodes", JSON.stringify(nodes))
+      localStorage.setItem("upload-relationships", JSON.stringify(relationships))
+    } else {
+      localStorage.setItem("search-nodes", JSON.stringify(nodes))
+      localStorage.setItem("search-relationships", JSON.stringify(relationships))
+    }
+    
+  }, [nodes, relationships, uploadMode])
 
+  // History
   const updateHistory = () => {
     setHistory((prev) => ({
       nodes: [...prev.nodes, nodes].slice(-undoSteps),
@@ -310,6 +332,7 @@ export default function Workflow(props: WorkflowProps) {
     }
   }, [future, nodes, relationships, setNodes, setRelationships])
 
+  // Dark theme
   const { colorScheme } = useMantineColorScheme()
   const darkTheme = colorScheme === "dark"
 
@@ -348,7 +371,6 @@ export default function Workflow(props: WorkflowProps) {
               width: "100%",
               height: "100%",
             }}
-            colorIndex={colorIndex}
             canvasRect={canvasRect}
           />
         }
@@ -362,7 +384,7 @@ export default function Workflow(props: WorkflowProps) {
           borderRight: historyView
             ? darkTheme
               ? "1px solid #333"
-              : "1px solid #e9ecef"
+              : "1px solid #ced4da"
             : "none",
           backgroundColor: darkTheme ? "#25262b" : "#fff",
         }}
@@ -389,7 +411,7 @@ export default function Workflow(props: WorkflowProps) {
           borderLeft: jsonView
             ? darkTheme
               ? "1px solid #333"
-              : "1px solid #e9ecef"
+              : "1px solid #ced4da"
             : "none",
           backgroundColor: darkTheme ? "#25262b" : "#fff",
         }}
@@ -402,31 +424,33 @@ export default function Workflow(props: WorkflowProps) {
         }
       />
 
-      <animated.div
-        className="workflow-table"
-        style={{
-          height: springProps.tableViewHeight,
-          width: "100%",
-          borderTop: tableView
-            ? darkTheme
-              ? "1px solid #333"
-              : "1px solid #e9ecef"
-            : "none",
-          backgroundColor: darkTheme ? "#25262b" : "#fff",
-        }}
-      >
-        <WorkflowDrawer
-          tableView={tableView}
-          progress={progress}
-          setProgress={setProgress}
-          setNodes={setNodes}
-          setRelationships={setRelationships}
-          setNeedLayout={setNeedLayout}
-          workflow={workflow}
-          workflows={workflows}
-          darkTheme={darkTheme}
-        />
-      </animated.div>
+      {uploadMode && (
+        <animated.div
+          className="workflow-table"
+          style={{
+            height: springProps.tableViewHeight,
+            width: "100%",
+            borderTop: tableView
+              ? darkTheme
+                ? "1px solid #333"
+                : "1px solid #ced4da"
+              : "none",
+            backgroundColor: darkTheme ? "#25262b" : "#fff",
+          }}
+        >
+          <WorkflowDrawer
+            tableView={tableView}
+            progress={progress}
+            setProgress={setProgress}
+            setNodes={setNodes}
+            setRelationships={setRelationships}
+            setNeedLayout={setNeedLayout}
+            workflow={workflow}
+            workflows={workflows}
+            darkTheme={darkTheme}
+          />
+        </animated.div>
+      )}
 
       <div className="workflow-btn-wrap">
         <WorkflowButtons
