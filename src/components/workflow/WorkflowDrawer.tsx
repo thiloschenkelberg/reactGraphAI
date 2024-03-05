@@ -17,7 +17,7 @@ import {
 import WorkflowTable from "./WorkflowTable"
 // import testNodes from '../../alt/testNodesN.json'
 
-const USE_MOCK_DATA = true
+const USE_MOCK_DATA = false
 
 const exampleLabelDict: IDictionary = {
   Header1: { Label: "matter" },
